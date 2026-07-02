@@ -1,0 +1,2363 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Eduson Kids — дизайн-бук презентаций</title>
+<meta name="description" content="Дизайн-система HTML-презентаций Eduson Kids: палитра, типографика, сетка слайда, декор, компоненты и интерактивные блоки.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter+Tight:wght@600;700;800;900&family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+/* ============================================================
+   EDUSON KIDS · ДИЗАЙН-ТОКЕНЫ
+   ============================================================ */
+:root{
+  --ek-violet:#8C7FF6; --ek-violet-soft:#A79EF9; --ek-violet-deep:#6F61E8; --ek-violet-bg:#F0EEFE;
+  --ek-green:#3DF79D; --ek-green-soft:#7BF9BD; --ek-green-mint:#C9F7E3; --ek-green-pale:#E7FDF2; --ek-green-deep:#0FBF6E;
+  --ek-ink:#17171C; --ek-gray:#8F8F98; --ek-gray-light:#EFEFF2; --ek-line:#E3E3EA; --ek-white:#fff;
+  --ek-red:#FF6B6B; --ek-red-pale:#FFECEC; --ek-bg:#F7F7FB; --ek-radius:28px;
+  --ek-font-head:'Inter Tight','Inter','Segoe UI',system-ui,sans-serif;
+  --ek-font-body:'Inter','Segoe UI',system-ui,sans-serif;
+  --ek-font-mono:'JetBrains Mono','Cascadia Mono','Consolas',monospace;
+}
+*,*::before,*::after{box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{margin:0;background:var(--ek-bg);color:var(--ek-ink);font:400 16px/1.6 var(--ek-font-body);-webkit-font-smoothing:antialiased}
+img,svg{display:block}
+a{color:var(--ek-violet-deep)}
+
+/* ============================================================
+   БАЗОВЫЕ КОМПОНЕНТЫ (общие с интерактивными блоками)
+   ============================================================ */
+.ek-ib{font-family:var(--ek-font-body);color:var(--ek-ink)}
+.ek-q{font:800 22px/1.3 var(--ek-font-head);margin:0 0 18px}
+.ek-btn{font:700 15px/1 var(--ek-font-head);border:0;border-radius:14px;padding:14px 22px;cursor:pointer;transition:background .15s,transform .1s,opacity .15s}
+.ek-btn:active{transform:scale(.97)}
+.ek-btn--primary{background:var(--ek-violet);color:#fff}
+.ek-btn--primary:hover{background:var(--ek-violet-deep)}
+.ek-btn--green{background:var(--ek-green);color:var(--ek-ink)}
+.ek-btn--ghost{background:transparent;border:2px solid var(--ek-line);color:var(--ek-ink)}
+.ek-btn--ghost:hover{border-color:var(--ek-violet-soft)}
+.ek-btn:disabled{opacity:.45;cursor:not-allowed}
+.ek-option{display:flex;align-items:center;gap:14px;width:100%;text-align:left;background:#fff;border:2px solid var(--ek-line);border-radius:16px;padding:14px 18px;font:600 16px/1.35 var(--ek-font-body);color:var(--ek-ink);cursor:pointer;transition:border-color .15s,background .15s}
+.ek-option+.ek-option{margin-top:10px}
+.ek-option:hover{border-color:var(--ek-violet-soft)}
+.ek-option.is-selected{border-color:var(--ek-violet);background:var(--ek-violet-bg)}
+.ek-option.is-correct{border-color:var(--ek-green-deep);background:var(--ek-green-pale)}
+.ek-option.is-wrong{border-color:var(--ek-red);background:var(--ek-red-pale)}
+.ek-option:disabled{cursor:default}
+.ek-chip{flex:0 0 auto;width:34px;height:34px;border-radius:50%;background:var(--ek-gray-light);display:flex;align-items:center;justify-content:center;font:800 14px var(--ek-font-head)}
+.ek-option.is-correct .ek-chip{background:var(--ek-green)}
+.ek-option.is-wrong .ek-chip{background:var(--ek-red);color:#fff}
+.ek-feedback{display:none;margin-top:16px;border-radius:14px;padding:14px 18px;font:600 14px/1.5 var(--ek-font-body)}
+.ek-feedback.is-on{display:block}
+.ek-feedback--ok{background:var(--ek-green-pale);color:#0B7A48}
+.ek-feedback--err{background:var(--ek-red-pale);color:#C6403F}
+.ek-code{background:#fff;border:2px solid var(--ek-ink);border-radius:14px;padding:18px 22px;font:500 14px/1.65 var(--ek-font-mono);color:var(--ek-ink);overflow-x:auto;white-space:pre;tab-size:4}
+.ek-code .c{color:var(--ek-gray)}
+.ek-code .k{font-weight:700}
+.ek-badge{display:inline-block;background:var(--ek-green);color:var(--ek-ink);font:800 14px/1 var(--ek-font-head);padding:9px 16px;border-radius:10px;transform:rotate(-3deg)}
+.ek-badge--violet{background:var(--ek-violet);color:#fff}
+.ek-dots{display:flex;gap:8px}
+.ek-dots i{width:10px;height:10px;border-radius:50%;background:var(--ek-line)}
+.ek-dots i.is-on{background:var(--ek-violet)}
+.ek-dots i.is-done{background:var(--ek-green-deep)}
+
+/* ============================================================
+   ХРОМ КНИГИ: навигация, секции, карточки
+   ============================================================ */
+.topnav{position:sticky;top:0;z-index:60;background:rgba(247,247,251,.86);backdrop-filter:blur(14px);border-bottom:1px solid var(--ek-line)}
+.topnav-in{max-width:1240px;margin:0 auto;padding:12px 24px;display:flex;align-items:center;gap:18px;flex-wrap:wrap}
+.topnav-logo{display:flex;align-items:center;gap:10px;font:800 16px var(--ek-font-head);white-space:nowrap}
+.topnav-logo i{width:26px;height:26px;border-radius:8px;background:var(--ek-violet);display:inline-flex;align-items:center;justify-content:center;color:#fff;font:800 13px var(--ek-font-head);transform:rotate(-6deg)}
+.topnav-links{display:flex;gap:6px;flex-wrap:wrap}
+.topnav-links a{font:600 12.5px/1 var(--ek-font-body);color:var(--ek-ink);text-decoration:none;padding:8px 11px;border-radius:99px;border:1px solid transparent;transition:.15s}
+.topnav-links a:hover{background:var(--ek-violet-bg)}
+.topnav-links a.is-active{background:var(--ek-ink);color:#fff}
+main{max-width:1240px;margin:0 auto;padding:0 24px 80px}
+.book-section{padding-top:72px;scroll-margin-top:80px}
+.sec-head{display:flex;align-items:center;gap:16px;margin-bottom:10px}
+.sec-num{background:var(--ek-green);color:var(--ek-ink);font:800 15px/1 var(--ek-font-head);padding:9px 14px;border-radius:10px;transform:rotate(-3deg)}
+.sec-head h2{margin:0;font:800 34px/1.15 var(--ek-font-head);letter-spacing:-.01em}
+.sec-lead{max-width:820px;margin:0 0 28px;color:#4B4B55;font-size:16.5px}
+.spec-card{background:#fff;border-radius:24px;padding:30px 34px;box-shadow:0 18px 44px rgba(23,23,28,.06)}
+.spec-card h3{margin:0 0 6px;font:800 20px/1.25 var(--ek-font-head)}
+.spec-card .sub{margin:0 0 20px;color:var(--ek-gray);font-size:14px}
+.grid-2{display:grid;grid-template-columns:1fr 1fr;gap:22px}
+.grid-3{display:grid;grid-template-columns:repeat(3,1fr);gap:22px}
+.grid-4{display:grid;grid-template-columns:repeat(4,1fr);gap:18px}
+@media (max-width:960px){.grid-3,.grid-4{grid-template-columns:1fr 1fr}}
+@media (max-width:640px){.grid-2,.grid-3,.grid-4{grid-template-columns:1fr}}
+.book-note{margin:22px 0 0;background:var(--ek-violet-bg);border-left:4px solid var(--ek-violet);border-radius:0 16px 16px 0;padding:16px 20px;font-size:14.5px;color:#3C3560}
+.book-note b{color:var(--ek-ink)}
+.tag{display:inline-block;background:var(--ek-gray-light);color:#55555E;font:600 12px/1 var(--ek-font-mono);padding:6px 10px;border-radius:8px}
+
+/* Копирование */
+.copy-btn{border:0;background:var(--ek-gray-light);color:var(--ek-ink);font:600 12px/1 var(--ek-font-mono);padding:7px 11px;border-radius:8px;cursor:pointer;transition:.15s}
+.copy-btn:hover{background:var(--ek-violet);color:#fff}
+.copy-btn.is-copied{background:var(--ek-green);color:var(--ek-ink)}
+
+/* ============================================================
+   ПАЛИТРА
+   ============================================================ */
+.swatch{border-radius:18px;overflow:hidden;background:#fff;box-shadow:0 12px 30px rgba(23,23,28,.07)}
+.swatch-color{height:96px;position:relative}
+.swatch-color.is-light{border-bottom:1px solid var(--ek-line)}
+.swatch-info{padding:14px 16px;display:flex;align-items:center;justify-content:space-between;gap:8px}
+.swatch-info b{display:block;font:700 14px/1.2 var(--ek-font-head)}
+.swatch-info span{display:block;font:500 12px/1.4 var(--ek-font-mono);color:var(--ek-gray)}
+.swatch-use{padding:0 16px 14px;margin:-6px 0 0;color:#63636D;font-size:12.5px;line-height:1.45}
+
+/* ============================================================
+   ТИПОГРАФИКА
+   ============================================================ */
+.type-row{display:grid;grid-template-columns:210px 1fr;gap:24px;align-items:baseline;padding:20px 0;border-bottom:1px dashed var(--ek-line)}
+.type-row:last-child{border-bottom:0}
+.type-meta{font:500 12.5px/1.6 var(--ek-font-mono);color:var(--ek-gray)}
+.type-meta b{display:block;font:700 13.5px/1.3 var(--ek-font-head);color:var(--ek-ink);margin-bottom:2px}
+@media (max-width:720px){.type-row{grid-template-columns:1fr;gap:6px}}
+
+/* ============================================================
+   СЛАЙДЫ 1280×720 (масштабируемые превью)
+   ============================================================ */
+.slide-frame{position:relative;border-radius:18px;overflow:hidden;box-shadow:0 22px 55px rgba(23,23,28,.13);background:#fff}
+.slide-frame .slide{position:absolute;top:0;left:0;width:1280px;height:720px;transform-origin:0 0;font-family:var(--ek-font-head);overflow:hidden}
+.slide-caption{display:flex;align-items:baseline;justify-content:space-between;gap:12px;margin:14px 4px 0}
+.slide-caption b{font:700 15.5px var(--ek-font-head)}
+.slide-caption span{font:500 12px var(--ek-font-mono);color:var(--ek-gray)}
+.slide--violet{background:var(--ek-violet)}
+.slide--green{background:var(--ek-green)}
+.slide--white{background:#fff}
+
+/* Декор «Орбита» внутри слайда */
+.sl-orbit{position:absolute;inset:0;pointer-events:none}
+.slide--violet .sl-orbit{--decor:#A79EF9;--letter:#C4BEFA}
+.slide--green .sl-orbit{--decor:#7BF9BD;--letter:#C4FCE0}
+.slide--white .sl-orbit{--decor:#97F3C8;--letter:#fff}
+.sl-ring{position:absolute;left:50%;top:50%;width:1040px;height:660px;transform:translate(-50%,-50%);border:3px solid var(--decor);border-radius:50%;opacity:.9}
+.sl-ico{position:absolute;color:var(--decor)}
+.sl-letter{position:absolute;border-radius:50%;background:var(--decor);color:var(--letter);display:flex;align-items:center;justify-content:center;font:800 var(--fs,40px)/1 var(--ek-font-head);font-style:normal}
+
+.sl-waves{position:absolute;right:0;top:0;width:520px;height:720px;pointer-events:none}
+.sl-waves svg{width:100%;height:100%}
+
+/* Карточка-окно на слайде */
+.sl-card{position:relative;background:#fff;border-radius:28px;box-shadow:0 30px 80px rgba(23,23,28,.16)}
+.sl-card-top{display:flex;justify-content:space-between;align-items:center;padding:24px 30px 0}
+.sl-dots{display:flex;gap:9px}
+.sl-dots i{width:13px;height:13px;border-radius:50%;background:var(--ek-violet)}
+.sl-close{position:relative;width:22px;height:22px;opacity:.9}
+.sl-close::before,.sl-close::after{content:"";position:absolute;left:-1px;top:9px;width:24px;height:4px;border-radius:2px;background:var(--ek-violet)}
+.sl-close::before{transform:rotate(45deg)}
+.sl-close::after{transform:rotate(-45deg)}
+.sl-badge{display:inline-block;background:var(--ek-green);color:var(--ek-ink);font:800 26px/1 var(--ek-font-head);padding:14px 24px;border-radius:14px;transform:rotate(-4deg);box-shadow:0 10px 24px rgba(23,23,28,.10)}
+.sl-h1{font:800 58px/1.12 var(--ek-font-head);letter-spacing:-.015em;margin:0}
+.sl-h2{font:800 44px/1.15 var(--ek-font-head);letter-spacing:-.01em;margin:0}
+.sl-body{font:500 24px/1.5 var(--ek-font-body)}
+.sl-pagenum{position:absolute;right:54px;bottom:38px;font:800 38px/1 var(--ek-font-head);color:#fff}
+.slide--white .sl-pagenum{color:var(--ek-ink)}
+.sl-codebox{background:#fff;border:2.5px solid var(--ek-ink);border-radius:14px;padding:26px 32px;font:500 21px/1.62 var(--ek-font-mono);white-space:pre;overflow:hidden}
+.sl-codebox .c{color:var(--ek-gray)}
+.sl-bubble{position:relative;background:#EFEFF1;border-radius:30px;padding:58px 74px;text-align:center}
+.sl-bubble::after{content:"";position:absolute;right:56px;bottom:-24px;width:0;height:0;border-left:38px solid transparent;border-top:28px solid #EFEFF1}
+
+/* ============================================================
+   СЕКЦИЯ ИНТЕРАКТИВОВ
+   ============================================================ */
+.ib-item{background:#fff;border-radius:24px;box-shadow:0 18px 44px rgba(23,23,28,.06);overflow:hidden;margin-top:26px}
+.ib-head{display:flex;align-items:center;gap:14px;flex-wrap:wrap;padding:24px 34px 0}
+.ib-head h3{margin:0;font:800 21px/1.2 var(--ek-font-head)}
+.ib-desc{padding:6px 34px 0;max-width:860px;color:#4B4B55;font-size:14.5px}
+.ib-demo{margin:22px 34px 30px;padding:34px;background:var(--ek-bg);border-radius:18px;display:flex;justify-content:center}
+.ib-demo>.ek-ib{width:100%;max-width:680px;background:#fff;border-radius:20px;padding:30px 32px;box-shadow:0 14px 36px rgba(23,23,28,.08)}
+@media (max-width:640px){.ib-head,.ib-desc{padding-left:20px;padding-right:20px}.ib-demo{margin:18px 16px 22px;padding:16px}.ib-demo>.ek-ib{padding:22px 18px}}
+
+/* ============================================================
+   DO / DON'T
+   ============================================================ */
+.dd-card{border-radius:20px;padding:22px 26px;background:#fff;box-shadow:0 12px 30px rgba(23,23,28,.06);border-top:5px solid var(--ek-line)}
+.dd-card.dd-do{border-top-color:var(--ek-green)}
+.dd-card.dd-dont{border-top-color:var(--ek-red)}
+.dd-card b{display:flex;align-items:center;gap:8px;font:800 15px var(--ek-font-head);margin-bottom:8px}
+.dd-card p{margin:0;font-size:14px;color:#4B4B55}
+
+/* ============================================================
+   БИБЛИОТЕКА АССЕТОВ
+   ============================================================ */
+.asset-card{background:#fff;border-radius:20px;box-shadow:0 12px 30px rgba(23,23,28,.07);overflow:hidden;display:flex;flex-direction:column}
+.asset-view{display:flex;align-items:center;justify-content:center;padding:20px;min-height:170px}
+.asset-view svg{max-width:100%;height:auto}
+.asset-view--dark{background:var(--ek-violet)}
+.asset-view--green{background:var(--ek-green)}
+.asset-view--dotted{background:var(--ek-bg);background-image:radial-gradient(var(--ek-line) 1.5px,transparent 1.5px);background-size:16px 16px}
+.asset-info{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:14px 16px;border-top:1px solid var(--ek-line)}
+.asset-info b{font:700 13.5px var(--ek-font-head)}
+.asset-info span{display:block;font:500 11.5px var(--ek-font-mono);color:var(--ek-gray)}
+
+/* Герой */
+.hero{position:relative;margin:26px 0 0;border-radius:32px;background:var(--ek-violet);overflow:hidden;padding:88px 24px 96px}
+.hero-card{position:relative;z-index:2;max-width:760px;margin:0 auto;background:#fff;border-radius:30px;box-shadow:0 40px 90px rgba(23,23,28,.28);padding:0 0 44px;text-align:center}
+.hero-card .sl-card-top{padding:26px 30px 0}
+.hero-badge{display:inline-block;background:var(--ek-green);color:var(--ek-ink);font:800 17px/1 var(--ek-font-head);padding:12px 20px;border-radius:12px;transform:rotate(-4deg);margin:4px 0 18px}
+.hero h1{margin:0 auto;max-width:600px;font:800 46px/1.12 var(--ek-font-head);letter-spacing:-.015em}
+.hero p{max-width:520px;margin:16px auto 0;color:#4B4B55;font-size:16px;padding:0 28px}
+.hero-meta{display:flex;gap:10px;justify-content:center;flex-wrap:wrap;margin-top:22px}
+.hero-meta span{background:var(--ek-violet-bg);color:var(--ek-violet-deep);font:700 12.5px/1 var(--ek-font-head);padding:9px 14px;border-radius:99px}
+.hero .sl-orbit{--decor:#A79EF9;--letter:#C4BEFA}
+@media (max-width:720px){.hero h1{font-size:32px}.hero{padding:64px 16px 72px}}
+
+footer{border-top:1px solid var(--ek-line);margin-top:70px}
+.footer-in{max-width:1240px;margin:0 auto;padding:26px 24px;display:flex;justify-content:space-between;gap:14px;flex-wrap:wrap;color:var(--ek-gray);font-size:13px}
+
+/* CSS интерактивных блоков */
+/* --- quiz-single --- */
+#ib-quiz-single{max-width:680px;margin:0 auto}
+#ib-quiz-single .qs-head{display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px;margin:0 0 20px}
+#ib-quiz-single .qs-meta{font:700 12px/1.2 var(--ek-font-head);letter-spacing:.09em;text-transform:uppercase;color:var(--ek-gray)}
+#ib-quiz-single .ek-code{margin:0 0 22px}
+#ib-quiz-single .ek-option{transition:border-color .15s,background .15s,opacity .2s}
+#ib-quiz-single .ek-option:focus-visible,#ib-quiz-single .ek-btn:focus-visible{outline:3px solid var(--ek-violet-soft);outline-offset:2px}
+#ib-quiz-single .ek-option:disabled:not(.is-correct):not(.is-wrong){opacity:.5}
+#ib-quiz-single .ek-option:disabled:not(.is-correct):not(.is-wrong):hover{border-color:var(--ek-line)}
+#ib-quiz-single .ek-option.is-correct{animation:ib-quiz-single-pop .35s ease}
+#ib-quiz-single .ek-option.is-wrong{animation:ib-quiz-single-shake .3s ease}
+#ib-quiz-single .ek-feedback.is-on{animation:ib-quiz-single-rise .25s ease}
+#ib-quiz-single .qs-actions{display:flex;justify-content:flex-end;margin-top:18px}
+@keyframes ib-quiz-single-pop{0%{transform:scale(1)}45%{transform:scale(1.02)}100%{transform:scale(1)}}
+@keyframes ib-quiz-single-shake{0%,100%{transform:translateX(0)}30%{transform:translateX(-4px)}60%{transform:translateX(4px)}}
+@keyframes ib-quiz-single-rise{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:translateY(0)}}
+@media (prefers-reduced-motion:reduce){#ib-quiz-single .ek-option.is-correct,#ib-quiz-single .ek-option.is-wrong,#ib-quiz-single .ek-feedback.is-on{animation:none}}
+/* --- quiz-multi --- */
+#ib-quiz-multi{max-width:680px;margin:0 auto}
+#ib-quiz-multi .qm-top{display:flex;align-items:center;gap:14px;flex-wrap:wrap;margin:0 0 20px}
+#ib-quiz-multi .qm-top-note{font:600 13px/1.4 var(--ek-font-body);color:var(--ek-gray)}
+#ib-quiz-multi .ek-code{margin:0 0 22px;box-shadow:8px 8px 0 var(--ek-violet-bg)}
+#ib-quiz-multi .ek-code .n{color:var(--ek-violet-deep);font-weight:700}
+#ib-quiz-multi .qm-true{font-family:var(--ek-font-mono);font-weight:700;color:var(--ek-green-deep);background:var(--ek-green-pale);border-radius:8px;padding:2px 8px}
+#ib-quiz-multi .qm-expr{flex:1 1 auto;min-width:0;font:600 15px/1.45 var(--ek-font-mono);overflow-wrap:anywhere}
+#ib-quiz-multi .qm-expr .qm-k{color:var(--ek-violet-deep);font-weight:700}
+#ib-quiz-multi .ek-option.is-selected .ek-chip{background:var(--ek-violet);color:#fff}
+#ib-quiz-multi .ek-option.is-missed{border:2px dashed var(--ek-green-deep);background:var(--ek-white)}
+#ib-quiz-multi .ek-option.is-missed .ek-chip{background:var(--ek-green-mint)}
+#ib-quiz-multi .ek-option.is-correct::after,
+#ib-quiz-multi .ek-option.is-wrong::after,
+#ib-quiz-multi .ek-option.is-missed::after{flex:0 0 auto;margin-left:auto;font:800 11px/1 var(--ek-font-head);letter-spacing:.06em;text-transform:uppercase;border-radius:8px;padding:6px 10px}
+#ib-quiz-multi .ek-option.is-correct::after{content:'верно';background:var(--ek-green);color:var(--ek-ink)}
+#ib-quiz-multi .ek-option.is-wrong::after{content:'лишнее';background:var(--ek-red);color:#fff}
+#ib-quiz-multi .ek-option.is-missed::after{content:'пропущено';background:var(--ek-green-pale);color:var(--ek-green-deep)}
+#ib-quiz-multi .qm-actions{display:flex;align-items:center;gap:12px;flex-wrap:wrap;margin-top:22px}
+#ib-quiz-multi .qm-count{margin-left:auto;font:700 13px/1 var(--ek-font-head);color:var(--ek-gray);background:var(--ek-gray-light);border-radius:999px;padding:9px 14px;transition:background .15s,color .15s}
+#ib-quiz-multi .qm-count.is-active{background:var(--ek-violet-bg);color:var(--ek-violet-deep)}
+#ib-quiz-multi .ek-feedback .qm-note{display:block;margin-top:6px;font-weight:500}
+#ib-quiz-multi .ek-feedback.is-on{animation:ib-quiz-multi-pop .25s ease}
+@keyframes ib-quiz-multi-pop{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:translateY(0)}}
+/* --- true-false --- */
+#ib-true-false{max-width:640px;margin:0 auto}
+#ib-true-false [hidden]{display:none!important}
+
+#ib-true-false .tf-head{display:flex;align-items:center;justify-content:space-between;gap:16px;flex-wrap:wrap;margin:0 0 26px}
+#ib-true-false .tf-progress{display:flex;align-items:center;gap:12px}
+#ib-true-false .tf-counter{font:800 13px/1 var(--ek-font-head);color:var(--ek-gray);letter-spacing:.05em}
+
+#ib-true-false .tf-stage.is-anim,
+#ib-true-false .tf-result.is-anim{animation:ib-true-false-in .32s ease both}
+
+#ib-true-false .tf-statement{margin:0 0 22px;min-height:76px;font:800 26px/1.32 var(--ek-font-head);letter-spacing:-.01em}
+#ib-true-false .tf-kw{font:700 .74em/1 var(--ek-font-mono);background:var(--ek-violet-bg);color:var(--ek-violet-deep);padding:.18em .45em;border-radius:.45em;white-space:nowrap}
+
+#ib-true-false .tf-answers{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+#ib-true-false .tf-answer{margin:0;justify-content:center;text-align:center;font:800 18px/1.1 var(--ek-font-head);padding:22px 18px;border-radius:18px;transition:border-color .15s,background .15s,transform .12s,opacity .2s}
+#ib-true-false .tf-answer:not(:disabled):hover{transform:translateY(-2px)}
+#ib-true-false .tf-answer:not(:disabled):active{transform:scale(.98)}
+#ib-true-false .tf-answer:disabled:not(.is-correct):not(.is-wrong){opacity:.5}
+#ib-true-false .tf-answer:disabled:not(.is-correct):not(.is-wrong):hover{border-color:var(--ek-line)}
+
+#ib-true-false .tf-foot{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-top:26px}
+
+#ib-true-false .tf-result{display:flex;flex-direction:column;align-items:center;text-align:center;padding:12px 0 6px}
+#ib-true-false .tf-ring{position:relative;width:152px;height:152px;border-radius:50%;background:conic-gradient(var(--ek-green-deep) 0%,var(--ek-gray-light) 0);display:flex;align-items:center;justify-content:center}
+#ib-true-false .tf-ring::before{content:"";position:absolute;inset:13px;border-radius:50%;background:var(--ek-white);box-shadow:0 6px 18px rgba(23,23,28,.07)}
+#ib-true-false .tf-ring-inner{position:relative;display:flex;flex-direction:column;align-items:center;gap:3px}
+#ib-true-false .tf-score-num{font:800 46px/1 var(--ek-font-head);color:var(--ek-ink)}
+#ib-true-false .tf-score-total{font:700 12px/1 var(--ek-font-head);color:var(--ek-gray);letter-spacing:.08em;text-transform:uppercase}
+#ib-true-false .tf-phrase{margin:20px 0 0;font:800 22px/1.3 var(--ek-font-head);letter-spacing:-.01em;max-width:420px}
+
+#ib-true-false .ek-btn:focus-visible,
+#ib-true-false .tf-answer:focus-visible{outline:3px solid var(--ek-violet-soft);outline-offset:2px}
+
+@keyframes ib-true-false-in{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}
+
+@media (max-width:520px){
+  #ib-true-false .tf-answers{grid-template-columns:1fr}
+  #ib-true-false .tf-statement{font-size:22px;min-height:0}
+}
+@media (prefers-reduced-motion:reduce){
+  #ib-true-false .tf-stage.is-anim,
+  #ib-true-false .tf-result.is-anim{animation:none}
+}
+/* --- code-output --- */
+#ib-code-output{max-width:680px;margin:0 auto}
+#ib-code-output .code-output-head{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;margin:0 0 22px}
+#ib-code-output .code-output-tag{font:700 12px/1.4 var(--ek-font-head);color:var(--ek-gray);letter-spacing:.08em;text-transform:uppercase}
+#ib-code-output .code-output-editor{margin:0 0 24px;filter:drop-shadow(0 10px 24px rgba(23,23,28,.10))}
+#ib-code-output .code-output-editor-bar{display:flex;align-items:center;gap:7px;background:var(--ek-ink);border-radius:14px 14px 0 0;padding:11px 16px}
+#ib-code-output .code-output-editor-bar i{width:10px;height:10px;border-radius:50%;background:rgba(255,255,255,.22)}
+#ib-code-output .code-output-editor-bar i:first-child{background:var(--ek-violet)}
+#ib-code-output .code-output-editor-bar i:nth-child(2){background:var(--ek-green)}
+#ib-code-output .code-output-editor-bar span{margin-left:auto;font:600 12px/1 var(--ek-font-mono);color:rgba(255,255,255,.55)}
+#ib-code-output .code-output-editor .ek-code{margin:0;border-radius:0 0 14px 14px;border-top:0}
+#ib-code-output .code-output-options{margin:0 0 4px}
+#ib-code-output .code-output-out{font:700 14px/1.3 var(--ek-font-mono);background:var(--ek-gray-light);border-radius:8px;padding:4px 10px}
+#ib-code-output .ek-option.is-correct .code-output-out{background:var(--ek-white)}
+#ib-code-output .ek-option.is-wrong .code-output-out{background:var(--ek-white)}
+#ib-code-output .ek-option:disabled:not(.is-correct):not(.is-wrong){opacity:.55}
+#ib-code-output .ek-option:disabled:not(.is-correct):not(.is-wrong):hover{border-color:var(--ek-line)}
+#ib-code-output .ek-option:focus-visible{outline:3px solid var(--ek-violet-soft);outline-offset:2px}
+#ib-code-output .ek-btn:focus-visible{outline:3px solid var(--ek-violet-soft);outline-offset:2px}
+#ib-code-output .ek-feedback.is-on{animation:code-output-pop .28s cubic-bezier(.2,.8,.3,1.1)}
+@keyframes code-output-pop{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
+#ib-code-output .code-output-fb-title{margin:0 0 12px;font:800 15px/1.5 var(--ek-font-head)}
+#ib-code-output .code-output-fb-note{font:600 14px/1.5 var(--ek-font-body)}
+#ib-code-output .code-output-steps{list-style:none;counter-reset:code-output-step;margin:0;padding:0;display:flex;flex-direction:column;gap:8px}
+#ib-code-output .code-output-steps li{counter-increment:code-output-step;display:flex;align-items:flex-start;gap:12px;background:var(--ek-white);border-radius:12px;padding:12px 14px}
+#ib-code-output .code-output-steps li::before{content:counter(code-output-step);flex:0 0 auto;width:24px;height:24px;border-radius:50%;background:var(--ek-violet);color:var(--ek-white);font:800 13px/24px var(--ek-font-head);text-align:center}
+#ib-code-output .code-output-step-body{display:flex;flex-direction:column;gap:4px;min-width:0}
+#ib-code-output .code-output-step-line{font:600 13.5px/1.5 var(--ek-font-body);color:var(--ek-ink);display:flex;align-items:center;flex-wrap:wrap;gap:6px}
+#ib-code-output .code-output-step-line code{font:700 12.5px/1.4 var(--ek-font-mono);background:var(--ek-gray-light);border-radius:7px;padding:3px 8px;white-space:nowrap}
+#ib-code-output .code-output-step-line code b{font-weight:800;color:var(--ek-violet-deep)}
+#ib-code-output .code-output-step-line .code-output-false{background:var(--ek-ink);color:var(--ek-white)}
+#ib-code-output .code-output-arr{color:var(--ek-gray);font-weight:800}
+#ib-code-output .code-output-step-note{font:500 12.5px/1.5 var(--ek-font-body);color:var(--ek-gray)}
+#ib-code-output .code-output-actions{display:flex;justify-content:flex-end;margin-top:18px}
+/* --- fill-blank --- */
+#ib-fill-blank{max-width:680px;margin:0 auto}
+#ib-fill-blank .fb-head{margin:0 0 16px}
+#ib-fill-blank .fb-sub{margin:-8px 0 18px;font:500 15px/1.55 var(--ek-font-body);color:var(--ek-gray)}
+#ib-fill-blank .fb-blank{display:inline-block;width:90px;box-sizing:border-box;margin:0 1px;padding:4px 8px;background:var(--ek-violet-bg);border:2px solid var(--ek-violet);border-radius:10px;font:700 14px/1.2 var(--ek-font-mono);color:var(--ek-violet-deep);text-align:center;vertical-align:middle;outline:none;caret-color:var(--ek-violet-deep);transition:border-color .15s,background .15s,box-shadow .15s}
+#ib-fill-blank .fb-blank::placeholder{color:var(--ek-violet-soft);font-weight:700}
+#ib-fill-blank .fb-blank:focus{border-color:var(--ek-violet-deep);box-shadow:0 0 0 3px rgba(140,127,246,.25)}
+#ib-fill-blank .fb-blank.is-correct{border-color:var(--ek-green-deep);background:var(--ek-green-pale);color:var(--ek-ink)}
+#ib-fill-blank .fb-blank.is-wrong{border-color:var(--ek-red);background:var(--ek-red-pale);color:var(--ek-ink)}
+#ib-fill-blank .fb-blank:disabled{cursor:default;opacity:1;color:var(--ek-ink);-webkit-text-fill-color:var(--ek-ink)}
+#ib-fill-blank .fb-blank.is-shake{animation:ib-fill-blank-shake .3s ease}
+#ib-fill-blank .fb-actions{display:flex;gap:12px;flex-wrap:wrap;margin-top:18px}
+@keyframes ib-fill-blank-shake{0%,100%{transform:translateX(0)}25%{transform:translateX(-4px)}50%{transform:translateX(4px)}75%{transform:translateX(-2px)}}
+/* --- flashcard --- */
+#ib-flashcard{max-width:680px;margin:0 auto}
+#ib-flashcard .flashcard-head{display:flex;align-items:center;justify-content:space-between;gap:16px;flex-wrap:wrap}
+#ib-flashcard .flashcard-progress{display:flex;align-items:center;gap:12px}
+#ib-flashcard #flashcard-count{font:800 15px/1 var(--ek-font-head);color:var(--ek-ink);letter-spacing:.02em}
+#ib-flashcard .flashcard-lead{margin:14px 0 18px;font:600 14px/1.5 var(--ek-font-body);color:var(--ek-gray)}
+#ib-flashcard .flashcard-scene{position:relative;height:240px;perspective:1200px}
+#ib-flashcard .flashcard-scene::before,
+#ib-flashcard .flashcard-scene::after{content:"";position:absolute;border-radius:24px}
+#ib-flashcard .flashcard-scene::before{left:10px;right:10px;top:12px;bottom:-10px;background:var(--ek-white);border:2px solid var(--ek-line);transform:rotate(1.4deg);z-index:1}
+#ib-flashcard .flashcard-scene::after{left:22px;right:22px;top:26px;bottom:-18px;background:var(--ek-violet-bg);transform:rotate(-1.2deg);z-index:0}
+#ib-flashcard .flashcard-card{position:absolute;inset:0;z-index:2;display:block;width:100%;height:100%;padding:0;border:0;background:transparent;font:inherit;color:inherit;text-align:left;cursor:pointer;opacity:0;visibility:hidden;transition:opacity .25s ease,visibility .25s ease}
+#ib-flashcard .flashcard-card.is-active{opacity:1;visibility:visible}
+#ib-flashcard .flashcard-card:focus-visible{outline:3px solid var(--ek-violet);outline-offset:4px;border-radius:26px}
+#ib-flashcard .flashcard-inner{position:relative;display:block;width:100%;height:100%;transform:rotateY(0deg);transform-style:preserve-3d;transition:transform .5s cubic-bezier(.45,.05,.3,1)}
+#ib-flashcard .flashcard-card.is-flipped .flashcard-inner{transform:rotateY(180deg)}
+#ib-flashcard .flashcard-card:not(.is-active) .flashcard-inner{transition:none}
+#ib-flashcard .flashcard-face{position:absolute;inset:0;display:flex;flex-direction:column;align-items:flex-start;padding:24px 28px;border-radius:24px;overflow:hidden;backface-visibility:hidden;-webkit-backface-visibility:hidden}
+#ib-flashcard .flashcard-front{background:var(--ek-white);border:2px solid var(--ek-line);box-shadow:0 14px 30px rgba(23,23,28,.08);transition:border-color .15s}
+#ib-flashcard .flashcard-card.is-active:hover .flashcard-front{border-color:var(--ek-violet-soft)}
+#ib-flashcard .flashcard-back{background:var(--ek-violet-bg);border:2px solid var(--ek-violet-soft);transform:rotateY(180deg)}
+#ib-flashcard .flashcard-tag{display:inline-block;font:800 11px/1 var(--ek-font-head);letter-spacing:.08em;text-transform:uppercase;padding:7px 12px;border-radius:8px;background:var(--ek-violet-bg);color:var(--ek-violet-deep)}
+#ib-flashcard .flashcard-tag--answer{background:var(--ek-green);color:var(--ek-ink)}
+#ib-flashcard .flashcard-q{margin:auto 0;padding:12px 0;font:800 21px/1.35 var(--ek-font-head);color:var(--ek-ink)}
+#ib-flashcard .flashcard-a{margin:auto 0;padding:12px 0;font:600 15px/1.55 var(--ek-font-body);color:var(--ek-ink)}
+#ib-flashcard .flashcard-hint{font:600 13px/1 var(--ek-font-body);color:var(--ek-gray)}
+#ib-flashcard .flashcard-code{font-family:var(--ek-font-mono);font-weight:700;font-size:.85em;background:var(--ek-gray-light);border-radius:6px;padding:2px 7px}
+#ib-flashcard .flashcard-back .flashcard-code{background:var(--ek-white)}
+#ib-flashcard .flashcard-controls{display:flex;align-items:center;gap:12px;flex-wrap:wrap;margin-top:34px}
+#ib-flashcard #flashcard-reset{margin-left:auto}
+@media (max-width:520px){
+  #ib-flashcard .flashcard-scene{height:310px}
+  #ib-flashcard .flashcard-face{padding:20px 22px}
+  #ib-flashcard .flashcard-q{font-size:18px}
+  #ib-flashcard #flashcard-reset{margin-left:0}
+}
+@media (prefers-reduced-motion:reduce){
+  #ib-flashcard .flashcard-inner{transition:none}
+  #ib-flashcard .flashcard-card{transition:none}
+}
+/* --- match-pairs --- */
+#ib-match-pairs{max-width:680px;margin:0 auto}
+#ib-match-pairs .mp-sub{margin:-6px 0 20px;font:500 15px/1.5 var(--ek-font-body);color:var(--ek-gray)}
+#ib-match-pairs .mp-board{display:grid;grid-template-columns:180px minmax(0,1fr);gap:14px;align-items:start}
+#ib-match-pairs .mp-col{display:flex;flex-direction:column;gap:10px;min-width:0}
+#ib-match-pairs .mp-col .ek-option+.ek-option{margin-top:0}
+#ib-match-pairs .mp-label{font:800 11px/1 var(--ek-font-head);letter-spacing:.14em;text-transform:uppercase;color:var(--ek-gray);padding:2px 4px 0}
+#ib-match-pairs .mp-term{font:700 16px/1.25 var(--ek-font-mono);gap:12px;padding:16px}
+#ib-match-pairs .mp-term::before{content:"";flex:0 0 auto;width:9px;height:9px;border-radius:50%;background:var(--ek-violet);transition:background .15s}
+#ib-match-pairs .mp-term.is-correct::before{background:var(--ek-green-deep)}
+#ib-match-pairs .mp-term.is-wrong::before{background:var(--ek-red)}
+#ib-match-pairs .mp-term.is-correct::after{content:"\2713";margin-left:auto;color:var(--ek-green-deep);font:800 15px/1 var(--ek-font-head)}
+#ib-match-pairs .mp-desc{font:600 14px/1.4 var(--ek-font-body);padding:14px 16px}
+#ib-match-pairs .ek-option.is-wrong{animation:ib-match-pairs-shake .3s ease}
+#ib-match-pairs .ek-option.is-correct{animation:ib-match-pairs-pop .25s ease}
+#ib-match-pairs .ek-option:focus-visible,#ib-match-pairs .ek-btn:focus-visible{outline:3px solid var(--ek-violet-soft);outline-offset:2px}
+#ib-match-pairs .mp-footer{display:flex;align-items:center;justify-content:space-between;gap:14px;flex-wrap:wrap;margin-top:22px}
+#ib-match-pairs .mp-score{display:flex;align-items:center;gap:12px;font:700 14px/1 var(--ek-font-head);color:var(--ek-ink)}
+@keyframes ib-match-pairs-shake{0%,100%{transform:translateX(0)}25%{transform:translateX(-4px)}60%{transform:translateX(4px)}}
+@keyframes ib-match-pairs-pop{0%{transform:scale(1)}45%{transform:scale(1.04)}100%{transform:scale(1)}}
+@media (max-width:559px){
+#ib-match-pairs .mp-board{grid-template-columns:minmax(0,1fr)}
+#ib-match-pairs .mp-footer{justify-content:flex-start}
+}
+/* --- open-reveal --- */
+#ib-open-reveal{max-width:680px;margin:0 auto}
+#ib-open-reveal .or-badge-row{margin:0 0 4px}
+#ib-open-reveal .or-q{font-size:28px;line-height:1.22;letter-spacing:-.01em;margin:22px 0 12px}
+#ib-open-reveal .or-k{font:700 .82em var(--ek-font-mono);background:var(--ek-violet-bg);color:var(--ek-violet-deep);padding:.16em .5em;border-radius:8px;white-space:nowrap}
+#ib-open-reveal .or-hint{margin:0;font:500 15px/1.55 var(--ek-font-body);color:var(--ek-gray);max-width:52ch}
+#ib-open-reveal .or-actions{display:flex;flex-wrap:wrap;gap:10px;margin-top:22px}
+#ib-open-reveal .or-answer{max-height:0;overflow:hidden;opacity:0;transition:max-height .4s cubic-bezier(.4,0,.2,1),opacity .3s ease}
+#ib-open-reveal .or-answer.is-open{opacity:1}
+#ib-open-reveal .or-card{margin-top:18px;background:var(--ek-green-pale);border:2px solid var(--ek-green-mint);border-radius:20px;padding:20px 24px 22px}
+#ib-open-reveal .or-card-label{display:flex;align-items:center;gap:10px;margin:0 0 10px;font:800 13px/1 var(--ek-font-head);letter-spacing:.09em;text-transform:uppercase;color:var(--ek-green-deep)}
+#ib-open-reveal .or-check{flex:0 0 auto;width:22px;height:22px;border-radius:50%;background:var(--ek-green);color:var(--ek-ink);display:inline-flex;align-items:center;justify-content:center;font:800 12px/1 var(--ek-font-head)}
+#ib-open-reveal .or-card-text{margin:0;font:500 15.5px/1.62 var(--ek-font-body);color:var(--ek-ink)}
+#ib-open-reveal .or-card-text .or-k{background:var(--ek-white)}
+@media (prefers-reduced-motion:reduce){
+  #ib-open-reveal .or-answer{transition:none}
+}
+</style>
+</head>
+<body>
+
+<nav class="topnav">
+  <div class="topnav-in">
+    <div class="topnav-logo"><i>EK</i> Eduson Kids · Дизайн-бук</div>
+    <div class="topnav-links" id="navlinks">
+      <a href="#principles">01 Принципы</a>
+      <a href="#palette">02 Цвет</a>
+      <a href="#type">03 Типографика</a>
+      <a href="#layout">04 Сетка</a>
+      <a href="#decor">05 Декор</a>
+      <a href="#components">06 Компоненты</a>
+      <a href="#slides">07 Слайды</a>
+      <a href="#interactive">08 Интерактив</a>
+      <a href="#dodont">09 Можно / нельзя</a>
+      <a href="#assets">10 Ассеты</a>
+    </div>
+  </div>
+</nav>
+
+<header class="hero">
+  <div class="sl-orbit">
+    <i class="sl-ring" style="width:1150px;height:620px"></i>
+    <svg class="sl-ico" viewBox="0 0 100 100" style="left:6%;top:10%;width:110px;height:110px;transform:rotate(-10deg)"><use href="#ek-i-trophy"/></svg>
+    <svg class="sl-ico" viewBox="0 0 100 100" style="right:7%;top:9%;width:95px;height:95px;transform:rotate(12deg)"><use href="#ek-i-heart"/></svg>
+    <svg class="sl-ico" viewBox="0 0 100 100" style="left:8%;bottom:9%;width:92px;height:92px;transform:rotate(-15deg)"><use href="#ek-i-star"/></svg>
+    <svg class="sl-ico" viewBox="0 0 100 100" style="right:8%;bottom:11%;width:84px;height:84px;transform:rotate(8deg)"><use href="#ek-i-gem"/></svg>
+    <i class="sl-letter" style="left:2.5%;top:44%;width:74px;height:74px;--fs:34px">X</i>
+    <i class="sl-letter" style="left:38%;top:3%;width:58px;height:58px;--fs:26px">Y</i>
+    <i class="sl-letter" style="right:2.5%;top:46%;width:70px;height:70px;--fs:32px">B</i>
+    <i class="sl-letter" style="left:56%;bottom:3.5%;width:58px;height:58px;--fs:26px">A</i>
+  </div>
+  <div class="hero-card">
+    <div class="sl-card-top"><span class="sl-dots"><i></i><i></i><i></i></span><span class="sl-close" aria-hidden="true"></span></div>
+    <div class="hero-badge">Дизайн-система · v1.0</div>
+    <h1>Дизайн-бук презентаций Eduson Kids</h1>
+    <p>Единый визуальный язык слайдов курса программирования: цвет, типографика, сетка, декор «Орбита», готовые шаблоны слайдов и живые интерактивные блоки для вопросов.</p>
+    <div class="hero-meta">
+      <span>Формат слайда 1280 × 720</span>
+      <span>HTML / Figma / Keynote</span>
+      <span>Обновлён 02.07.2026</span>
+    </div>
+  </div>
+</header>
+
+<main>
+
+<section class="book-section" id="principles">
+  <div class="sec-head"><span class="sec-num">01</span><h2>Принципы</h2></div>
+  <p class="sec-lead">Шесть правил, на которых держится каждый слайд. Если макет спорит с правилом — побеждает правило.</p>
+  <div class="grid-3">
+    <div class="spec-card">
+      <h3>🪟 Экран — это окно</h3>
+      <p class="sub">Метафора бренда</p>
+      <p style="margin:0;font-size:14.5px;color:#4B4B55">Контент живёт в белой карточке-«окне» с тремя точками и крестиком — как программа на экране компьютера. Карточка всегда светлее фона и всегда со скруглением 28&nbsp;px.</p>
+    </div>
+    <div class="spec-card">
+      <h3>🎨 Один акцент на слайд</h3>
+      <p class="sub">Цветовая дисциплина</p>
+      <p style="margin:0;font-size:14.5px;color:#4B4B55">Фон слайда — фиолетовый, зелёный или белый. Никогда два ярких фона сразу: зелёный — для разделителей и стикеров, фиолетовый — для титулов и контента, белый — для плотного материала.</p>
+    </div>
+    <div class="spec-card">
+      <h3>🔠 Крупно и смело</h3>
+      <p class="sub">Типографика</p>
+      <p style="margin:0;font-size:14.5px;color:#4B4B55">Дети смотрят с телефонов и проекторов. Заголовки — жирные (800), от 44&nbsp;px, максимум две строки. Если текст не читается с трёх метров — он не попадает на слайд.</p>
+    </div>
+    <div class="spec-card">
+      <h3>🪐 Декор живёт на орбите</h3>
+      <p class="sub">Система украшений</p>
+      <p style="margin:0;font-size:14.5px;color:#4B4B55">Трофеи, сердечки, звёзды и буквы-планеты сидят на тонкой линии-орбите по краям слайда. Декор всегда на полтона светлее фона и никогда не залезает в центр — там контент.</p>
+    </div>
+    <div class="spec-card">
+      <h3>✅ Верно — значит зелёный</h3>
+      <p class="sub">Семантика цвета</p>
+      <p style="margin:0;font-size:14.5px;color:#4B4B55">Зелёный = правильно, успех, «давай!». Коралловый = ошибка, и только в интерактивах. Фиолетовый = выбор и акцент. Другие смысловые цвета не вводим.</p>
+    </div>
+    <div class="spec-card">
+      <h3>💻 Код — первоклассный житель</h3>
+      <p class="sub">Работа с кодом</p>
+      <p style="margin:0;font-size:14.5px;color:#4B4B55">Код набирается моноширинным шрифтом в белом блоке с чёрной рамкой 2&nbsp;px — никаких скриншотов. Комментарии серые, ключевые слова жирные, кириллица в строках приветствуется.</p>
+    </div>
+  </div>
+</section>
+
+<section class="book-section" id="palette">
+  <div class="sec-head"><span class="sec-num">02</span><h2>Цвет</h2></div>
+  <p class="sec-lead">Палитра построена вокруг пары «фиолет + неоновая зелень» на почти-чёрной типографике. Клик по кнопке HEX копирует код цвета.</p>
+
+  <div class="spec-card" style="margin-bottom:22px">
+    <h3>Основные</h3>
+    <p class="sub">Фоны слайдов и главные акценты</p>
+    <div class="grid-4">
+      <div class="swatch"><div class="swatch-color" style="background:#8C7FF6"></div><div class="swatch-info"><div><b>Фиолетовый</b><span>#8C7FF6 · --ek-violet</span></div><button class="copy-btn" data-copy="#8C7FF6">HEX</button></div><p class="swatch-use">Фон титульных и контентных слайдов, кнопки, акценты.</p></div>
+      <div class="swatch"><div class="swatch-color" style="background:#3DF79D"></div><div class="swatch-info"><div><b>Зелёный неон</b><span>#3DF79D · --ek-green</span></div><button class="copy-btn" data-copy="#3DF79D">HEX</button></div><p class="swatch-use">Разделители, стикеры-бейджи, состояние «верно».</p></div>
+      <div class="swatch"><div class="swatch-color" style="background:#17171C"></div><div class="swatch-info"><div><b>Чернила</b><span>#17171C · --ek-ink</span></div><button class="copy-btn" data-copy="#17171C">HEX</button></div><p class="swatch-use">Весь текст, рамки код-блоков. Чистый #000 не используем.</p></div>
+      <div class="swatch"><div class="swatch-color is-light" style="background:#FFFFFF"></div><div class="swatch-info"><div><b>Белый</b><span>#FFFFFF · --ek-white</span></div><button class="copy-btn" data-copy="#FFFFFF">HEX</button></div><p class="swatch-use">Карточки-окна, фон плотных слайдов.</p></div>
+    </div>
+  </div>
+
+  <div class="grid-2">
+    <div class="spec-card">
+      <h3>Оттенки фиолетового</h3>
+      <p class="sub">Декор, hover и подложки</p>
+      <div class="grid-2">
+        <div class="swatch"><div class="swatch-color" style="background:#A79EF9"></div><div class="swatch-info"><div><b>Фиолет · декор</b><span>#A79EF9 · --ek-violet-soft</span></div><button class="copy-btn" data-copy="#A79EF9">HEX</button></div><p class="swatch-use">Орбита и иконки на фиолетовом фоне.</p></div>
+        <div class="swatch"><div class="swatch-color" style="background:#6F61E8"></div><div class="swatch-info"><div><b>Фиолет · тёмный</b><span>#6F61E8 · --ek-violet-deep</span></div><button class="copy-btn" data-copy="#6F61E8">HEX</button></div><p class="swatch-use">Hover кнопок, ссылки на белом.</p></div>
+        <div class="swatch"><div class="swatch-color" style="background:#C4BEFA"></div><div class="swatch-info"><div><b>Фиолет · буквы</b><span>#C4BEFA</span></div><button class="copy-btn" data-copy="#C4BEFA">HEX</button></div><p class="swatch-use">Буквы внутри кругов-«планет» на фиолетовом.</p></div>
+        <div class="swatch"><div class="swatch-color is-light" style="background:#F0EEFE"></div><div class="swatch-info"><div><b>Фиолет · подложка</b><span>#F0EEFE · --ek-violet-bg</span></div><button class="copy-btn" data-copy="#F0EEFE">HEX</button></div><p class="swatch-use">Выбранный вариант ответа, светлые плашки.</p></div>
+      </div>
+    </div>
+    <div class="spec-card">
+      <h3>Оттенки зелёного</h3>
+      <p class="sub">Декор и состояния успеха</p>
+      <div class="grid-2">
+        <div class="swatch"><div class="swatch-color" style="background:#7BF9BD"></div><div class="swatch-info"><div><b>Зелень · декор</b><span>#7BF9BD · --ek-green-soft</span></div><button class="copy-btn" data-copy="#7BF9BD">HEX</button></div><p class="swatch-use">Орбита и иконки на зелёном фоне.</p></div>
+        <div class="swatch"><div class="swatch-color" style="background:#0FBF6E"></div><div class="swatch-info"><div><b>Зелень · тёмная</b><span>#0FBF6E · --ek-green-deep</span></div><button class="copy-btn" data-copy="#0FBF6E">HEX</button></div><p class="swatch-use">Рамка верного ответа, текст успеха.</p></div>
+        <div class="swatch"><div class="swatch-color is-light" style="background:#C9F7E3"></div><div class="swatch-info"><div><b>Минт · линии</b><span>#C9F7E3 · --ek-green-mint</span></div><button class="copy-btn" data-copy="#C9F7E3">HEX</button></div><p class="swatch-use">Волнистые линии-декор на белых слайдах.</p></div>
+        <div class="swatch"><div class="swatch-color is-light" style="background:#E7FDF2"></div><div class="swatch-info"><div><b>Зелень · подложка</b><span>#E7FDF2 · --ek-green-pale</span></div><button class="copy-btn" data-copy="#E7FDF2">HEX</button></div><p class="swatch-use">Фон верного ответа и позитивного фидбека.</p></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="grid-2" style="margin-top:22px">
+    <div class="spec-card">
+      <h3>Нейтральные</h3>
+      <p class="sub">Текст второго плана, рамки, фоны страниц</p>
+      <div class="grid-2">
+        <div class="swatch"><div class="swatch-color" style="background:#8F8F98"></div><div class="swatch-info"><div><b>Серый</b><span>#8F8F98 · --ek-gray</span></div><button class="copy-btn" data-copy="#8F8F98">HEX</button></div><p class="swatch-use">Комментарии в коде, подписи.</p></div>
+        <div class="swatch"><div class="swatch-color is-light" style="background:#EFEFF2"></div><div class="swatch-info"><div><b>Серый · светлый</b><span>#EFEFF2 · --ek-gray-light</span></div><button class="copy-btn" data-copy="#EFEFF2">HEX</button></div><p class="swatch-use">Кружки-буллиты, спич-бабл разделителя.</p></div>
+        <div class="swatch"><div class="swatch-color is-light" style="background:#E3E3EA"></div><div class="swatch-info"><div><b>Линии</b><span>#E3E3EA · --ek-line</span></div><button class="copy-btn" data-copy="#E3E3EA">HEX</button></div><p class="swatch-use">Рамки вариантов ответа, разделители.</p></div>
+        <div class="swatch"><div class="swatch-color is-light" style="background:#F7F7FB"></div><div class="swatch-info"><div><b>Фон страницы</b><span>#F7F7FB · --ek-bg</span></div><button class="copy-btn" data-copy="#F7F7FB">HEX</button></div><p class="swatch-use">Фон вспомогательных страниц и демо-зон.</p></div>
+      </div>
+    </div>
+    <div class="spec-card">
+      <h3>Системные</h3>
+      <p class="sub">Только для обратной связи в интерактивах</p>
+      <div class="grid-2">
+        <div class="swatch"><div class="swatch-color" style="background:#FF6B6B"></div><div class="swatch-info"><div><b>Коралловый</b><span>#FF6B6B · --ek-red</span></div><button class="copy-btn" data-copy="#FF6B6B">HEX</button></div><p class="swatch-use">Рамка неверного ответа. Вне интерактивов запрещён.</p></div>
+        <div class="swatch"><div class="swatch-color is-light" style="background:#FFECEC"></div><div class="swatch-info"><div><b>Коралл · подложка</b><span>#FFECEC · --ek-red-pale</span></div><button class="copy-btn" data-copy="#FFECEC">HEX</button></div><p class="swatch-use">Фон неверного ответа и фидбека-ошибки.</p></div>
+      </div>
+      <div class="book-note" style="margin-top:18px"><b>Правило контраста:</b> на фиолетовом и зелёном фоне текст — только «чернила» #17171C или белый в карточке. Серый текст на цветных фонах не используем.</div>
+    </div>
+  </div>
+</section>
+
+<section class="book-section" id="type">
+  <div class="sec-head"><span class="sec-num">03</span><h2>Типографика</h2></div>
+  <p class="sec-lead">Три гарнитуры: плотный гротеск для заголовков, спокойный гротеск для текста и моноширинный — для кода. В веб-версии слайдов используем Inter Tight / Inter / JetBrains Mono.</p>
+
+  <div class="grid-3" style="margin-bottom:22px">
+    <div class="spec-card">
+      <h3 style="font-family:var(--ek-font-head)">Inter Tight</h3>
+      <p class="sub">Заголовки · 700–900</p>
+      <p style="margin:0;font:800 26px/1.25 var(--ek-font-head)">Аа Бб Вв Гг Дд<br>0123456789 ?!»</p>
+    </div>
+    <div class="spec-card">
+      <h3>Inter</h3>
+      <p class="sub">Основной текст · 400–700</p>
+      <p style="margin:0;font:500 26px/1.25 var(--ek-font-body)">Аа Бб Вв Гг Дд<br>0123456789 ?!»</p>
+    </div>
+    <div class="spec-card">
+      <h3 style="font-family:var(--ek-font-mono);font-weight:700">JetBrains Mono</h3>
+      <p class="sub">Код · 400–700</p>
+      <p style="margin:0;font:500 22px/1.35 var(--ek-font-mono)">if elif else<br>0123456789 -&gt;=</p>
+    </div>
+  </div>
+
+  <div class="spec-card">
+    <h3>Шкала слайда 1280 × 720</h3>
+    <p class="sub">Размеры указаны в пикселях макета; при масштабировании слайда сохраняются пропорции</p>
+    <div class="type-row">
+      <div class="type-meta"><b>H1 · Титул</b>58 px · 800 · Inter Tight<br>межстрочный 1.12 · до 2 строк</div>
+      <div style="font:800 44px/1.12 var(--ek-font-head);letter-spacing:-.015em">Как работают вложенные и каскадные условия</div>
+    </div>
+    <div class="type-row">
+      <div class="type-meta"><b>H2 · Заголовок слайда</b>44 px · 800 · Inter Tight</div>
+      <div style="font:800 34px/1.15 var(--ek-font-head);letter-spacing:-.01em">Проверьте домашнее задание</div>
+    </div>
+    <div class="type-row">
+      <div class="type-meta"><b>Подзаголовок</b>28 px · 700 · Inter Tight</div>
+      <div style="font:700 22px/1.3 var(--ek-font-head)">Скобки решают, что проверяется первым</div>
+    </div>
+    <div class="type-row">
+      <div class="type-meta"><b>Основной текст</b>24 px · 500 · Inter<br>межстрочный 1.5</div>
+      <div style="font:500 18px/1.5 var(--ek-font-body)">Python идёт по каскаду сверху вниз и выполняет только первую истинную ветку — остальные даже не проверяет.</div>
+    </div>
+    <div class="type-row">
+      <div class="type-meta"><b>Код</b>21 px · 500 · JetBrains Mono<br>межстрочный 1.62</div>
+      <div style="font:500 16px/1.62 var(--ek-font-mono)">if age &gt;= 18 or parent_consent:</div>
+    </div>
+    <div class="type-row">
+      <div class="type-meta"><b>Стикер-бейдж</b>26 px · 800 · Inter Tight<br>наклон −4°</div>
+      <div><span class="ek-badge" style="font-size:20px;padding:12px 20px">Урок №11</span></div>
+    </div>
+    <div class="type-row">
+      <div class="type-meta"><b>Номер страницы</b>38 px · 800 · Inter Tight<br>правый нижний угол</div>
+      <div style="font:800 30px/1 var(--ek-font-head)">2</div>
+    </div>
+  </div>
+
+  <div class="book-note"><b>Микротипографика:</b> кавычки — «ёлочки», тире — длинное (—), букву «ё» пишем всегда. Заголовки выравниваем влево; по центру — только титулы и слайды-разделители. Неразрывный пробел перед короткими словами: 1280&nbsp;×&nbsp;720, №&nbsp;11.</div>
+</section>
+
+<section class="book-section" id="layout">
+  <div class="sec-head"><span class="sec-num">04</span><h2>Сетка слайда</h2></div>
+  <p class="sec-lead">Все слайды — 1280 × 720 (16:9). Поля и зоны фиксированы: контент никогда не прилипает к краям, декор никогда не заходит в центр.</p>
+
+  <div class="grid-2">
+    <div>
+      <div class="slide-frame js-scale">
+        <div class="slide slide--white">
+          <div style="position:absolute;inset:0;border:2px dashed #C4BEFA;margin:80px;border-radius:6px"></div>
+          <div style="position:absolute;left:80px;right:80px;top:80px;height:110px;border:2px dashed var(--ek-violet);border-radius:6px;background:#F0EEFE66;display:flex;align-items:center;justify-content:center;font:700 24px var(--ek-font-head);color:var(--ek-violet-deep)">Зона заголовка · H2 44 px</div>
+        <div style="position:absolute;left:80px;right:80px;top:220px;bottom:120px;border:2px dashed var(--ek-green-deep);border-radius:6px;background:#E7FDF266;display:flex;align-items:center;justify-content:center;font:700 24px var(--ek-font-head);color:var(--ek-green-deep)">Контентная зона</div>
+          <div style="position:absolute;right:54px;bottom:38px;font:800 38px/1 var(--ek-font-head);color:var(--ek-gray)">N</div>
+          <div style="position:absolute;left:80px;bottom:44px;font:600 20px var(--ek-font-mono);color:var(--ek-gray)">поля 80 px по периметру</div>
+        </div>
+      </div>
+      <div class="slide-caption"><b>Разметка контентного слайда</b><span>1280 × 720 · поля 80</span></div>
+    </div>
+    <div class="spec-card">
+      <h3>Правила зон</h3>
+      <p class="sub">Проверяй перед экспортом</p>
+      <ul style="margin:0;padding-left:20px;font-size:14.5px;color:#4B4B55;line-height:1.75">
+        <li><b>Поля</b> — 80 px со всех сторон. Внутри карточки-окна — ещё 56 px собственных отступов.</li>
+        <li><b>Заголовок</b> — всегда сверху слева (кроме титулов и разделителей — там центр).</li>
+        <li><b>Карточка-окно</b> на титуле — по центру, ширина 720–840 px; на контентном слайде — почти весь слайд с полями 64 px.</li>
+        <li><b>Номер страницы</b> — правый нижний угол, 54 px от правого края, 38 px от нижнего. На титуле и разделителях номер не ставим.</li>
+        <li><b>Декор «Орбита»</b> — только в поле 0–180 px от краёв; центральная треть слайда всегда чистая.</li>
+        <li><b>Скругления</b> — карточки 28 px, код-блоки и кнопки 14 px, стикеры 10–14 px.</li>
+        <li><b>Тень карточки</b> — мягкая и глубокая: <span class="tag">0 30px 80px rgba(23,23,28,.16)</span></li>
+      </ul>
+    </div>
+  </div>
+</section>
+
+<section class="book-section" id="decor">
+  <div class="sec-head"><span class="sec-num">05</span><h2>Декор «Орбита»</h2></div>
+  <p class="sec-lead">Фирменные украшения — «планеты» на тонкой линии-орбите: трофей, сердце, звезда, гем и буквы X, Y, A, B. Восемь фиксированных позиций по краям слайда, центр всегда свободен.</p>
+
+  <div class="grid-2" style="margin-bottom:22px">
+    <div class="spec-card">
+      <h3>Инвентарь</h3>
+      <p class="sub">4 иконки + 4 буквы-планеты · один цвет на слайд</p>
+      <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:12px;padding:4px 0 14px">
+        <div style="background:var(--ek-violet);border-radius:16px;aspect-ratio:1;display:flex;align-items:center;justify-content:center"><svg viewBox="0 0 100 100" style="width:54%;height:54%;color:#A79EF9"><use href="#ek-i-trophy"/></svg></div>
+        <div style="background:var(--ek-violet);border-radius:16px;aspect-ratio:1;display:flex;align-items:center;justify-content:center"><svg viewBox="0 0 100 100" style="width:54%;height:54%;color:#A79EF9"><use href="#ek-i-heart"/></svg></div>
+        <div style="background:var(--ek-violet);border-radius:16px;aspect-ratio:1;display:flex;align-items:center;justify-content:center"><svg viewBox="0 0 100 100" style="width:54%;height:54%;color:#A79EF9"><use href="#ek-i-star"/></svg></div>
+        <div style="background:var(--ek-violet);border-radius:16px;aspect-ratio:1;display:flex;align-items:center;justify-content:center"><svg viewBox="0 0 100 100" style="width:54%;height:54%;color:#A79EF9"><use href="#ek-i-gem"/></svg></div>
+        <div style="background:var(--ek-green);border-radius:16px;aspect-ratio:1;display:flex;align-items:center;justify-content:center"><i class="sl-letter" style="position:static;width:56%;height:56%;--fs:26px;background:#7BF9BD;color:#C4FCE0">X</i></div>
+        <div style="background:var(--ek-green);border-radius:16px;aspect-ratio:1;display:flex;align-items:center;justify-content:center"><i class="sl-letter" style="position:static;width:56%;height:56%;--fs:26px;background:#7BF9BD;color:#C4FCE0">Y</i></div>
+        <div style="background:var(--ek-green);border-radius:16px;aspect-ratio:1;display:flex;align-items:center;justify-content:center"><i class="sl-letter" style="position:static;width:56%;height:56%;--fs:26px;background:#7BF9BD;color:#C4FCE0">A</i></div>
+        <div style="background:var(--ek-green);border-radius:16px;aspect-ratio:1;display:flex;align-items:center;justify-content:center"><i class="sl-letter" style="position:static;width:56%;height:56%;--fs:26px;background:#7BF9BD;color:#C4FCE0">B</i></div>
+      </div>
+      <span class="tag">спрайт #ek-i-* · буквы — .sl-letter</span>
+    </div>
+    <div class="spec-card">
+      <h3>Правила орбиты</h3>
+      <p class="sub">Как расставлять декор, чтобы он не мешал</p>
+      <ul style="margin:0;padding-left:20px;font-size:14.5px;color:#4B4B55;line-height:1.75">
+        <li><b>Кольцо</b> — эллипс ≈1040 × 660 по центру слайда, линия 3 px, цвет декора.</li>
+        <li><b>8 позиций:</b> трофей, Y и сердце — сверху; X и B — по бокам; звезда, A и гем — снизу.</li>
+        <li><b>Цвет — на полтона светлее фона:</b> фиолетовый фон → декор #A79EF9, буквы #C4BEFA; зелёный фон → #7BF9BD и #C4FCE0; белый фон → минт #97F3C8, буквы белые, линии #C9F7E3.</li>
+        <li><b>Повороты</b> — от −15° до +12°, лёгкая живая асимметрия.</li>
+        <li><b>Плотные слайды</b> (код, практика): полная орбита не нужна — 1–2 крупных элемента по углам с opacity 0.35.</li>
+        <li><b>Белые слайды</b> — вместо орбиты две волнистые минт-линии справа с 4–5 «планетами».</li>
+      </ul>
+    </div>
+  </div>
+
+  <div class="grid-2">
+    <div>
+      <div class="slide-frame" style="aspect-ratio:16/9" id="asset-bg-violet-preview"><svg style="width:100%;height:100%;display:block" xmlns="http://www.w3.org/2000/svg" version="1.1" viewBox="0 0 1280 720">
+  <rect x="0" y="0" width="1280" height="720" fill="#8C7FF6"/>
+  <ellipse cx="640" cy="360" rx="530" ry="340" fill="none" stroke="#A79EF9" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" opacity="0.9"/>
+  <g transform="translate(150 95) rotate(-10) scale(1.705) translate(-50 -50)">
+    <path fill="#A79EF9" d="M24 16h52v12h8c6 0 10 4 10 10 0 15-11 25-23 27-3 5-8 9-14 10v8h14c4 0 7 3 7 7v4H22v-4c0-4 3-7 7-7h14v-8c-6-1-11-5-14-10C17 63 6 53 6 38c0-6 4-10 10-10h8V16zM24 36h-7c-2 0-4 2-4 4 0 8 5 15 12 18-1-5-1-10-1-16v-6zM76 36v6c0 6 0 11-1 16 7-3 12-10 12-18 0-2-2-4-4-4h-7z"/>
+  </g>
+  <g transform="translate(505 52) scale(0.78) translate(-50 -50)">
+    <circle cx="50" cy="50" r="50" fill="#A79EF9"/>
+    <text x="50" y="50" dy="0.36em" fill="#C4BEFA" font-family="Arial, Helvetica, sans-serif" font-size="58" font-weight="bold" text-anchor="middle">Y</text>
+  </g>
+  <g transform="translate(1105 80) rotate(12) scale(1.548) translate(-50 -50)">
+    <path fill="#A79EF9" d="M50 88C28 70 8 56 8 35C8 22 19 13 32 13C41 13 47 18 50 27C53 18 59 13 68 13C81 13 92 22 92 35C92 56 72 70 50 88z"/>
+  </g>
+  <g transform="translate(118 318) scale(1) translate(-50 -50)">
+    <circle cx="50" cy="50" r="50" fill="#A79EF9"/>
+    <text x="50" y="50" dy="0.36em" fill="#C4BEFA" font-family="Arial, Helvetica, sans-serif" font-size="64" font-weight="bold" text-anchor="middle">X</text>
+  </g>
+  <g transform="translate(1185 375) scale(0.95) translate(-50 -50)">
+    <circle cx="50" cy="50" r="50" fill="#A79EF9"/>
+    <text x="50" y="50" dy="0.36em" fill="#C4BEFA" font-family="Arial, Helvetica, sans-serif" font-size="62" font-weight="bold" text-anchor="middle">B</text>
+  </g>
+  <g transform="translate(165 595) rotate(-15) scale(1.453) translate(-50 -50)">
+    <path fill="#A79EF9" d="M50 8C53 8 55 10 56 13L63 34C64 36 66 37 68 37L90 37C94 37 96 42 92 45L74 58C72 60 72 62 73 64L80 85C82 89 78 93 74 90L53 77C51 76 49 76 47 77L26 90C22 93 18 89 20 85L27 64C28 62 28 60 26 58L8 45C4 42 6 37 10 37L32 37C34 37 36 36 37 34L44 13C45 10 47 8 50 8z"/>
+  </g>
+  <g transform="translate(765 652) scale(0.78) translate(-50 -50)">
+    <circle cx="50" cy="50" r="50" fill="#A79EF9"/>
+    <text x="50" y="50" dy="0.36em" fill="#C4BEFA" font-family="Arial, Helvetica, sans-serif" font-size="60" font-weight="bold" text-anchor="middle">A</text>
+  </g>
+  <g transform="translate(1100 595) rotate(8) scale(1.25) translate(-50 -50)">
+    <path fill="#A79EF9" d="M22 14H78L94 38L50 90L6 38L22 14z"/>
+    <path d="M50 40V82M21 18L45 39M79 18L55 39M13 38H87" fill="none" stroke="#8C7FF6" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/>
+  </g>
+</svg></div>
+      <div class="slide-caption"><b>Готовый фон: орбита на фиолетовом</b><span>bg-orbit-violet.svg · титулы</span></div>
+    </div>
+    <div>
+      <div class="slide-frame" style="aspect-ratio:16/9" id="asset-bg-green-preview"><svg style="width:100%;height:100%;display:block" xmlns="http://www.w3.org/2000/svg" version="1.1" viewBox="0 0 1280 720">
+  <rect x="0" y="0" width="1280" height="720" fill="#3DF79D"/>
+  <ellipse cx="640" cy="360" rx="530" ry="340" fill="none" stroke="#7BF9BD" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" opacity="0.9"/>
+  <g transform="translate(150 95) rotate(-10) scale(1.705) translate(-50 -50)">
+    <path fill="#7BF9BD" d="M24 16h52v12h8c6 0 10 4 10 10 0 15-11 25-23 27-3 5-8 9-14 10v8h14c4 0 7 3 7 7v4H22v-4c0-4 3-7 7-7h14v-8c-6-1-11-5-14-10C17 63 6 53 6 38c0-6 4-10 10-10h8V16zM24 36h-7c-2 0-4 2-4 4 0 8 5 15 12 18-1-5-1-10-1-16v-6zM76 36v6c0 6 0 11-1 16 7-3 12-10 12-18 0-2-2-4-4-4h-7z"/>
+  </g>
+  <g transform="translate(505 52) scale(0.78) translate(-50 -50)">
+    <circle cx="50" cy="50" r="50" fill="#7BF9BD"/>
+    <text x="50" y="50" dy="0.36em" fill="#C4FCE0" font-family="Arial, Helvetica, sans-serif" font-size="58" font-weight="bold" text-anchor="middle">Y</text>
+  </g>
+  <g transform="translate(1105 80) rotate(12) scale(1.548) translate(-50 -50)">
+    <path fill="#7BF9BD" d="M50 88C28 70 8 56 8 35C8 22 19 13 32 13C41 13 47 18 50 27C53 18 59 13 68 13C81 13 92 22 92 35C92 56 72 70 50 88z"/>
+  </g>
+  <g transform="translate(118 318) scale(1) translate(-50 -50)">
+    <circle cx="50" cy="50" r="50" fill="#7BF9BD"/>
+    <text x="50" y="50" dy="0.36em" fill="#C4FCE0" font-family="Arial, Helvetica, sans-serif" font-size="64" font-weight="bold" text-anchor="middle">X</text>
+  </g>
+  <g transform="translate(1185 375) scale(0.95) translate(-50 -50)">
+    <circle cx="50" cy="50" r="50" fill="#7BF9BD"/>
+    <text x="50" y="50" dy="0.36em" fill="#C4FCE0" font-family="Arial, Helvetica, sans-serif" font-size="62" font-weight="bold" text-anchor="middle">B</text>
+  </g>
+  <g transform="translate(165 595) rotate(-15) scale(1.453) translate(-50 -50)">
+    <path fill="#7BF9BD" d="M50 8C53 8 55 10 56 13L63 34C64 36 66 37 68 37L90 37C94 37 96 42 92 45L74 58C72 60 72 62 73 64L80 85C82 89 78 93 74 90L53 77C51 76 49 76 47 77L26 90C22 93 18 89 20 85L27 64C28 62 28 60 26 58L8 45C4 42 6 37 10 37L32 37C34 37 36 36 37 34L44 13C45 10 47 8 50 8z"/>
+  </g>
+  <g transform="translate(765 652) scale(0.78) translate(-50 -50)">
+    <circle cx="50" cy="50" r="50" fill="#7BF9BD"/>
+    <text x="50" y="50" dy="0.36em" fill="#C4FCE0" font-family="Arial, Helvetica, sans-serif" font-size="60" font-weight="bold" text-anchor="middle">A</text>
+  </g>
+  <g transform="translate(1100 595) rotate(8) scale(1.25) translate(-50 -50)">
+    <path fill="#7BF9BD" d="M22 14H78L94 38L50 90L6 38L22 14z"/>
+    <path d="M50 40V82M21 18L45 39M79 18L55 39M13 38H87" fill="none" stroke="#3DF79D" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/>
+  </g>
+</svg></div>
+      <div class="slide-caption"><b>Готовый фон: орбита на зелёном</b><span>bg-orbit-green.svg · разделители</span></div>
+    </div>
+  </div>
+  <div class="book-note"><b>Как пользоваться:</b> фоны и иконки лежат в разделе 10 «Ассеты» — кнопка «SVG» копирует готовый код. В HTML-слайдах удобнее собирать орбиту из спрайта (класс <span class="tag">.sl-orbit</span>) — так декор перекрашивается одной CSS-переменной.</div>
+</section>
+
+<section class="book-section" id="components">
+  <div class="sec-head"><span class="sec-num">06</span><h2>Компоненты</h2></div>
+  <p class="sec-lead">Строительные блоки слайдов и интерактивов. Классы указаны под каждым образцом — их же используют интерактивные шаблоны из раздела 08.</p>
+
+  <div class="grid-3">
+    <div class="spec-card">
+      <h3>Стикер-бейдж</h3>
+      <p class="sub">Номер урока, рубрика, статус · наклон −3…−5°</p>
+      <div style="display:flex;gap:22px;align-items:center;flex-wrap:wrap;padding:10px 0 14px">
+        <span class="ek-badge" style="font-size:17px;padding:11px 18px">Урок №11</span>
+        <span class="ek-badge ek-badge--violet" style="font-size:17px;padding:11px 18px">Практика</span>
+      </div>
+      <span class="tag">.ek-badge / .ek-badge--violet</span>
+    </div>
+
+    <div class="spec-card">
+      <h3>Карточка-окно</h3>
+      <p class="sub">Главный контейнер контента</p>
+      <div class="sl-card" style="box-shadow:0 14px 36px rgba(23,23,28,.12);margin:6px 0 16px">
+        <div class="sl-card-top"><span class="sl-dots"><i></i><i></i><i></i></span><span class="sl-close"></span></div>
+        <div style="padding:16px 30px 26px;font:800 19px/1.25 var(--ek-font-head)">Заголовок в окне</div>
+      </div>
+      <span class="tag">.sl-card + .sl-dots + .sl-close</span>
+    </div>
+
+    <div class="spec-card">
+      <h3>Спич-бабл</h3>
+      <p class="sub">Реплики и слайды-разделители</p>
+      <div class="sl-bubble" style="padding:24px 30px;margin:6px 0 16px;border-radius:22px"><span style="font:800 17px/1.3 var(--ek-font-head)">Пришло время задавать вопросы</span></div>
+      <span class="tag">.sl-bubble</span>
+    </div>
+  </div>
+
+  <div class="grid-2" style="margin-top:22px">
+    <div class="spec-card">
+      <h3>Код-блок</h3>
+      <p class="sub">Комментарии — span.c, ключевые слова — span.k</p>
+      <div class="ek-code" style="margin:6px 0 16px"><span class="c"># есть согласие родителей?</span>
+parent_consent = False
+<span class="k">if</span> (age &gt;= 18 <span class="k">or</span> parent_consent) <span class="k">and</span> balance &gt; 300:
+    <span class="k">print</span>("Билет куплен!")
+<span class="k">else</span>:
+    <span class="k">print</span>("Покупка невозможна")</div>
+      <span class="tag">.ek-code · рамка 2px #17171C · радиус 14</span>
+    </div>
+
+    <div class="spec-card">
+      <h3>Кнопки</h3>
+      <p class="sub">Три роли: действие, успех, второстепенная</p>
+      <div style="display:flex;gap:12px;flex-wrap:wrap;align-items:center;padding:6px 0 16px">
+        <button type="button" class="ek-btn ek-btn--primary">Проверить</button>
+        <button type="button" class="ek-btn ek-btn--green">Дальше</button>
+        <button type="button" class="ek-btn ek-btn--ghost">Заново</button>
+        <button type="button" class="ek-btn ek-btn--primary" disabled>Недоступно</button>
+      </div>
+      <span class="tag">.ek-btn --primary / --green / --ghost</span>
+      <div class="book-note" style="margin-top:16px">Основное действие на экране — одно. «Заново» всегда прижимаем к правому краю панели действий.</div>
+    </div>
+  </div>
+
+  <div class="grid-2" style="margin-top:22px">
+    <div class="spec-card">
+      <h3>Вариант ответа</h3>
+      <p class="sub">Четыре состояния — управляются классами</p>
+      <button type="button" class="ek-option"><span class="ek-chip">А</span>Обычное состояние</button>
+      <button type="button" class="ek-option is-selected"><span class="ek-chip">Б</span>Выбран (.is-selected)</button>
+      <button type="button" class="ek-option is-correct"><span class="ek-chip">В</span>Верный (.is-correct)</button>
+      <button type="button" class="ek-option is-wrong"><span class="ek-chip">Г</span>Неверный (.is-wrong)</button>
+      <div style="margin-top:14px"><span class="tag">.ek-option + .ek-chip</span></div>
+    </div>
+
+    <div class="spec-card">
+      <h3>Фидбек и прогресс</h3>
+      <p class="sub">Ответная реакция интерактива</p>
+      <div class="ek-feedback ek-feedback--ok is-on" style="margin-top:0">Точно! Python выполняет только первую истинную ветку.</div>
+      <div class="ek-feedback ek-feedback--err is-on">Не совсем: elif проверяется, только если условие выше ложно.</div>
+      <div style="display:flex;align-items:center;gap:18px;margin-top:18px">
+        <span class="ek-dots"><i class="is-done"></i><i class="is-done"></i><i class="is-on"></i><i></i></span>
+        <span style="font:600 13px var(--ek-font-body);color:var(--ek-gray)">шаг 3 из 4</span>
+      </div>
+      <div style="margin-top:14px"><span class="tag">.ek-feedback --ok/--err · .ek-dots</span></div>
+    </div>
+  </div>
+</section>
+
+<section class="book-section" id="slides">
+  <div class="sec-head"><span class="sec-num">07</span><h2>Шаблоны слайдов</h2></div>
+  <p class="sec-lead">Семь базовых макетов покрывают весь урок: титул, теория, код, вопросы, практика и интерактив. Все превью — живой HTML в масштабе, а не картинки.</p>
+
+  <div class="grid-2">
+
+    <!-- 1. Титульный -->
+    <div>
+      <div class="slide-frame js-scale">
+        <div class="slide slide--violet">
+          <div class="sl-orbit">
+            <i class="sl-ring"></i>
+            <svg class="sl-ico" viewBox="0 0 100 100" style="left:75px;top:20px;width:150px;height:150px;transform:rotate(-10deg)"><use href="#ek-i-trophy"/></svg>
+            <i class="sl-letter" style="left:466px;top:13px;width:78px;height:78px;--fs:36px">Y</i>
+            <svg class="sl-ico" viewBox="0 0 100 100" style="left:1040px;top:15px;width:130px;height:130px;transform:rotate(12deg)"><use href="#ek-i-heart"/></svg>
+            <i class="sl-letter" style="left:68px;top:268px;width:100px;height:100px;--fs:46px">X</i>
+            <i class="sl-letter" style="left:1137px;top:327px;width:95px;height:95px;--fs:44px">B</i>
+            <svg class="sl-ico" viewBox="0 0 100 100" style="left:102px;top:532px;width:125px;height:125px;transform:rotate(-15deg)"><use href="#ek-i-star"/></svg>
+            <i class="sl-letter" style="left:726px;top:613px;width:78px;height:78px;--fs:36px">A</i>
+            <svg class="sl-ico" viewBox="0 0 100 100" style="left:1045px;top:540px;width:110px;height:110px;transform:rotate(8deg)"><use href="#ek-i-gem"/></svg>
+          </div>
+          <div class="sl-card" style="position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);width:820px">
+            <div class="sl-badge" style="position:absolute;left:50%;top:-30px;transform:translateX(-50%) rotate(-4deg)">Урок №11</div>
+            <div class="sl-card-top"><span class="sl-dots"><i></i><i></i><i></i></span><span class="sl-close"></span></div>
+            <div style="padding:26px 70px 62px;text-align:center">
+              <h3 class="sl-h1" style="font-size:54px">Как работают вложенные и каскадные условия</h3>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="slide-caption"><b>Титульный слайд</b><span>фиолетовый · орбита · карточка-окно</span></div>
+    </div>
+
+    <!-- 2. Код -->
+    <div>
+      <div class="slide-frame js-scale">
+        <div class="slide slide--violet">
+          <div class="sl-orbit" style="opacity:.35">
+            <svg class="sl-ico" viewBox="0 0 100 100" style="left:-40px;top:430px;width:260px;height:260px;transform:rotate(-14deg)"><use href="#ek-i-heart"/></svg>
+            <i class="sl-letter" style="left:1150px;top:80px;width:150px;height:150px;--fs:64px">X</i>
+          </div>
+          <div class="sl-card" style="position:absolute;left:64px;right:64px;top:56px;bottom:56px;border-radius:30px">
+            <div style="padding:52px 64px 0">
+              <h3 class="sl-h2">Проверьте домашнее задание</h3>
+              <div class="sl-codebox" style="margin-top:34px;font-size:20px"><span class="c"># --- Покупка билета ---</span>
+age = <span style="font-weight:700">int</span>(<span style="font-weight:700">input</span>("Введи возраст: "))
+balance = <span style="font-weight:700">int</span>(<span style="font-weight:700">input</span>("Сколько денег на карте? (руб): "))
+<span class="c"># (старше 18 ИЛИ есть согласие родителей) И достаточно денег</span>
+<span style="font-weight:700">if</span> (age &gt;= 18 <span style="font-weight:700">or</span> parent_consent) <span style="font-weight:700">and</span> balance &gt; 300:
+    <span style="font-weight:700">print</span>("Билет куплен!")
+<span style="font-weight:700">else</span>:
+    <span style="font-weight:700">print</span>("Покупка невозможна")</div>
+            </div>
+          </div>
+          <div class="sl-pagenum">2</div>
+        </div>
+      </div>
+      <div class="slide-caption"><b>Слайд с кодом</b><span>карточка во весь слайд · код-блок 21 px</span></div>
+    </div>
+
+    <!-- 3. Разделитель -->
+    <div>
+      <div class="slide-frame js-scale">
+        <div class="slide slide--green">
+          <div class="sl-orbit">
+            <i class="sl-ring"></i>
+            <svg class="sl-ico" viewBox="0 0 100 100" style="left:75px;top:20px;width:150px;height:150px;transform:rotate(-10deg)"><use href="#ek-i-trophy"/></svg>
+            <i class="sl-letter" style="left:466px;top:13px;width:78px;height:78px;--fs:36px">Y</i>
+            <svg class="sl-ico" viewBox="0 0 100 100" style="left:1040px;top:15px;width:130px;height:130px;transform:rotate(12deg)"><use href="#ek-i-heart"/></svg>
+            <i class="sl-letter" style="left:68px;top:268px;width:100px;height:100px;--fs:46px">X</i>
+            <i class="sl-letter" style="left:1137px;top:327px;width:95px;height:95px;--fs:44px">B</i>
+            <svg class="sl-ico" viewBox="0 0 100 100" style="left:102px;top:532px;width:125px;height:125px;transform:rotate(-15deg)"><use href="#ek-i-star"/></svg>
+            <i class="sl-letter" style="left:726px;top:613px;width:78px;height:78px;--fs:36px">A</i>
+            <svg class="sl-ico" viewBox="0 0 100 100" style="left:1045px;top:540px;width:110px;height:110px;transform:rotate(8deg)"><use href="#ek-i-gem"/></svg>
+          </div>
+          <div class="sl-bubble" style="position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);width:640px">
+            <span style="font:800 40px/1.25 var(--ek-font-head)">Пришло время задавать вопросы</span>
+          </div>
+        </div>
+      </div>
+      <div class="slide-caption"><b>Слайд-разделитель</b><span>зелёный · спич-бабл · без номера страницы</span></div>
+    </div>
+
+    <!-- 4. Вопросы -->
+    <div>
+      <div class="slide-frame js-scale">
+        <div class="slide slide--white">
+          <div class="sl-waves"><svg style="width:100%;height:100%;display:block" xmlns="http://www.w3.org/2000/svg" version="1.1" viewBox="0 0 520 720">
+  <path d="M300 0C260 105 365 165 315 260C250 385 175 480 230 590C250 640 225 680 210 720" fill="none" stroke="#C9F7E3" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
+  <path d="M480 0C520 100 425 185 470 290C520 405 390 480 450 590C480 650 440 690 430 720" fill="none" stroke="#C9F7E3" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
+  <g transform="translate(330 95) rotate(10) scale(1.429) translate(-50 -50)">
+    <path fill="#97F3C8" d="M50 88C28 70 8 56 8 35C8 22 19 13 32 13C41 13 47 18 50 27C53 18 59 13 68 13C81 13 92 22 92 35C92 56 72 70 50 88z"/>
+  </g>
+  <g transform="translate(455 155) scale(0.95) translate(-50 -50)">
+    <circle cx="50" cy="50" r="50" fill="#97F3C8"/>
+    <text x="50" y="50" dy="0.36em" fill="#FFFFFF" font-family="Arial, Helvetica, sans-serif" font-size="62" font-weight="bold" text-anchor="middle">Y</text>
+  </g>
+  <g transform="translate(255 330) rotate(-8) scale(1.307) translate(-50 -50)">
+    <path fill="#97F3C8" d="M22 14H78L94 38L50 90L6 38L22 14z"/>
+    <path d="M50 40V82M21 18L45 39M79 18L55 39M13 38H87" fill="none" stroke="#FFFFFF" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/>
+  </g>
+  <g transform="translate(465 560) rotate(12) scale(1.337) translate(-50 -50)">
+    <path fill="#97F3C8" d="M50 8C53 8 55 10 56 13L63 34C64 36 66 37 68 37L90 37C94 37 96 42 92 45L74 58C72 60 72 62 73 64L80 85C82 89 78 93 74 90L53 77C51 76 49 76 47 77L26 90C22 93 18 89 20 85L27 64C28 62 28 60 26 58L8 45C4 42 6 37 10 37L32 37C34 37 36 36 37 34L44 13C45 10 47 8 50 8z"/>
+  </g>
+  <g transform="translate(185 600) scale(0.9) translate(-50 -50)">
+    <circle cx="50" cy="50" r="50" fill="#97F3C8"/>
+    <text x="50" y="50" dy="0.36em" fill="#FFFFFF" font-family="Arial, Helvetica, sans-serif" font-size="64" font-weight="bold" text-anchor="middle">A</text>
+  </g>
+</svg></div>
+          <div style="position:absolute;left:100px;top:150px;width:640px">
+            <h3 class="sl-h2" style="font-size:46px">Чем elif отличается от второго if?</h3>
+            <h3 class="sl-h2" style="font-size:46px;margin-top:120px">Для чего применяется elif?</h3>
+          </div>
+        </div>
+      </div>
+      <div class="slide-caption"><b>Слайд с вопросами</b><span>белый · вопросы слева · волны-декор справа</span></div>
+    </div>
+
+    <!-- 5. Контент с буллетами -->
+    <div>
+      <div class="slide-frame js-scale">
+        <div class="slide slide--white">
+          <div class="sl-orbit">
+            <svg class="sl-ico" viewBox="0 0 100 100" style="left:1120px;top:560px;width:100px;height:100px;transform:rotate(14deg)"><use href="#ek-i-star"/></svg>
+          </div>
+          <div style="position:absolute;left:80px;right:80px;top:80px">
+            <h3 class="sl-h2">Три правила каскада</h3>
+            <div style="display:grid;gap:26px;margin-top:48px">
+              <div style="display:flex;gap:26px;align-items:center;background:#F7F7FB;border-radius:22px;padding:30px 36px">
+                <span style="flex:0 0 auto;width:64px;height:64px;border-radius:50%;background:var(--ek-violet);color:#fff;display:flex;align-items:center;justify-content:center;font:800 30px var(--ek-font-head)">1</span>
+                <span class="sl-body" style="font-size:26px">Python читает каскад сверху вниз, ветку за веткой</span>
+              </div>
+              <div style="display:flex;gap:26px;align-items:center;background:#F7F7FB;border-radius:22px;padding:30px 36px">
+                <span style="flex:0 0 auto;width:64px;height:64px;border-radius:50%;background:var(--ek-violet);color:#fff;display:flex;align-items:center;justify-content:center;font:800 30px var(--ek-font-head)">2</span>
+                <span class="sl-body" style="font-size:26px">Выполняется только первая истинная ветка</span>
+              </div>
+              <div style="display:flex;gap:26px;align-items:center;background:#F7F7FB;border-radius:22px;padding:30px 36px">
+                <span style="flex:0 0 auto;width:64px;height:64px;border-radius:50%;background:var(--ek-green);color:var(--ek-ink);display:flex;align-items:center;justify-content:center;font:800 30px var(--ek-font-head)">3</span>
+                <span class="sl-body" style="font-size:26px">else ловит всё, что не подошло ни одному условию</span>
+              </div>
+            </div>
+          </div>
+          <div class="sl-pagenum">7</div>
+        </div>
+      </div>
+      <div class="slide-caption"><b>Контентный слайд</b><span>белый · нумерованные тезисы · до трёх пунктов</span></div>
+    </div>
+
+    <!-- 6. Практика -->
+    <div>
+      <div class="slide-frame js-scale">
+        <div class="slide slide--violet">
+          <div class="sl-orbit" style="opacity:.35">
+            <svg class="sl-ico" viewBox="0 0 100 100" style="left:1130px;top:520px;width:200px;height:200px;transform:rotate(10deg)"><use href="#ek-i-gem"/></svg>
+          </div>
+          <div class="sl-card" style="position:absolute;left:64px;right:64px;top:56px;bottom:56px;border-radius:30px">
+            <div style="padding:48px 64px 0">
+              <span class="ek-badge ek-badge--violet" style="font-size:24px;padding:13px 22px">Практика · 10 минут</span>
+              <h3 class="sl-h2" style="margin-top:26px">Допиши каскад скидок</h3>
+              <p class="sl-body" style="margin:18px 0 26px;font-size:25px">Скидка 30% — от 5000 руб, 10% — от 2000 руб, иначе без скидки. Заполни пропуски:</p>
+              <div class="sl-codebox" style="font-size:20px"><span style="font-weight:700">if</span> total &gt;= 5000:
+    discount = 30
+____ total &gt;= 2000:
+    discount = 10
+____:
+    discount = 0</div>
+            </div>
+          </div>
+          <div class="sl-pagenum">12</div>
+        </div>
+      </div>
+      <div class="slide-caption"><b>Слайд практики</b><span>бейдж с таймингом · задание + заготовка кода</span></div>
+    </div>
+
+    <!-- 7. Интерактив -->
+    <div>
+      <div class="slide-frame js-scale">
+        <div class="slide slide--violet">
+          <div class="sl-orbit" style="opacity:.4">
+            <svg class="sl-ico" viewBox="0 0 100 100" style="left:-30px;top:-30px;width:200px;height:200px;transform:rotate(-12deg)"><use href="#ek-i-trophy"/></svg>
+            <i class="sl-letter" style="left:1160px;top:560px;width:110px;height:110px;--fs:50px">A</i>
+          </div>
+          <div class="sl-card" style="position:absolute;left:140px;right:140px;top:70px;bottom:70px;border-radius:30px">
+            <div style="padding:44px 60px 0">
+              <span class="ek-badge" style="font-size:22px;padding:12px 20px">Квиз</span>
+              <h3 style="font:800 34px/1.2 var(--ek-font-head);margin:22px 0 28px">Сколько веток выполнится, если истинны все условия каскада?</h3>
+              <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px">
+                <span class="ek-option" style="font-size:20px;padding:18px 22px"><span class="ek-chip" style="width:42px;height:42px;font-size:18px">А</span>Все</span>
+                <span class="ek-option is-selected" style="font-size:20px;padding:18px 22px"><span class="ek-chip" style="width:42px;height:42px;font-size:18px">Б</span>Только первая</span>
+                <span class="ek-option" style="font-size:20px;padding:18px 22px"><span class="ek-chip" style="width:42px;height:42px;font-size:18px">В</span>Только последняя</span>
+                <span class="ek-option" style="font-size:20px;padding:18px 22px"><span class="ek-chip" style="width:42px;height:42px;font-size:18px">Г</span>Ни одной</span>
+              </div>
+              <p style="font:600 17px var(--ek-font-body);color:var(--ek-gray);margin-top:24px">Живые версии блоков — в разделе 08 «Интерактив»</p>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="slide-caption"><b>Слайд с интерактивом</b><span>карточка-окно · сетка вариантов 2×2</span></div>
+    </div>
+
+  </div>
+</section>
+
+<section class="book-section" id="interactive">
+  <div class="sec-head"><span class="sec-num">08</span><h2>Интерактивные блоки</h2></div>
+  <p class="sec-lead">Восемь готовых шаблонов для вопросов на занятии — от квиза до флеш-карт и «соедини пары». Всё живое: кликай и проверяй прямо здесь. Каждый блок — самостоятельный фрагмент HTML + CSS + JS на токенах этого бука, без внешних библиотек.</p>
+<div class="ib-item" id="tpl-quiz-single">
+  <div class="ib-head"><span class="sec-num" style="background:var(--ek-violet);color:#fff">8.1</span><h3>Квиз: один правильный ответ</h3><span class="tag">quiz-single</span></div>
+  <p class="ib-desc">Быстрая проверка понимания сразу после объяснения темы: ученик выбирает один из четырёх вариантов и мгновенно видит результат с коротким объяснением. Используй, чтобы закрепить правило перед переходом к практике.</p>
+  <div class="ib-demo">
+<div class="ek-ib" id="ib-quiz-single">
+  <div class="qs-head">
+    <span class="ek-badge">Проверь себя</span>
+    <span class="qs-meta">Урок 11 · if / elif / else</span>
+  </div>
+  <p class="ek-q" id="quiz-single-question">В каскаде if / elif / else истинны сразу НЕСКОЛЬКО условий. Какие ветки выполнятся?</p>
+  <div class="ek-code">score = 85
+
+<span class="k">if</span> score &gt;= 50:      <span class="c"># истина</span>
+    <span class="k">print</span>("Зачёт")
+<span class="k">elif</span> score &gt;= 80:    <span class="c"># тоже истина</span>
+    <span class="k">print</span>("Отлично")
+<span class="k">else</span>:
+    <span class="k">print</span>("Попробуй ещё")</div>
+  <div class="qs-options" id="quiz-single-options" role="group" aria-labelledby="quiz-single-question">
+    <button type="button" class="ek-option" id="quiz-single-opt-a" data-correct="false"><span class="ek-chip">А</span><span>Все ветки, где условие истинно</span></button>
+    <button type="button" class="ek-option" id="quiz-single-opt-b" data-correct="true"><span class="ek-chip">Б</span><span>Только первая истинная сверху вниз</span></button>
+    <button type="button" class="ek-option" id="quiz-single-opt-v" data-correct="false"><span class="ek-chip">В</span><span>Только последняя истинная</span></button>
+    <button type="button" class="ek-option" id="quiz-single-opt-g" data-correct="false"><span class="ek-chip">Г</span><span>Программа упадёт с ошибкой</span></button>
+  </div>
+  <div class="ek-feedback" id="quiz-single-feedback" role="status" aria-live="polite"></div>
+  <div class="qs-actions">
+    <button type="button" class="ek-btn ek-btn--ghost" id="quiz-single-reset" disabled>Заново</button>
+  </div>
+</div>
+  </div>
+</div>
+<div class="ib-item" id="tpl-quiz-multi">
+  <div class="ib-head"><span class="sec-num" style="background:var(--ek-violet);color:#fff">8.2</span><h3>Квиз: несколько правильных ответов</h3><span class="tag">quiz-multi</span></div>
+  <p class="ib-desc">Мульти-выбор для закрепления логических операторов and / or / not: ученик отмечает все верные выражения, а блок показывает найденные, лишние и пропущенные ответы. Используй в конце темы, когда важно проверить, что ребёнок видит сразу несколько истинных условий, а не ищет один «правильный» вариант.</p>
+  <div class="ib-demo">
+<div class="ek-ib" id="ib-quiz-multi">
+  <div class="qm-top">
+    <span class="ek-badge">МУЛЬТИ-ВЫБОР</span>
+    <span class="qm-top-note">верных ответов может быть несколько</span>
+  </div>
+  <div class="ek-code"><span class="c"># что программа уже знает</span>
+age = <span class="n">12</span>
+balance = <span class="n">500</span></div>
+  <h3 class="ek-q">Отметь все выражения, которые дадут <span class="qm-true">True</span></h3>
+  <div class="qm-options" id="quiz-multi-options" role="group" aria-label="Варианты ответа">
+    <button type="button" class="ek-option" data-correct="1" aria-pressed="false">
+      <span class="ek-chip">А</span>
+      <span class="qm-expr">age &gt;= 6 <span class="qm-k">and</span> balance &gt; 300</span>
+    </button>
+    <button type="button" class="ek-option" data-correct="1" aria-pressed="false">
+      <span class="ek-chip">Б</span>
+      <span class="qm-expr">age &gt;= 18 <span class="qm-k">or</span> balance &gt; 300</span>
+    </button>
+    <button type="button" class="ek-option" data-correct="0" aria-pressed="false">
+      <span class="ek-chip">В</span>
+      <span class="qm-expr">age &gt;= 18 <span class="qm-k">and</span> balance &gt; 300</span>
+    </button>
+    <button type="button" class="ek-option" data-correct="1" aria-pressed="false">
+      <span class="ek-chip">Г</span>
+      <span class="qm-expr"><span class="qm-k">not</span> (age &lt; 6)</span>
+    </button>
+  </div>
+  <div class="qm-actions">
+    <button type="button" class="ek-btn ek-btn--primary" id="quiz-multi-check" disabled>Проверить</button>
+    <button type="button" class="ek-btn ek-btn--ghost" id="quiz-multi-reset" disabled>Заново</button>
+    <span class="qm-count" id="quiz-multi-count">Выбрано: 0</span>
+  </div>
+  <div class="ek-feedback" id="quiz-multi-feedback" role="status" aria-live="polite"></div>
+</div>
+  </div>
+</div>
+<div class="ib-item" id="tpl-true-false">
+  <div class="ib-head"><span class="sec-num" style="background:var(--ek-violet);color:#fff">8.3</span><h3>Серия «Правда или ложь»</h3><span class="tag">true-false</span></div>
+  <p class="ib-desc">Быстрая серия из четырёх утверждений «правда/ложь» с мгновенным пояснением после каждого ответа и итоговым счётом. Используй для разминки в начале занятия или чтобы закрепить теорию сразу после объяснения — хорошо вскрывает типичные заблуждения по теме.</p>
+  <div class="ib-demo">
+<div class="ek-ib" id="ib-true-false">
+  <div class="tf-head">
+    <span class="ek-badge">Правда или ложь</span>
+    <div class="tf-progress">
+      <div class="ek-dots" id="true-false-dots" aria-hidden="true"><i class="is-on"></i><i></i><i></i><i></i></div>
+      <span class="tf-counter" id="true-false-counter">1 / 4</span>
+    </div>
+  </div>
+
+  <div class="tf-stage" id="true-false-stage">
+    <p class="tf-statement" id="true-false-statement"><code class="tf-kw">elif</code> проверяется, только если условие выше оказалось ложным</p>
+    <div class="tf-answers">
+      <button type="button" class="ek-option tf-answer" id="true-false-btn-true">Правда</button>
+      <button type="button" class="ek-option tf-answer" id="true-false-btn-false">Ложь</button>
+    </div>
+    <div class="ek-feedback" id="true-false-feedback" role="status" aria-live="polite"></div>
+  </div>
+
+  <div class="tf-result" id="true-false-result" hidden>
+    <div class="tf-ring" id="true-false-ring">
+      <span class="tf-ring-inner">
+        <b class="tf-score-num" id="true-false-score">0</b>
+        <span class="tf-score-total">из 4</span>
+      </span>
+    </div>
+    <p class="tf-phrase" id="true-false-phrase"></p>
+  </div>
+
+  <div class="tf-foot">
+    <button type="button" class="ek-btn ek-btn--ghost" id="true-false-restart" disabled>Заново</button>
+    <button type="button" class="ek-btn ek-btn--primary" id="true-false-next" hidden>Дальше</button>
+  </div>
+</div>
+  </div>
+</div>
+<div class="ib-item" id="tpl-code-output">
+  <div class="ib-head"><span class="sec-num" style="background:var(--ek-violet);color:#fff">8.4</span><h3>Что выведет код?</h3><span class="tag">code-output</span></div>
+  <p class="ib-desc">Проверка чтения кода: ученик мысленно выполняет программу и предсказывает её вывод, а после клика получает пошаговый разбор вычисления условия. Используй после объяснения and/or и скобок, чтобы увидеть, кто действительно трассирует код, а кто угадывает.</p>
+  <div class="ib-demo">
+<div class="ek-ib" id="ib-code-output">
+  <div class="code-output-head">
+    <span class="ek-badge">Что выведет код?</span>
+    <span class="code-output-tag">Урок 11 · Логика условий</span>
+  </div>
+
+  <div class="code-output-editor">
+    <div class="code-output-editor-bar" aria-hidden="true">
+      <i></i><i></i><i></i>
+      <span>ticket.py</span>
+    </div>
+    <pre class="ek-code" id="code-output-code"><span class="c"># --- Покупка билета ---</span>
+age = 16
+parent_consent = <span class="k">False</span>
+balance = 400
+<span class="c"># скобки важны: сначала возраст или согласие, потом баланс</span>
+<span class="k">if</span> (age &gt;= 18 <span class="k">or</span> parent_consent) <span class="k">and</span> balance &gt; 300:
+    <span class="k">print</span>("Билет куплен!")
+<span class="k">else</span>:
+    <span class="k">print</span>("Покупка невозможна")</pre>
+  </div>
+
+  <p class="ek-q" id="code-output-question">Что выведет программа?</p>
+
+  <div class="code-output-options" role="group" aria-labelledby="code-output-question">
+    <button type="button" class="ek-option" id="code-output-opt-a" data-note="Скобка с or даёт False, поэтому до проверки баланса дело даже не доходит.">
+      <span class="ek-chip">А</span>
+      <span class="code-output-out">Билет куплен!</span>
+    </button>
+    <button type="button" class="ek-option" id="code-output-opt-b" data-correct="1" data-note="Именно так: сначала скобка с or, потом and — условие честно складывается в False.">
+      <span class="ek-chip">Б</span>
+      <span class="code-output-out">Покупка невозможна</span>
+    </button>
+    <button type="button" class="ek-option" id="code-output-opt-v" data-note="Ошибки здесь нет: синтаксис корректный, Python спокойно вычислит условие.">
+      <span class="ek-chip">В</span>
+      <span>Программа упадёт с ошибкой</span>
+    </button>
+    <button type="button" class="ek-option" id="code-output-opt-g" data-note="У if есть ветка else, поэтому какая-то строка напечатается всегда.">
+      <span class="ek-chip">Г</span>
+      <span>Ничего не выведет</span>
+    </button>
+  </div>
+
+  <div class="ek-feedback" id="code-output-feedback" role="status" aria-live="polite">
+    <p class="code-output-fb-title"><span id="code-output-fb-verdict"></span> <span class="code-output-fb-note" id="code-output-fb-note"></span></p>
+    <ol class="code-output-steps">
+      <li>
+        <span class="code-output-step-body">
+          <span class="code-output-step-line"><code>(16 &gt;= 18 <b>or</b> False)</code> <span class="code-output-arr">→</span> <code class="code-output-false">False</code></span>
+          <span class="code-output-step-note">16 меньше 18, и согласия родителей нет — обе части ложные</span>
+        </span>
+      </li>
+      <li>
+        <span class="code-output-step-body">
+          <span class="code-output-step-line"><code>False <b>and</b> (400 &gt; 300)</code> <span class="code-output-arr">→</span> <code class="code-output-false">False</code></span>
+          <span class="code-output-step-note">and требует два True: слева уже False, и баланс ничего не решает</span>
+        </span>
+      </li>
+      <li>
+        <span class="code-output-step-body">
+          <span class="code-output-step-line">Условие ложно <span class="code-output-arr">→</span> выполняется ветка <code><b>else</b></code></span>
+          <span class="code-output-step-note">на экран попадает строка «Покупка невозможна»</span>
+        </span>
+      </li>
+    </ol>
+  </div>
+
+  <div class="code-output-actions">
+    <button type="button" class="ek-btn ek-btn--ghost" id="code-output-reset" disabled>Заново</button>
+  </div>
+</div>
+  </div>
+</div>
+<div class="ib-item" id="tpl-fill-blank">
+  <div class="ib-head"><span class="sec-num" style="background:var(--ek-violet);color:#fff">8.5</span><h3>Заполни пропуски в коде</h3><span class="tag">fill-blank</span></div>
+  <p class="ib-desc">Шаблон для отработки точного синтаксиса: ученик вписывает недостающие ключевые слова прямо в строки кода. Используй после объяснения новой конструкции — например, каскада if/elif/else — чтобы закрепить написание до самостоятельной практики.</p>
+  <div class="ib-demo">
+<div class="ek-ib" id="ib-fill-blank">
+  <div class="fb-head"><span class="ek-badge">Заполни пропуски</span></div>
+  <h3 class="ek-q" id="fill-blank-title">Программа раздаёт медали за баллы — допиши каскад</h3>
+  <p class="fb-sub">Два ключевых слова сбежали из кода. Впиши их в фиолетовые окошки, чтобы каскад условий заработал.</p>
+  <div class="ek-code" id="fill-blank-code">score = <span class="k">int</span>(<span class="k">input</span>("Твои баллы: "))
+<span class="k">if</span> score &gt;= 90:
+    <span class="k">print</span>("Золото!")
+<input type="text" class="fb-blank" id="fill-blank-gap-1" data-gap="1" maxlength="8" autocomplete="off" autocapitalize="off" spellcheck="false" placeholder="?" aria-label="Пропуск 1: ключевое слово перед условием score >= 70"> score &gt;= 70:
+    <span class="k">print</span>("Серебро!")
+<input type="text" class="fb-blank" id="fill-blank-gap-2" data-gap="2" maxlength="8" autocomplete="off" autocapitalize="off" spellcheck="false" placeholder="?" aria-label="Пропуск 2: ключевое слово ветки «иначе»">:
+    <span class="k">print</span>("Тренируйся ещё!")</div>
+  <div class="ek-feedback" id="fill-blank-feedback" role="status" aria-live="polite"></div>
+  <div class="fb-actions">
+    <button type="button" class="ek-btn ek-btn--primary" id="fill-blank-check">Проверить</button>
+    <button type="button" class="ek-btn ek-btn--ghost" id="fill-blank-reset" disabled>Заново</button>
+  </div>
+</div>
+  </div>
+</div>
+<div class="ib-item" id="tpl-flashcard">
+  <div class="ib-head"><span class="sec-num" style="background:var(--ek-violet);color:#fff">8.6</span><h3>Флеш-карты: вопрос → ответ</h3><span class="tag">flashcard</span></div>
+  <p class="ib-desc">Колода карточек для повторения теории: ученик сначала отвечает про себя, затем переворачивает карточку и сверяется с ответом. Подходит для разминки в начале занятия или закрепления материала в конце.</p>
+  <div class="ib-demo">
+<div class="ek-ib" id="ib-flashcard">
+  <div class="flashcard-head">
+    <span class="ek-badge">Флеш-карты</span>
+    <div class="flashcard-progress">
+      <span id="flashcard-count" aria-live="polite">1 / 3</span>
+      <span class="ek-dots" id="flashcard-dots" aria-hidden="true"><i class="is-on"></i><i></i><i></i></span>
+    </div>
+  </div>
+  <p class="flashcard-lead">Сначала ответь про себя, потом переворачивай карточку и сверяйся.</p>
+  <div class="flashcard-scene" id="flashcard-scene">
+    <button type="button" class="flashcard-card is-active" id="flashcard-card-1" aria-pressed="false">
+      <span class="flashcard-inner">
+        <span class="flashcard-face flashcard-front">
+          <span class="flashcard-tag">Вопрос 1</span>
+          <span class="flashcard-q">Чем <span class="flashcard-code">elif</span> отличается от второго <span class="flashcard-code">if</span>?</span>
+          <span class="flashcard-hint">Нажми, чтобы увидеть ответ</span>
+        </span>
+        <span class="flashcard-face flashcard-back" aria-hidden="true">
+          <span class="flashcard-tag flashcard-tag--answer">Ответ</span>
+          <span class="flashcard-a">Второй <span class="flashcard-code">if</span> проверяется ВСЕГДА, даже если первый уже сработал. <span class="flashcard-code">elif</span> проверяется, только если всё выше ложно. Поэтому <span class="flashcard-code">elif</span> не даёт выполниться двум веткам сразу и экономит проверки.</span>
+        </span>
+      </span>
+    </button>
+    <button type="button" class="flashcard-card" id="flashcard-card-2" aria-pressed="false">
+      <span class="flashcard-inner">
+        <span class="flashcard-face flashcard-front">
+          <span class="flashcard-tag">Вопрос 2</span>
+          <span class="flashcard-q">Для чего нужен <span class="flashcard-code">else</span>?</span>
+          <span class="flashcard-hint">Нажми, чтобы увидеть ответ</span>
+        </span>
+        <span class="flashcard-face flashcard-back" aria-hidden="true">
+          <span class="flashcard-tag flashcard-tag--answer">Ответ</span>
+          <span class="flashcard-a">Это ветка «во всех остальных случаях»: она срабатывает, когда ни одно условие выше не подошло. У <span class="flashcard-code">else</span> нет своего условия.</span>
+        </span>
+      </span>
+    </button>
+    <button type="button" class="flashcard-card" id="flashcard-card-3" aria-pressed="false">
+      <span class="flashcard-inner">
+        <span class="flashcard-face flashcard-front">
+          <span class="flashcard-tag">Вопрос 3</span>
+          <span class="flashcard-q">Зачем скобки в <span class="flashcard-code">(age &gt;= 18 or parent_consent) and balance &gt; 300</span>?</span>
+          <span class="flashcard-hint">Нажми, чтобы увидеть ответ</span>
+        </span>
+        <span class="flashcard-face flashcard-back" aria-hidden="true">
+          <span class="flashcard-tag flashcard-tag--answer">Ответ</span>
+          <span class="flashcard-a">Скобки задают порядок: сначала проверяем возраст ИЛИ согласие, потом деньги. Без скобок <span class="flashcard-code">and</span> выполнился бы раньше <span class="flashcard-code">or</span> — и логика сломалась бы.</span>
+        </span>
+      </span>
+    </button>
+  </div>
+  <div class="flashcard-controls">
+    <button type="button" class="ek-btn ek-btn--primary" id="flashcard-flip" aria-pressed="false">Показать ответ</button>
+    <button type="button" class="ek-btn ek-btn--green" id="flashcard-next">Дальше</button>
+    <button type="button" class="ek-btn ek-btn--ghost" id="flashcard-reset" disabled>Заново</button>
+  </div>
+</div>
+  </div>
+</div>
+<div class="ib-item" id="tpl-match-pairs">
+  <div class="ib-head"><span class="sec-num" style="background:var(--ek-violet);color:#fff">8.7</span><h3>Соедини пары</h3><span class="tag">match-pairs</span></div>
+  <p class="ib-desc">Шаблон для закрепления терминов и определений: ученик кликами соединяет понятие из левой колонки с его описанием из правой, порядок кликов не важен. Используй после объяснения теории, чтобы за минуту проверить, кто за что отвечает в конструкции (например, if / elif / else / and в каскаде условий).</p>
+  <div class="ib-demo">
+<div class="ek-ib" id="ib-match-pairs">
+  <div class="ek-q">Соедини пары: кто за что отвечает в каскаде</div>
+  <p class="mp-sub">Кликни термин слева и его описание справа — порядок не важен.</p>
+  <div class="mp-board">
+    <div class="mp-col" id="match-pairs-terms" role="group" aria-label="Термины">
+      <span class="mp-label">Термин</span>
+      <button type="button" class="ek-option mp-term" data-key="if" aria-pressed="false">if</button>
+      <button type="button" class="ek-option mp-term" data-key="elif" aria-pressed="false">elif</button>
+      <button type="button" class="ek-option mp-term" data-key="else" aria-pressed="false">else</button>
+      <button type="button" class="ek-option mp-term" data-key="and" aria-pressed="false">and</button>
+    </div>
+    <div class="mp-col" id="match-pairs-descs" role="group" aria-label="Описания">
+      <span class="mp-label">Что делает</span>
+      <button type="button" class="ek-option mp-desc" data-key="and" aria-pressed="false">требует, чтобы оба условия были истинны</button>
+      <button type="button" class="ek-option mp-desc" data-key="else" aria-pressed="false">срабатывает, когда ничего не подошло</button>
+      <button type="button" class="ek-option mp-desc" data-key="if" aria-pressed="false">проверяет самое первое условие</button>
+      <button type="button" class="ek-option mp-desc" data-key="elif" aria-pressed="false">проверяется, только если всё выше ложно</button>
+    </div>
+  </div>
+  <div class="mp-footer">
+    <div class="mp-score">
+      <span class="ek-dots" id="match-pairs-dots"><i></i><i></i><i></i><i></i></span>
+      <span id="match-pairs-count">Собрано пар: 0 из 4</span>
+    </div>
+    <button type="button" class="ek-btn ek-btn--ghost" id="match-pairs-reset" disabled>Заново</button>
+  </div>
+  <div class="ek-feedback ek-feedback--ok" id="match-pairs-feedback" aria-live="polite">Все пары на месте! Ты знаешь, кто за что отвечает в каскаде.</div>
+</div>
+  </div>
+</div>
+<div class="ib-item" id="tpl-open-reveal">
+  <div class="ib-head"><span class="sec-num" style="background:var(--ek-violet);color:#fff">8.8</span><h3>Открытый вопрос: эталон по клику</h3><span class="tag">open-reveal</span></div>
+  <p class="ib-desc">Цифровая версия слайда «Пришло время задавать вопросы»: ученик сначала формулирует ответ сам — вслух или в чате урока, затем преподаватель раскрывает эталонный ответ и сравнивает формулировки. Подходит для рефлексии и проверки понимания там, где варианты ответа не нужны.</p>
+  <div class="ib-demo">
+<div class="ek-ib" id="ib-open-reveal">
+  <div class="or-badge-row"><span class="ek-badge">Вопрос вслух</span></div>
+  <h3 class="ek-q or-q" id="open-reveal-question">Для чего применяется <code class="or-k">elif</code>?</h3>
+  <p class="or-hint">Сначала ответь сам — вслух или в чате урока. Потом сверься с эталоном.</p>
+  <div class="or-actions">
+    <button type="button" class="ek-btn ek-btn--primary" id="open-reveal-toggle" aria-expanded="false" aria-controls="open-reveal-answer">Показать эталонный ответ</button>
+    <button type="button" class="ek-btn ek-btn--ghost" id="open-reveal-reset" disabled>Заново</button>
+  </div>
+  <div class="or-answer" id="open-reveal-answer" role="region" aria-labelledby="open-reveal-question" aria-live="polite" aria-hidden="true">
+    <div class="or-card">
+      <p class="or-card-label"><span class="or-check" aria-hidden="true">&#10003;</span>Эталонный ответ</p>
+      <p class="or-card-text"><code class="or-k">elif</code> строит «лесенку» проверок: Python идёт сверху вниз и выполняет только первую истинную ветку. Без <code class="or-k">elif</code> пришлось бы вкладывать <code class="or-k">if</code> в <code class="or-k">if</code> или писать несколько независимых <code class="or-k">if</code> — и тогда могли бы сработать две ветки сразу.</p>
+    </div>
+  </div>
+</div>
+  </div>
+</div>
+</section>
+
+<section class="book-section" id="dodont">
+  <div class="sec-head"><span class="sec-num">09</span><h2>Можно / нельзя</h2></div>
+  <p class="sec-lead">Шесть пар правил, которые чаще всего нарушают. Левая колонка — как надо, правая — как не надо.</p>
+  <div class="grid-2">
+    <div class="dd-card dd-do"><b>✅ Один цвет фона на слайд</b><p>Фиолетовый — титулы и контент, зелёный — разделители, белый — плотный материал. Смена фона = смена ритма урока.</p></div>
+    <div class="dd-card dd-dont"><b>❌ Смешивать яркие фоны</b><p>Никаких градиентов, фото-фонов и слайдов «наполовину фиолетовый, наполовину зелёный».</p></div>
+
+    <div class="dd-card dd-do"><b>✅ Заголовок — максимум 2 строки</b><p>Жирный (800), от 44 px, выравнивание влево. Мысль не влезла — упрощай формулировку, а не кегль.</p></div>
+    <div class="dd-card dd-dont"><b>❌ Полотно текста</b><p>Абзацы длиннее трёх строк, курсив, подчёркивания и уменьшение шрифта «чтобы всё влезло».</p></div>
+
+    <div class="dd-card dd-do"><b>✅ Декор по краям, светлее фона</b><p>Планеты сидят на орбите в поле 0–180 px от краёв, цвет — на полтона светлее фона.</p></div>
+    <div class="dd-card dd-dont"><b>❌ Декор в центре и поверх текста</b><p>Иконки за заголовком, случайные эмодзи вместо фирменных планет, контрастный декор, спорящий с контентом.</p></div>
+
+    <div class="dd-card dd-do"><b>✅ Код — в код-блоке</b><p>Моноширинный шрифт от 20 px, белый блок, чёрная рамка 2 px, серые комментарии. Код можно выделить и скопировать.</p></div>
+    <div class="dd-card dd-dont"><b>❌ Скриншоты кода</b><p>Картинки из редактора с тёмной темой: мыло при масштабировании, нечитаемо с проектора, нельзя скопировать.</p></div>
+
+    <div class="dd-card dd-do"><b>✅ Коралловый — только для ошибок</b><p>#FF6B6B живёт исключительно в интерактивах как состояние «неверно».</p></div>
+    <div class="dd-card dd-dont"><b>❌ Красный как украшение</b><p>Красные заголовки, стрелки и рамки «для важности» — запрещены. Важность делаем размером и стикером.</p></div>
+
+    <div class="dd-card dd-do"><b>✅ Наклон — только у стикеров</b><p>Бейджи наклоняем на −3…−5°, это фирменный жест «наклейки на ноутбуке».</p></div>
+    <div class="dd-card dd-dont"><b>❌ Вращать всё подряд</b><p>Заголовки, карточки, код и фото не наклоняем никогда.</p></div>
+  </div>
+</section>
+
+<section class="book-section" id="assets">
+  <div class="sec-head"><span class="sec-num">10</span><h2>Библиотека ассетов</h2></div>
+  <p class="sec-lead">Готовые SVG: кнопка «SVG» копирует код элемента в буфер — вставляй прямо в слайд, Figma или другой HTML.</p>
+
+  <div class="grid-2">
+    <div class="asset-card">
+      <div class="asset-view" style="padding:0" id="asset-bg-violet"><svg style="width:100%;height:100%;display:block" xmlns="http://www.w3.org/2000/svg" version="1.1" viewBox="0 0 1280 720">
+  <rect x="0" y="0" width="1280" height="720" fill="#8C7FF6"/>
+  <ellipse cx="640" cy="360" rx="530" ry="340" fill="none" stroke="#A79EF9" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" opacity="0.9"/>
+  <g transform="translate(150 95) rotate(-10) scale(1.705) translate(-50 -50)">
+    <path fill="#A79EF9" d="M24 16h52v12h8c6 0 10 4 10 10 0 15-11 25-23 27-3 5-8 9-14 10v8h14c4 0 7 3 7 7v4H22v-4c0-4 3-7 7-7h14v-8c-6-1-11-5-14-10C17 63 6 53 6 38c0-6 4-10 10-10h8V16zM24 36h-7c-2 0-4 2-4 4 0 8 5 15 12 18-1-5-1-10-1-16v-6zM76 36v6c0 6 0 11-1 16 7-3 12-10 12-18 0-2-2-4-4-4h-7z"/>
+  </g>
+  <g transform="translate(505 52) scale(0.78) translate(-50 -50)">
+    <circle cx="50" cy="50" r="50" fill="#A79EF9"/>
+    <text x="50" y="50" dy="0.36em" fill="#C4BEFA" font-family="Arial, Helvetica, sans-serif" font-size="58" font-weight="bold" text-anchor="middle">Y</text>
+  </g>
+  <g transform="translate(1105 80) rotate(12) scale(1.548) translate(-50 -50)">
+    <path fill="#A79EF9" d="M50 88C28 70 8 56 8 35C8 22 19 13 32 13C41 13 47 18 50 27C53 18 59 13 68 13C81 13 92 22 92 35C92 56 72 70 50 88z"/>
+  </g>
+  <g transform="translate(118 318) scale(1) translate(-50 -50)">
+    <circle cx="50" cy="50" r="50" fill="#A79EF9"/>
+    <text x="50" y="50" dy="0.36em" fill="#C4BEFA" font-family="Arial, Helvetica, sans-serif" font-size="64" font-weight="bold" text-anchor="middle">X</text>
+  </g>
+  <g transform="translate(1185 375) scale(0.95) translate(-50 -50)">
+    <circle cx="50" cy="50" r="50" fill="#A79EF9"/>
+    <text x="50" y="50" dy="0.36em" fill="#C4BEFA" font-family="Arial, Helvetica, sans-serif" font-size="62" font-weight="bold" text-anchor="middle">B</text>
+  </g>
+  <g transform="translate(165 595) rotate(-15) scale(1.453) translate(-50 -50)">
+    <path fill="#A79EF9" d="M50 8C53 8 55 10 56 13L63 34C64 36 66 37 68 37L90 37C94 37 96 42 92 45L74 58C72 60 72 62 73 64L80 85C82 89 78 93 74 90L53 77C51 76 49 76 47 77L26 90C22 93 18 89 20 85L27 64C28 62 28 60 26 58L8 45C4 42 6 37 10 37L32 37C34 37 36 36 37 34L44 13C45 10 47 8 50 8z"/>
+  </g>
+  <g transform="translate(765 652) scale(0.78) translate(-50 -50)">
+    <circle cx="50" cy="50" r="50" fill="#A79EF9"/>
+    <text x="50" y="50" dy="0.36em" fill="#C4BEFA" font-family="Arial, Helvetica, sans-serif" font-size="60" font-weight="bold" text-anchor="middle">A</text>
+  </g>
+  <g transform="translate(1100 595) rotate(8) scale(1.25) translate(-50 -50)">
+    <path fill="#A79EF9" d="M22 14H78L94 38L50 90L6 38L22 14z"/>
+    <path d="M50 40V82M21 18L45 39M79 18L55 39M13 38H87" fill="none" stroke="#8C7FF6" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/>
+  </g>
+</svg></div>
+      <div class="asset-info"><div><b>Фон «Орбита» · фиолетовый</b><span>1280 × 720 · титульные слайды</span></div><button class="copy-btn" data-svg-target="asset-bg-violet">SVG</button></div>
+    </div>
+    <div class="asset-card">
+      <div class="asset-view" style="padding:0" id="asset-bg-green"><svg style="width:100%;height:100%;display:block" xmlns="http://www.w3.org/2000/svg" version="1.1" viewBox="0 0 1280 720">
+  <rect x="0" y="0" width="1280" height="720" fill="#3DF79D"/>
+  <ellipse cx="640" cy="360" rx="530" ry="340" fill="none" stroke="#7BF9BD" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" opacity="0.9"/>
+  <g transform="translate(150 95) rotate(-10) scale(1.705) translate(-50 -50)">
+    <path fill="#7BF9BD" d="M24 16h52v12h8c6 0 10 4 10 10 0 15-11 25-23 27-3 5-8 9-14 10v8h14c4 0 7 3 7 7v4H22v-4c0-4 3-7 7-7h14v-8c-6-1-11-5-14-10C17 63 6 53 6 38c0-6 4-10 10-10h8V16zM24 36h-7c-2 0-4 2-4 4 0 8 5 15 12 18-1-5-1-10-1-16v-6zM76 36v6c0 6 0 11-1 16 7-3 12-10 12-18 0-2-2-4-4-4h-7z"/>
+  </g>
+  <g transform="translate(505 52) scale(0.78) translate(-50 -50)">
+    <circle cx="50" cy="50" r="50" fill="#7BF9BD"/>
+    <text x="50" y="50" dy="0.36em" fill="#C4FCE0" font-family="Arial, Helvetica, sans-serif" font-size="58" font-weight="bold" text-anchor="middle">Y</text>
+  </g>
+  <g transform="translate(1105 80) rotate(12) scale(1.548) translate(-50 -50)">
+    <path fill="#7BF9BD" d="M50 88C28 70 8 56 8 35C8 22 19 13 32 13C41 13 47 18 50 27C53 18 59 13 68 13C81 13 92 22 92 35C92 56 72 70 50 88z"/>
+  </g>
+  <g transform="translate(118 318) scale(1) translate(-50 -50)">
+    <circle cx="50" cy="50" r="50" fill="#7BF9BD"/>
+    <text x="50" y="50" dy="0.36em" fill="#C4FCE0" font-family="Arial, Helvetica, sans-serif" font-size="64" font-weight="bold" text-anchor="middle">X</text>
+  </g>
+  <g transform="translate(1185 375) scale(0.95) translate(-50 -50)">
+    <circle cx="50" cy="50" r="50" fill="#7BF9BD"/>
+    <text x="50" y="50" dy="0.36em" fill="#C4FCE0" font-family="Arial, Helvetica, sans-serif" font-size="62" font-weight="bold" text-anchor="middle">B</text>
+  </g>
+  <g transform="translate(165 595) rotate(-15) scale(1.453) translate(-50 -50)">
+    <path fill="#7BF9BD" d="M50 8C53 8 55 10 56 13L63 34C64 36 66 37 68 37L90 37C94 37 96 42 92 45L74 58C72 60 72 62 73 64L80 85C82 89 78 93 74 90L53 77C51 76 49 76 47 77L26 90C22 93 18 89 20 85L27 64C28 62 28 60 26 58L8 45C4 42 6 37 10 37L32 37C34 37 36 36 37 34L44 13C45 10 47 8 50 8z"/>
+  </g>
+  <g transform="translate(765 652) scale(0.78) translate(-50 -50)">
+    <circle cx="50" cy="50" r="50" fill="#7BF9BD"/>
+    <text x="50" y="50" dy="0.36em" fill="#C4FCE0" font-family="Arial, Helvetica, sans-serif" font-size="60" font-weight="bold" text-anchor="middle">A</text>
+  </g>
+  <g transform="translate(1100 595) rotate(8) scale(1.25) translate(-50 -50)">
+    <path fill="#7BF9BD" d="M22 14H78L94 38L50 90L6 38L22 14z"/>
+    <path d="M50 40V82M21 18L45 39M79 18L55 39M13 38H87" fill="none" stroke="#3DF79D" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/>
+  </g>
+</svg></div>
+      <div class="asset-info"><div><b>Фон «Орбита» · зелёный</b><span>1280 × 720 · слайды-разделители</span></div><button class="copy-btn" data-svg-target="asset-bg-green">SVG</button></div>
+    </div>
+  </div>
+
+  <div class="grid-3" style="margin-top:22px">
+    <div class="asset-card">
+      <div class="asset-view asset-view--dotted" id="asset-waves" style="min-height:230px"><div style="width:180px"><svg style="width:100%;height:100%;display:block" xmlns="http://www.w3.org/2000/svg" version="1.1" viewBox="0 0 520 720">
+  <path d="M300 0C260 105 365 165 315 260C250 385 175 480 230 590C250 640 225 680 210 720" fill="none" stroke="#C9F7E3" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
+  <path d="M480 0C520 100 425 185 470 290C520 405 390 480 450 590C480 650 440 690 430 720" fill="none" stroke="#C9F7E3" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
+  <g transform="translate(330 95) rotate(10) scale(1.429) translate(-50 -50)">
+    <path fill="#97F3C8" d="M50 88C28 70 8 56 8 35C8 22 19 13 32 13C41 13 47 18 50 27C53 18 59 13 68 13C81 13 92 22 92 35C92 56 72 70 50 88z"/>
+  </g>
+  <g transform="translate(455 155) scale(0.95) translate(-50 -50)">
+    <circle cx="50" cy="50" r="50" fill="#97F3C8"/>
+    <text x="50" y="50" dy="0.36em" fill="#FFFFFF" font-family="Arial, Helvetica, sans-serif" font-size="62" font-weight="bold" text-anchor="middle">Y</text>
+  </g>
+  <g transform="translate(255 330) rotate(-8) scale(1.307) translate(-50 -50)">
+    <path fill="#97F3C8" d="M22 14H78L94 38L50 90L6 38L22 14z"/>
+    <path d="M50 40V82M21 18L45 39M79 18L55 39M13 38H87" fill="none" stroke="#FFFFFF" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/>
+  </g>
+  <g transform="translate(465 560) rotate(12) scale(1.337) translate(-50 -50)">
+    <path fill="#97F3C8" d="M50 8C53 8 55 10 56 13L63 34C64 36 66 37 68 37L90 37C94 37 96 42 92 45L74 58C72 60 72 62 73 64L80 85C82 89 78 93 74 90L53 77C51 76 49 76 47 77L26 90C22 93 18 89 20 85L27 64C28 62 28 60 26 58L8 45C4 42 6 37 10 37L32 37C34 37 36 36 37 34L44 13C45 10 47 8 50 8z"/>
+  </g>
+  <g transform="translate(185 600) scale(0.9) translate(-50 -50)">
+    <circle cx="50" cy="50" r="50" fill="#97F3C8"/>
+    <text x="50" y="50" dy="0.36em" fill="#FFFFFF" font-family="Arial, Helvetica, sans-serif" font-size="64" font-weight="bold" text-anchor="middle">A</text>
+  </g>
+</svg></div></div>
+      <div class="asset-info"><div><b>Волны с планетами · минт</b><span>520 × 720 · правый край белых слайдов</span></div><button class="copy-btn" data-svg-target="asset-waves">SVG</button></div>
+    </div>
+    <div class="asset-card">
+      <div class="asset-view asset-view--dotted" style="gap:18px;flex-wrap:wrap">
+        <div id="asset-i-trophy" style="width:74px;color:var(--ek-violet)"><svg style="width:100%;height:auto;display:block" xmlns="http://www.w3.org/2000/svg" version="1.1" viewBox="0 0 100 100">
+  <path fill="currentColor" d="M24 16h52v12h8c6 0 10 4 10 10 0 15-11 25-23 27-3 5-8 9-14 10v8h14c4 0 7 3 7 7v4H22v-4c0-4 3-7 7-7h14v-8c-6-1-11-5-14-10C17 63 6 53 6 38c0-6 4-10 10-10h8V16zM24 36h-7c-2 0-4 2-4 4 0 8 5 15 12 18-1-5-1-10-1-16v-6zM76 36v6c0 6 0 11-1 16 7-3 12-10 12-18 0-2-2-4-4-4h-7z"/>
+</svg></div>
+        <div id="asset-i-heart" style="width:74px;color:var(--ek-violet)"><svg style="width:100%;height:auto;display:block" xmlns="http://www.w3.org/2000/svg" version="1.1" viewBox="0 0 100 100">
+  <path fill="currentColor" d="M50 88C28 70 8 56 8 35C8 22 19 13 32 13C41 13 47 18 50 27C53 18 59 13 68 13C81 13 92 22 92 35C92 56 72 70 50 88z"/>
+</svg></div>
+        <div id="asset-i-star" style="width:74px;color:var(--ek-violet)"><svg style="width:100%;height:auto;display:block" xmlns="http://www.w3.org/2000/svg" version="1.1" viewBox="0 0 100 100">
+  <path fill="currentColor" d="M50 8C53 8 55 10 56 13L63 34C64 36 66 37 68 37L90 37C94 37 96 42 92 45L74 58C72 60 72 62 73 64L80 85C82 89 78 93 74 90L53 77C51 76 49 76 47 77L26 90C22 93 18 89 20 85L27 64C28 62 28 60 26 58L8 45C4 42 6 37 10 37L32 37C34 37 36 36 37 34L44 13C45 10 47 8 50 8z"/>
+</svg></div>
+        <div id="asset-i-gem" style="width:74px;color:var(--ek-violet)"><svg style="width:100%;height:auto;display:block" xmlns="http://www.w3.org/2000/svg" version="1.1" viewBox="0 0 100 100">
+  <path fill="currentColor" fill-rule="evenodd" d="M22 14H78L94 38L50 90L6 38L22 14zM49 40H51V81H49V40zM21 18L46 38L44 40L19 20zM79 18L54 38L56 40L81 20zM12 37H88V40H12z"/>
+</svg></div>
+      </div>
+      <div class="asset-info" style="flex-wrap:wrap"><div><b>Иконки-планеты</b><span>100 × 100 · fill: currentColor</span></div>
+        <div style="display:flex;gap:6px;flex-wrap:wrap">
+          <button class="copy-btn" data-svg-target="asset-i-trophy">кубок</button>
+          <button class="copy-btn" data-svg-target="asset-i-heart">сердце</button>
+          <button class="copy-btn" data-svg-target="asset-i-star">звезда</button>
+          <button class="copy-btn" data-svg-target="asset-i-gem">гем</button>
+        </div>
+      </div>
+    </div>
+    <div class="asset-card">
+      <div class="asset-view asset-view--dark" style="gap:14px">
+        <i class="sl-letter" style="position:static;width:64px;height:64px;--fs:30px;background:#A79EF9;color:#C4BEFA">X</i>
+        <i class="sl-letter" style="position:static;width:64px;height:64px;--fs:30px;background:#A79EF9;color:#C4BEFA">Y</i>
+        <i class="sl-letter" style="position:static;width:64px;height:64px;--fs:30px;background:#A79EF9;color:#C4BEFA">A</i>
+        <i class="sl-letter" style="position:static;width:64px;height:64px;--fs:30px;background:#A79EF9;color:#C4BEFA">B</i>
+      </div>
+      <div class="asset-info"><div><b>Буквы-планеты</b><span>HTML: класс .sl-letter, без SVG</span></div><button class="copy-btn" data-copy='&lt;i class="sl-letter" style="width:78px;height:78px;--fs:36px"&gt;X&lt;/i&gt;'>HTML</button></div>
+    </div>
+  </div>
+
+  <div class="book-note"><b>Регенерация ассетов:</b> исходные файлы — bg-orbit-violet.svg, bg-orbit-green.svg, decor-waves-mint.svg и icons/*.svg. Иконки одноцветные (currentColor): перекрашиваются CSS-свойством color родителя.</div>
+</section>
+
+</main>
+
+<footer>
+  <div class="footer-in">
+    <span><b>Eduson Kids</b> · дизайн-бук презентаций · v1.0 · 02.07.2026</span>
+    <span>Документ самодостаточен: слайды, компоненты и интерактивы — живой HTML</span>
+  </div>
+</footer>
+
+<svg width="0" height="0" style="position:absolute" aria-hidden="true"><defs>
+<symbol id="ek-i-trophy" viewBox="0 0 100 100"><path fill="currentColor" d="M24 16h52v12h8c6 0 10 4 10 10 0 15-11 25-23 27-3 5-8 9-14 10v8h14c4 0 7 3 7 7v4H22v-4c0-4 3-7 7-7h14v-8c-6-1-11-5-14-10C17 63 6 53 6 38c0-6 4-10 10-10h8V16zM24 36h-7c-2 0-4 2-4 4 0 8 5 15 12 18-1-5-1-10-1-16v-6zM76 36v6c0 6 0 11-1 16 7-3 12-10 12-18 0-2-2-4-4-4h-7z"/></symbol>
+<symbol id="ek-i-heart" viewBox="0 0 100 100"><path fill="currentColor" d="M50 88C28 70 8 56 8 35C8 22 19 13 32 13C41 13 47 18 50 27C53 18 59 13 68 13C81 13 92 22 92 35C92 56 72 70 50 88z"/></symbol>
+<symbol id="ek-i-star" viewBox="0 0 100 100"><path fill="currentColor" d="M50 8C53 8 55 10 56 13L63 34C64 36 66 37 68 37L90 37C94 37 96 42 92 45L74 58C72 60 72 62 73 64L80 85C82 89 78 93 74 90L53 77C51 76 49 76 47 77L26 90C22 93 18 89 20 85L27 64C28 62 28 60 26 58L8 45C4 42 6 37 10 37L32 37C34 37 36 36 37 34L44 13C45 10 47 8 50 8z"/></symbol>
+<symbol id="ek-i-gem" viewBox="0 0 100 100"><path fill="currentColor" fill-rule="evenodd" d="M22 14H78L94 38L50 90L6 38L22 14zM49 40H51V81H49V40zM21 18L46 38L44 40L19 20zM79 18L54 38L56 40L81 20zM12 37H88V40H12z"/></symbol>
+</defs></svg>
+
+<script>
+/* Масштабирование превью слайдов 1280×720 */
+(function(){
+  'use strict';
+  var frames = document.querySelectorAll('.js-scale');
+  function fit(fr){
+    var slide = fr.querySelector('.slide');
+    if(!slide) return;
+    var s = fr.clientWidth / 1280;
+    slide.style.transform = 'scale(' + s + ')';
+    fr.style.height = (720 * s) + 'px';
+  }
+  if('ResizeObserver' in window){
+    var ro = new ResizeObserver(function(entries){ entries.forEach(function(e){ fit(e.target); }); });
+    frames.forEach(function(f){ ro.observe(f); fit(f); });
+  } else {
+    var all = function(){ frames.forEach(fit); };
+    window.addEventListener('resize', all); all();
+  }
+})();
+
+/* Копирование HEX и SVG */
+(function(){
+  'use strict';
+  function done(btn){
+    btn.classList.add('is-copied');
+    var old = btn.textContent;
+    btn.textContent = 'Скопировано';
+    setTimeout(function(){ btn.classList.remove('is-copied'); btn.textContent = old; }, 1200);
+  }
+  function copyText(btn, text){
+    if(navigator.clipboard && navigator.clipboard.writeText){
+      navigator.clipboard.writeText(text).then(function(){ done(btn); }, function(){ legacy(btn, text); });
+    } else { legacy(btn, text); }
+  }
+  function legacy(btn, text){
+    var ta = document.createElement('textarea');
+    ta.value = text; ta.style.position = 'fixed'; ta.style.opacity = '0';
+    document.body.appendChild(ta); ta.select();
+    try { document.execCommand('copy'); done(btn); } catch(e){}
+    document.body.removeChild(ta);
+  }
+  document.addEventListener('click', function(ev){
+    var b = ev.target.closest('.copy-btn');
+    if(!b) return;
+    if(b.dataset.copy){ copyText(b, b.dataset.copy); return; }
+    if(b.dataset.svgTarget){
+      var el = document.getElementById(b.dataset.svgTarget);
+      if(el) copyText(b, el.innerHTML.trim());
+    }
+  });
+})();
+
+/* Подсветка активного раздела в навигации */
+(function(){
+  'use strict';
+  var links = Array.prototype.slice.call(document.querySelectorAll('#navlinks a'));
+  if(!links.length) return;
+  var map = [];
+  links.forEach(function(a){
+    var sec = document.getElementById(a.getAttribute('href').slice(1));
+    if(sec) map.push([sec, a]);
+  });
+  var last = null;
+  function update(){
+    var pos = window.scrollY + window.innerHeight * 0.25;
+    var active = null;
+    for(var i = 0; i < map.length; i++){
+      if(map[i][0].offsetTop <= pos) active = map[i][1];
+    }
+    if(active === last) return;
+    last = active;
+    links.forEach(function(a){ a.classList.remove('is-active'); });
+    if(active) active.classList.add('is-active');
+  }
+  window.addEventListener('scroll', update, { passive: true });
+  window.addEventListener('resize', update);
+  update();
+})();
+
+/* JS интерактивных блоков */
+/* --- quiz-single --- */
+try {
+(function(){
+  'use strict';
+  var root = document.getElementById('ib-quiz-single');
+  if (!root) return;
+  if (root.getAttribute('data-qs-ready') === '1') return;
+  root.setAttribute('data-qs-ready', '1');
+
+  var options = Array.prototype.slice.call(root.querySelectorAll('.ek-option'));
+  var feedback = root.querySelector('#quiz-single-feedback');
+  var resetBtn = root.querySelector('#quiz-single-reset');
+  var answered = false;
+
+  var TEXT_OK = '<strong>Верно! 🎉</strong> Python читает каскад сверху вниз и выполняет только первую ветку с истинным условием — здесь это «if score >= 50», поэтому напечатается «Зачёт». Остальные elif и else он просто пропускает, даже если их условия тоже истинны.';
+  var TEXT_ERR = '<strong>Пока нет.</strong> Python проходит каскад сверху вниз и выполняет только первую ветку, где условие истинно, — остальное пропускает без всякой ошибки. В примере первым сработает «if score >= 50», поэтому напечатается только «Зачёт». Правильный ответ подсвечен зелёным.';
+
+  function pick(e){
+    if (answered) return;
+    answered = true;
+    var chosen = e.currentTarget;
+    var right = chosen.getAttribute('data-correct') === 'true';
+    for (var i = 0; i < options.length; i++){
+      options[i].disabled = true;
+      if (options[i].getAttribute('data-correct') === 'true'){
+        options[i].classList.add('is-correct');
+      }
+    }
+    if (!right){
+      chosen.classList.add('is-wrong');
+    }
+    feedback.className = 'ek-feedback is-on ' + (right ? 'ek-feedback--ok' : 'ek-feedback--err');
+    feedback.innerHTML = right ? TEXT_OK : TEXT_ERR;
+    resetBtn.disabled = false;
+  }
+
+  function reset(){
+    answered = false;
+    for (var i = 0; i < options.length; i++){
+      options[i].disabled = false;
+      options[i].classList.remove('is-selected', 'is-correct', 'is-wrong');
+    }
+    feedback.className = 'ek-feedback';
+    feedback.innerHTML = '';
+    resetBtn.disabled = true;
+  }
+
+  for (var j = 0; j < options.length; j++){
+    options[j].addEventListener('click', pick);
+  }
+  resetBtn.addEventListener('click', reset);
+})();
+} catch (e) { console.error("ib:quiz-single", e); }
+/* --- quiz-multi --- */
+try {
+(function () {
+  'use strict';
+  var root = document.getElementById('ib-quiz-multi');
+  if (!root) return;
+  if (root.getAttribute('data-quiz-multi-init') === '1') return;
+  root.setAttribute('data-quiz-multi-init', '1');
+
+  var options = Array.prototype.slice.call(root.querySelectorAll('.ek-option'));
+  var btnCheck = root.querySelector('#quiz-multi-check');
+  var btnReset = root.querySelector('#quiz-multi-reset');
+  var feedback = root.querySelector('#quiz-multi-feedback');
+  var counter = root.querySelector('#quiz-multi-count');
+  var TOTAL_CORRECT = options.filter(function (o) {
+    return o.getAttribute('data-correct') === '1';
+  }).length;
+  var isChecked = false;
+
+  function countSelected() {
+    return options.filter(function (o) {
+      return o.classList.contains('is-selected');
+    }).length;
+  }
+
+  function syncControls() {
+    var n = countSelected();
+    counter.textContent = 'Выбрано: ' + n;
+    counter.classList.toggle('is-active', n > 0);
+    if (!isChecked) {
+      btnCheck.disabled = n === 0;
+      btnReset.disabled = n === 0;
+    }
+  }
+
+  options.forEach(function (opt) {
+    opt.addEventListener('click', function () {
+      if (isChecked) return;
+      var on = opt.classList.toggle('is-selected');
+      opt.setAttribute('aria-pressed', on ? 'true' : 'false');
+      syncControls();
+    });
+  });
+
+  btnCheck.addEventListener('click', function () {
+    if (isChecked || countSelected() === 0) return;
+    isChecked = true;
+
+    var hit = 0, extra = 0, missed = 0;
+    options.forEach(function (opt) {
+      var correct = opt.getAttribute('data-correct') === '1';
+      var selected = opt.classList.contains('is-selected');
+      opt.classList.remove('is-selected');
+      if (selected && correct) { opt.classList.add('is-correct'); hit++; }
+      else if (selected && !correct) { opt.classList.add('is-wrong'); extra++; }
+      else if (!selected && correct) { opt.classList.add('is-missed'); missed++; }
+      opt.disabled = true;
+    });
+
+    btnCheck.disabled = true;
+    btnReset.disabled = false;
+
+    feedback.classList.remove('ek-feedback--ok', 'ek-feedback--err');
+    var html;
+    if (hit === TOTAL_CORRECT && extra === 0) {
+      feedback.classList.add('ek-feedback--ok');
+      html = 'Точно! Все ' + TOTAL_CORRECT + ' верных выражения найдены 🎉' +
+        '<span class="qm-note">and требует, чтобы обе части были True, or — хотя бы одну, а not переворачивает результат. Ты всё это учёл.</span>';
+    } else {
+      feedback.classList.add('ek-feedback--err');
+      html = 'Найдено ' + hit + ' из ' + TOTAL_CORRECT + ' верных, лишних: ' + extra + '.' +
+        '<span class="qm-note">Помни: and даёт True, только когда обе части True; or — когда хотя бы одна; not переворачивает результат.' +
+        (missed > 0 ? ' Пунктирной рамкой отмечены верные выражения, которые ты пропустил.' : '') +
+        '</span>';
+    }
+    feedback.innerHTML = html;
+    feedback.classList.add('is-on');
+  });
+
+  btnReset.addEventListener('click', function () {
+    isChecked = false;
+    options.forEach(function (opt) {
+      opt.classList.remove('is-selected', 'is-correct', 'is-wrong', 'is-missed');
+      opt.setAttribute('aria-pressed', 'false');
+      opt.disabled = false;
+    });
+    feedback.classList.remove('is-on', 'ek-feedback--ok', 'ek-feedback--err');
+    feedback.innerHTML = '';
+    btnCheck.disabled = true;
+    btnReset.disabled = true;
+    syncControls();
+  });
+
+  syncControls();
+})();
+} catch (e) { console.error("ib:quiz-multi", e); }
+/* --- true-false --- */
+try {
+(function(){
+  'use strict';
+  var root=document.getElementById('ib-true-false');
+  if(!root||root.dataset.tfInit==='1')return;
+  root.dataset.tfInit='1';
+
+  var DATA=[
+    {html:'<code class="tf-kw">elif</code> проверяется, только если условие выше оказалось ложным',
+     answer:true,
+     why:'Python идёт по каскаду сверху вниз и заглядывает в elif, только когда условие выше дало False.'},
+    {html:'<code class="tf-kw">else</code> может стоять перед <code class="tf-kw">elif</code>',
+     answer:false,
+     why:'else всегда закрывает каскад и стоит последним — после if и всех elif.'},
+    {html:'Внутри <code class="tf-kw">if</code> можно написать ещё один <code class="tf-kw">if</code> — это вложенное условие',
+     answer:true,
+     why:'Условие внутри условия называется вложенным, а уровни вложенности Python различает по отступам.'},
+    {html:'В каскаде условий обязательно должен быть <code class="tf-kw">elif</code>',
+     answer:false,
+     why:'elif — необязательная ступень: каскад может состоять из одного if или из пары if и else.'}
+  ];
+
+  var stage=root.querySelector('#true-false-stage'),
+      statementEl=root.querySelector('#true-false-statement'),
+      btnTrue=root.querySelector('#true-false-btn-true'),
+      btnFalse=root.querySelector('#true-false-btn-false'),
+      feedback=root.querySelector('#true-false-feedback'),
+      nextBtn=root.querySelector('#true-false-next'),
+      restartBtn=root.querySelector('#true-false-restart'),
+      counter=root.querySelector('#true-false-counter'),
+      result=root.querySelector('#true-false-result'),
+      ring=root.querySelector('#true-false-ring'),
+      scoreNum=root.querySelector('#true-false-score'),
+      phrase=root.querySelector('#true-false-phrase'),
+      dots=root.querySelectorAll('#true-false-dots i');
+
+  var idx=0,score=0,answered=false;
+
+  function replay(el){
+    el.classList.remove('is-anim');
+    void el.offsetWidth;
+    el.classList.add('is-anim');
+  }
+
+  function renderDots(){
+    for(var i=0;i<dots.length;i++){
+      dots[i].className=i<idx?'is-done':(i===idx?'is-on':'');
+    }
+    counter.textContent=Math.min(idx+1,DATA.length)+' / '+DATA.length;
+  }
+
+  function showStep(moveFocus){
+    answered=false;
+    statementEl.innerHTML=DATA[idx].html;
+    btnTrue.disabled=false;
+    btnFalse.disabled=false;
+    btnTrue.classList.remove('is-correct','is-wrong');
+    btnFalse.classList.remove('is-correct','is-wrong');
+    feedback.className='ek-feedback';
+    feedback.textContent='';
+    nextBtn.hidden=true;
+    result.hidden=true;
+    stage.hidden=false;
+    renderDots();
+    replay(stage);
+    if(moveFocus)btnTrue.focus();
+  }
+
+  function answer(val){
+    if(answered)return;
+    answered=true;
+    var item=DATA[idx],ok=(val===item.answer);
+    if(ok)score++;
+    var chosen=val?btnTrue:btnFalse,
+        other=val?btnFalse:btnTrue;
+    btnTrue.disabled=true;
+    btnFalse.disabled=true;
+    if(ok){
+      chosen.classList.add('is-correct');
+    }else{
+      chosen.classList.add('is-wrong');
+      other.classList.add('is-correct');
+    }
+    feedback.className='ek-feedback is-on '+(ok?'ek-feedback--ok':'ek-feedback--err');
+    feedback.textContent=(ok?'Верно! ':'Не совсем: ')+item.why;
+    nextBtn.hidden=false;
+    restartBtn.disabled=false;
+  }
+
+  function showResult(){
+    stage.hidden=true;
+    nextBtn.hidden=true;
+    result.hidden=false;
+    renderDots();
+    scoreNum.textContent=String(score);
+    ring.style.background='conic-gradient(var(--ek-green-deep) '+(score/DATA.length*100)+'%, var(--ek-gray-light) 0)';
+    phrase.textContent=score===DATA.length
+      ?'Огонь, ты разобрался в каскадах!'
+      :(score>=2?'Неплохо, но повтори тему':'Вернись к конспекту урока');
+    replay(result);
+    restartBtn.focus();
+  }
+
+  btnTrue.addEventListener('click',function(){answer(true);});
+  btnFalse.addEventListener('click',function(){answer(false);});
+  nextBtn.addEventListener('click',function(){
+    idx++;
+    if(idx>=DATA.length){showResult();}else{showStep(true);}
+  });
+  restartBtn.addEventListener('click',function(){
+    idx=0;
+    score=0;
+    restartBtn.disabled=true;
+    showStep(true);
+  });
+
+  showStep(false);
+})();
+} catch (e) { console.error("ib:true-false", e); }
+/* --- code-output --- */
+try {
+(function(){
+  'use strict';
+  var root = document.getElementById('ib-code-output');
+  if (!root) return;
+  var options = Array.prototype.slice.call(root.querySelectorAll('.ek-option'));
+  var feedback = root.querySelector('#code-output-feedback');
+  var verdict = root.querySelector('#code-output-fb-verdict');
+  var note = root.querySelector('#code-output-fb-note');
+  var resetBtn = root.querySelector('#code-output-reset');
+  var answered = false;
+
+  function handlePick(btn){
+    if (answered) return;
+    answered = true;
+    var isCorrect = btn.hasAttribute('data-correct');
+    options.forEach(function(b){
+      b.disabled = true;
+      if (b.hasAttribute('data-correct')) b.classList.add('is-correct');
+    });
+    if (isCorrect){
+      feedback.classList.add('ek-feedback--ok');
+      verdict.textContent = 'Верно! Программа напечатает «Покупка невозможна».';
+    } else {
+      btn.classList.add('is-wrong');
+      feedback.classList.add('ek-feedback--err');
+      verdict.textContent = 'Пока нет. Правильный ответ — Б: «Покупка невозможна».';
+    }
+    note.textContent = btn.getAttribute('data-note') || '';
+    feedback.classList.add('is-on');
+    resetBtn.disabled = false;
+  }
+
+  options.forEach(function(btn){
+    btn.addEventListener('click', function(){ handlePick(btn); });
+  });
+
+  resetBtn.addEventListener('click', function(){
+    answered = false;
+    options.forEach(function(b){
+      b.disabled = false;
+      b.classList.remove('is-selected', 'is-correct', 'is-wrong');
+    });
+    feedback.classList.remove('is-on', 'ek-feedback--ok', 'ek-feedback--err');
+    verdict.textContent = '';
+    note.textContent = '';
+    resetBtn.disabled = true;
+  });
+})();
+} catch (e) { console.error("ib:code-output", e); }
+/* --- fill-blank --- */
+try {
+(function(){
+  'use strict';
+  var root = document.getElementById('ib-fill-blank');
+  if (!root) return;
+
+  var ANSWERS = { '1': 'elif', '2': 'else' };
+  var inputs = Array.prototype.slice.call(root.querySelectorAll('.fb-blank'));
+  var checkBtn = root.querySelector('#fill-blank-check');
+  var resetBtn = root.querySelector('#fill-blank-reset');
+  var feedback = root.querySelector('#fill-blank-feedback');
+  var solved = false;
+
+  function norm(value) { return value.trim().toLowerCase(); }
+
+  function hideFeedback() {
+    feedback.classList.remove('is-on', 'ek-feedback--ok', 'ek-feedback--err');
+    feedback.textContent = '';
+  }
+
+  function showFeedback(ok, msg) {
+    feedback.classList.remove('ek-feedback--ok', 'ek-feedback--err');
+    feedback.classList.add('is-on', ok ? 'ek-feedback--ok' : 'ek-feedback--err');
+    feedback.textContent = msg;
+  }
+
+  function shake(el) {
+    el.classList.remove('is-shake');
+    void el.offsetWidth;
+    el.classList.add('is-shake');
+  }
+
+  function check() {
+    if (solved) return;
+    var allOk = true;
+    var firstWrong = null;
+    inputs.forEach(function (inp) {
+      var ok = norm(inp.value) === ANSWERS[inp.getAttribute('data-gap')];
+      inp.classList.toggle('is-correct', ok);
+      inp.classList.toggle('is-wrong', !ok);
+      if (!ok) {
+        shake(inp);
+        if (!firstWrong) firstWrong = inp;
+        allOk = false;
+      }
+    });
+    resetBtn.disabled = false;
+    if (allOk) {
+      solved = true;
+      inputs.forEach(function (inp) { inp.disabled = true; });
+      checkBtn.disabled = true;
+      showFeedback(true, 'Код собран! Каскад работает 🎉');
+    } else {
+      showFeedback(false, 'Пока не то. Вспомни: продолжение каскада — elif, ветка «иначе» — else. Исправь и нажми «Проверить» ещё раз.');
+      firstWrong.focus();
+    }
+  }
+
+  inputs.forEach(function (inp) {
+    inp.addEventListener('input', function () {
+      if (solved) return;
+      inp.classList.remove('is-correct', 'is-wrong', 'is-shake');
+      resetBtn.disabled = false;
+    });
+    inp.addEventListener('keydown', function (e) {
+      if (e.key === 'Enter') { e.preventDefault(); check(); }
+    });
+    inp.addEventListener('animationend', function () {
+      inp.classList.remove('is-shake');
+    });
+  });
+
+  checkBtn.addEventListener('click', check);
+
+  resetBtn.addEventListener('click', function () {
+    solved = false;
+    inputs.forEach(function (inp) {
+      inp.value = '';
+      inp.disabled = false;
+      inp.classList.remove('is-correct', 'is-wrong', 'is-shake');
+    });
+    checkBtn.disabled = false;
+    hideFeedback();
+    resetBtn.disabled = true;
+    if (inputs.length) inputs[0].focus();
+  });
+})();
+} catch (e) { console.error("ib:fill-blank", e); }
+/* --- flashcard --- */
+try {
+(function(){
+  'use strict';
+  var root = document.getElementById('ib-flashcard');
+  if (!root) return;
+  if (root.getAttribute('data-flashcard-init') === '1') return;
+  root.setAttribute('data-flashcard-init', '1');
+
+  var cards = Array.prototype.slice.call(root.querySelectorAll('.flashcard-card'));
+  var flipBtn = root.querySelector('#flashcard-flip');
+  var nextBtn = root.querySelector('#flashcard-next');
+  var resetBtn = root.querySelector('#flashcard-reset');
+  var countEl = root.querySelector('#flashcard-count');
+  var dots = Array.prototype.slice.call(root.querySelectorAll('#flashcard-dots i'));
+  var total = cards.length;
+  if (!total || !flipBtn || !nextBtn || !resetBtn || !countEl) return;
+  var idx = 0;
+  var touched = false;
+  var seen = [];
+  var i;
+  for (i = 0; i < total; i++) { seen.push(false); }
+
+  function isFlipped() {
+    return cards[idx].classList.contains('is-flipped');
+  }
+
+  function syncFaces() {
+    for (var c = 0; c < total; c++) {
+      var flipped = cards[c].classList.contains('is-flipped');
+      var front = cards[c].querySelector('.flashcard-front');
+      var back = cards[c].querySelector('.flashcard-back');
+      if (front) { front.setAttribute('aria-hidden', flipped ? 'true' : 'false'); }
+      if (back) { back.setAttribute('aria-hidden', flipped ? 'false' : 'true'); }
+    }
+  }
+
+  function syncUI() {
+    var flipped = isFlipped();
+    flipBtn.textContent = flipped ? 'Показать вопрос' : 'Показать ответ';
+    flipBtn.setAttribute('aria-pressed', flipped ? 'true' : 'false');
+    cards[idx].setAttribute('aria-pressed', flipped ? 'true' : 'false');
+    var countText = (idx + 1) + ' / ' + total;
+    if (countEl.textContent !== countText) { countEl.textContent = countText; }
+    for (var d = 0; d < dots.length; d++) {
+      dots[d].className = d === idx ? 'is-on' : (seen[d] ? 'is-done' : '');
+    }
+    nextBtn.disabled = idx === total - 1;
+    resetBtn.disabled = !touched;
+    syncFaces();
+  }
+
+  function flip() {
+    cards[idx].classList.toggle('is-flipped');
+    if (isFlipped()) { seen[idx] = true; }
+    touched = true;
+    syncUI();
+  }
+
+  function goNext() {
+    if (idx >= total - 1) return;
+    var prev = cards[idx];
+    prev.classList.remove('is-active');
+    prev.classList.remove('is-flipped');
+    prev.setAttribute('aria-pressed', 'false');
+    idx += 1;
+    cards[idx].classList.add('is-active');
+    touched = true;
+    syncUI();
+  }
+
+  function reset() {
+    for (var c = 0; c < total; c++) {
+      cards[c].classList.remove('is-active');
+      cards[c].classList.remove('is-flipped');
+      cards[c].setAttribute('aria-pressed', 'false');
+      seen[c] = false;
+    }
+    idx = 0;
+    touched = false;
+    cards[0].classList.add('is-active');
+    syncUI();
+  }
+
+  for (i = 0; i < total; i++) {
+    (function (card) {
+      card.addEventListener('click', function () {
+        if (card === cards[idx]) { flip(); }
+      });
+    })(cards[i]);
+  }
+  flipBtn.addEventListener('click', flip);
+  nextBtn.addEventListener('click', goNext);
+  resetBtn.addEventListener('click', reset);
+
+  syncUI();
+})();
+} catch (e) { console.error("ib:flashcard", e); }
+/* --- match-pairs --- */
+try {
+(function(){
+  'use strict';
+  var root=document.getElementById('ib-match-pairs');
+  if(!root) return;
+  if(root.getAttribute('data-mp-init')==='1') return;
+  root.setAttribute('data-mp-init','1');
+
+  var TOTAL=4;
+  var descsCol=root.querySelector('#match-pairs-descs');
+  var counter=root.querySelector('#match-pairs-count');
+  var dots=root.querySelectorAll('#match-pairs-dots i');
+  var feedback=root.querySelector('#match-pairs-feedback');
+  var resetBtn=root.querySelector('#match-pairs-reset');
+  var terms=Array.prototype.slice.call(root.querySelectorAll('.mp-term'));
+  var descs=Array.prototype.slice.call(root.querySelectorAll('.mp-desc'));
+
+  var selTerm=null;
+  var selDesc=null;
+  var matched=0;
+  var wrongTimer=null;
+  var wrongPair=[];
+
+  function setSelected(btn,on){
+    if(on){btn.classList.add('is-selected');}else{btn.classList.remove('is-selected');}
+    btn.setAttribute('aria-pressed',on?'true':'false');
+  }
+
+  function clearWrong(){
+    if(wrongTimer!==null){clearTimeout(wrongTimer);wrongTimer=null;}
+    for(var i=0;i<wrongPair.length;i++){wrongPair[i].classList.remove('is-wrong');}
+    wrongPair=[];
+  }
+
+  function updateScore(){
+    counter.textContent='Собрано пар: '+matched+' из '+TOTAL;
+    for(var i=0;i<dots.length;i++){
+      if(i<matched){dots[i].classList.add('is-done');}else{dots[i].classList.remove('is-done');}
+    }
+  }
+
+  function tryMatch(){
+    if(!selTerm||!selDesc) return;
+    var t=selTerm;
+    var d=selDesc;
+    selTerm=null;
+    selDesc=null;
+    setSelected(t,false);
+    setSelected(d,false);
+    if(t.getAttribute('data-key')===d.getAttribute('data-key')){
+      t.classList.add('is-correct');
+      d.classList.add('is-correct');
+      t.disabled=true;
+      d.disabled=true;
+      matched+=1;
+      updateScore();
+      if(matched===TOTAL){feedback.classList.add('is-on');}
+    }else{
+      t.classList.add('is-wrong');
+      d.classList.add('is-wrong');
+      wrongPair=[t,d];
+      wrongTimer=setTimeout(function(){
+        wrongTimer=null;
+        for(var i=0;i<wrongPair.length;i++){wrongPair[i].classList.remove('is-wrong');}
+        wrongPair=[];
+      },500);
+    }
+  }
+
+  function onPick(btn,isTerm){
+    if(btn.disabled) return;
+    clearWrong();
+    resetBtn.disabled=false;
+    var current=isTerm?selTerm:selDesc;
+    if(current===btn){
+      setSelected(btn,false);
+      if(isTerm){selTerm=null;}else{selDesc=null;}
+      return;
+    }
+    if(current){setSelected(current,false);}
+    setSelected(btn,true);
+    if(isTerm){selTerm=btn;}else{selDesc=btn;}
+    tryMatch();
+  }
+
+  function bind(list,isTerm){
+    for(var i=0;i<list.length;i++){
+      (function(b){
+        b.addEventListener('click',function(){onPick(b,isTerm);});
+      })(list[i]);
+    }
+  }
+
+  function shuffleDescs(){
+    var btns=Array.prototype.slice.call(descsCol.querySelectorAll('.mp-desc'));
+    for(var i=btns.length-1;i>0;i--){
+      var j=Math.floor(Math.random()*(i+1));
+      var tmp=btns[i];
+      btns[i]=btns[j];
+      btns[j]=tmp;
+    }
+    for(var k=0;k<btns.length;k++){descsCol.appendChild(btns[k]);}
+  }
+
+  function resetAll(){
+    clearWrong();
+    selTerm=null;
+    selDesc=null;
+    matched=0;
+    var all=root.querySelectorAll('.ek-option');
+    for(var i=0;i<all.length;i++){
+      all[i].classList.remove('is-selected','is-correct','is-wrong');
+      all[i].disabled=false;
+      all[i].setAttribute('aria-pressed','false');
+    }
+    feedback.classList.remove('is-on');
+    updateScore();
+    shuffleDescs();
+    resetBtn.disabled=true;
+  }
+
+  bind(terms,true);
+  bind(descs,false);
+  resetBtn.addEventListener('click',resetAll);
+  shuffleDescs();
+  updateScore();
+})();
+} catch (e) { console.error("ib:match-pairs", e); }
+/* --- open-reveal --- */
+try {
+(function(){
+  'use strict';
+  var root = document.getElementById('ib-open-reveal');
+  if (!root) return;
+  if (root.getAttribute('data-or-init') === '1') return;
+  root.setAttribute('data-or-init', '1');
+
+  var toggleBtn = root.querySelector('#open-reveal-toggle');
+  var resetBtn = root.querySelector('#open-reveal-reset');
+  var panel = root.querySelector('#open-reveal-answer');
+  if (!toggleBtn || !resetBtn || !panel) return;
+
+  var LABEL_SHOW = 'Показать эталонный ответ';
+  var LABEL_HIDE = 'Скрыть ответ';
+
+  function isOpen(){
+    return panel.classList.contains('is-open');
+  }
+
+  function open(){
+    panel.classList.add('is-open');
+    panel.style.maxHeight = panel.scrollHeight + 'px';
+    panel.setAttribute('aria-hidden', 'false');
+    toggleBtn.setAttribute('aria-expanded', 'true');
+    toggleBtn.textContent = LABEL_HIDE;
+  }
+
+  function close(){
+    if (panel.style.maxHeight === 'none'){
+      panel.style.maxHeight = panel.scrollHeight + 'px';
+      void panel.offsetHeight;
+    }
+    panel.classList.remove('is-open');
+    panel.style.maxHeight = '0px';
+    panel.setAttribute('aria-hidden', 'true');
+    toggleBtn.setAttribute('aria-expanded', 'false');
+    toggleBtn.textContent = LABEL_SHOW;
+  }
+
+  panel.addEventListener('transitionend', function(e){
+    if (e.target === panel && e.propertyName === 'max-height' && isOpen()){
+      panel.style.maxHeight = 'none';
+    }
+  });
+
+  toggleBtn.addEventListener('click', function(){
+    if (isOpen()){
+      close();
+    } else {
+      open();
+    }
+    resetBtn.disabled = false;
+  });
+
+  resetBtn.addEventListener('click', function(){
+    close();
+    resetBtn.disabled = true;
+    toggleBtn.focus();
+  });
+
+  close();
+})();
+} catch (e) { console.error("ib:open-reveal", e); }
+</script>
+</body>
+</html>

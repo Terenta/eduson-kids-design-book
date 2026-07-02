@@ -1,0 +1,84 @@
+<section class="book-section" id="components">
+  <div class="sec-head"><span class="sec-num">06</span><h2>Компоненты</h2></div>
+  <p class="sec-lead">Строительные блоки слайдов и интерактивов. Классы указаны под каждым образцом — их же используют интерактивные шаблоны из раздела 08.</p>
+
+  <div class="grid-3">
+    <div class="spec-card">
+      <h3>Стикер-бейдж</h3>
+      <p class="sub">Номер урока, рубрика, статус · наклон −3…−5°</p>
+      <div style="display:flex;gap:22px;align-items:center;flex-wrap:wrap;padding:10px 0 14px">
+        <span class="ek-badge" style="font-size:17px;padding:11px 18px">Урок №11</span>
+        <span class="ek-badge ek-badge--violet" style="font-size:17px;padding:11px 18px">Практика</span>
+      </div>
+      <span class="tag">.ek-badge / .ek-badge--violet</span>
+    </div>
+
+    <div class="spec-card">
+      <h3>Карточка-окно</h3>
+      <p class="sub">Главный контейнер контента</p>
+      <div class="sl-card" style="box-shadow:0 14px 36px rgba(23,23,28,.12);margin:6px 0 16px">
+        <div class="sl-card-top"><span class="sl-dots"><i></i><i></i><i></i></span><span class="sl-close"></span></div>
+        <div style="padding:16px 30px 26px;font:800 19px/1.25 var(--ek-font-head)">Заголовок в окне</div>
+      </div>
+      <span class="tag">.sl-card + .sl-dots + .sl-close</span>
+    </div>
+
+    <div class="spec-card">
+      <h3>Спич-бабл</h3>
+      <p class="sub">Реплики и слайды-разделители</p>
+      <div class="sl-bubble" style="padding:24px 30px;margin:6px 0 16px;border-radius:22px"><span style="font:800 17px/1.3 var(--ek-font-head)">Пришло время задавать вопросы</span></div>
+      <span class="tag">.sl-bubble</span>
+    </div>
+  </div>
+
+  <div class="grid-2" style="margin-top:22px">
+    <div class="spec-card">
+      <h3>Код-блок</h3>
+      <p class="sub">Комментарии — span.c, ключевые слова — span.k</p>
+      <div class="ek-code" style="margin:6px 0 16px"><span class="c"># есть согласие родителей?</span>
+parent_consent = False
+<span class="k">if</span> (age &gt;= 18 <span class="k">or</span> parent_consent) <span class="k">and</span> balance &gt; 300:
+    <span class="k">print</span>("Билет куплен!")
+<span class="k">else</span>:
+    <span class="k">print</span>("Покупка невозможна")</div>
+      <span class="tag">.ek-code · рамка 2px #17171C · радиус 14</span>
+    </div>
+
+    <div class="spec-card">
+      <h3>Кнопки</h3>
+      <p class="sub">Три роли: действие, успех, второстепенная</p>
+      <div style="display:flex;gap:12px;flex-wrap:wrap;align-items:center;padding:6px 0 16px">
+        <button type="button" class="ek-btn ek-btn--primary">Проверить</button>
+        <button type="button" class="ek-btn ek-btn--green">Дальше</button>
+        <button type="button" class="ek-btn ek-btn--ghost">Заново</button>
+        <button type="button" class="ek-btn ek-btn--primary" disabled>Недоступно</button>
+      </div>
+      <span class="tag">.ek-btn --primary / --green / --ghost</span>
+      <div class="book-note" style="margin-top:16px">Основное действие на экране — одно. «Заново» всегда прижимаем к правому краю панели действий.</div>
+    </div>
+  </div>
+
+  <div class="grid-2" style="margin-top:22px">
+    <div class="spec-card">
+      <h3>Вариант ответа</h3>
+      <p class="sub">Четыре состояния — управляются классами</p>
+      <button type="button" class="ek-option"><span class="ek-chip">А</span>Обычное состояние</button>
+      <button type="button" class="ek-option is-selected"><span class="ek-chip">Б</span>Выбран (.is-selected)</button>
+      <button type="button" class="ek-option is-correct"><span class="ek-chip">В</span>Верный (.is-correct)</button>
+      <button type="button" class="ek-option is-wrong"><span class="ek-chip">Г</span>Неверный (.is-wrong)</button>
+      <div style="margin-top:14px"><span class="tag">.ek-option + .ek-chip</span></div>
+    </div>
+
+    <div class="spec-card">
+      <h3>Фидбек и прогресс</h3>
+      <p class="sub">Ответная реакция интерактива</p>
+      <div class="ek-feedback ek-feedback--ok is-on" style="margin-top:0">Точно! Python выполняет только первую истинную ветку.</div>
+      <div class="ek-feedback ek-feedback--err is-on">Не совсем: elif проверяется, только если условие выше ложно.</div>
+      <div style="display:flex;align-items:center;gap:18px;margin-top:18px">
+        <span class="ek-dots"><i class="is-done"></i><i class="is-done"></i><i class="is-on"></i><i></i></span>
+        <span style="font:600 13px var(--ek-font-body);color:var(--ek-gray)">шаг 3 из 4</span>
+      </div>
+      <div style="margin-top:14px"><span class="tag">.ek-feedback --ok/--err · .ek-dots</span></div>
+    </div>
+  </div>
+</section>

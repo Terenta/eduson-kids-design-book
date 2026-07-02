@@ -1,0 +1,32 @@
+<section class="book-section" id="layout">
+  <div class="sec-head"><span class="sec-num">04</span><h2>Сетка слайда</h2></div>
+  <p class="sec-lead">Все слайды — 1280 × 720 (16:9). Поля и зоны фиксированы: контент никогда не прилипает к краям, декор никогда не заходит в центр.</p>
+
+  <div class="grid-2">
+    <div>
+      <div class="slide-frame js-scale">
+        <div class="slide slide--white">
+          <div style="position:absolute;inset:0;border:2px dashed #C4BEFA;margin:80px;border-radius:6px"></div>
+          <div style="position:absolute;left:80px;right:80px;top:80px;height:110px;border:2px dashed var(--ek-violet);border-radius:6px;background:#F0EEFE66;display:flex;align-items:center;justify-content:center;font:700 24px var(--ek-font-head);color:var(--ek-violet-deep)">Зона заголовка · H2 44 px</div>
+        <div style="position:absolute;left:80px;right:80px;top:220px;bottom:120px;border:2px dashed var(--ek-green-deep);border-radius:6px;background:#E7FDF266;display:flex;align-items:center;justify-content:center;font:700 24px var(--ek-font-head);color:var(--ek-green-deep)">Контентная зона</div>
+          <div style="position:absolute;right:54px;bottom:38px;font:800 38px/1 var(--ek-font-head);color:var(--ek-gray)">N</div>
+          <div style="position:absolute;left:80px;bottom:44px;font:600 20px var(--ek-font-mono);color:var(--ek-gray)">поля 80 px по периметру</div>
+        </div>
+      </div>
+      <div class="slide-caption"><b>Разметка контентного слайда</b><span>1280 × 720 · поля 80</span></div>
+    </div>
+    <div class="spec-card">
+      <h3>Правила зон</h3>
+      <p class="sub">Проверяй перед экспортом</p>
+      <ul style="margin:0;padding-left:20px;font-size:14.5px;color:#4B4B55;line-height:1.75">
+        <li><b>Поля</b> — 80 px со всех сторон. Внутри карточки-окна — ещё 56 px собственных отступов.</li>
+        <li><b>Заголовок</b> — всегда сверху слева (кроме титулов и разделителей — там центр).</li>
+        <li><b>Карточка-окно</b> на титуле — по центру, ширина 720–840 px; на контентном слайде — почти весь слайд с полями 64 px.</li>
+        <li><b>Номер страницы</b> — правый нижний угол, 54 px от правого края, 38 px от нижнего. На титуле и разделителях номер не ставим.</li>
+        <li><b>Декор «Орбита»</b> — только в поле 0–180 px от краёв; центральная треть слайда всегда чистая.</li>
+        <li><b>Скругления</b> — карточки 28 px, код-блоки и кнопки 14 px, стикеры 10–14 px.</li>
+        <li><b>Тень карточки</b> — мягкая и глубокая: <span class="tag">0 30px 80px rgba(23,23,28,.16)</span></li>
+      </ul>
+    </div>
+  </div>
+</section>

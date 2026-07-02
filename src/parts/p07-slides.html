@@ -1,0 +1,181 @@
+<section class="book-section" id="slides">
+  <div class="sec-head"><span class="sec-num">07</span><h2>Шаблоны слайдов</h2></div>
+  <p class="sec-lead">Семь базовых макетов покрывают весь урок: титул, теория, код, вопросы, практика и интерактив. Все превью — живой HTML в масштабе, а не картинки.</p>
+
+  <div class="grid-2">
+
+    <!-- 1. Титульный -->
+    <div>
+      <div class="slide-frame js-scale">
+        <div class="slide slide--violet">
+          <div class="sl-orbit">
+            <i class="sl-ring"></i>
+            <svg class="sl-ico" viewBox="0 0 100 100" style="left:75px;top:20px;width:150px;height:150px;transform:rotate(-10deg)"><use href="#ek-i-trophy"/></svg>
+            <i class="sl-letter" style="left:466px;top:13px;width:78px;height:78px;--fs:36px">Y</i>
+            <svg class="sl-ico" viewBox="0 0 100 100" style="left:1040px;top:15px;width:130px;height:130px;transform:rotate(12deg)"><use href="#ek-i-heart"/></svg>
+            <i class="sl-letter" style="left:68px;top:268px;width:100px;height:100px;--fs:46px">X</i>
+            <i class="sl-letter" style="left:1137px;top:327px;width:95px;height:95px;--fs:44px">B</i>
+            <svg class="sl-ico" viewBox="0 0 100 100" style="left:102px;top:532px;width:125px;height:125px;transform:rotate(-15deg)"><use href="#ek-i-star"/></svg>
+            <i class="sl-letter" style="left:726px;top:613px;width:78px;height:78px;--fs:36px">A</i>
+            <svg class="sl-ico" viewBox="0 0 100 100" style="left:1045px;top:540px;width:110px;height:110px;transform:rotate(8deg)"><use href="#ek-i-gem"/></svg>
+          </div>
+          <div class="sl-card" style="position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);width:820px">
+            <div class="sl-badge" style="position:absolute;left:50%;top:-30px;transform:translateX(-50%) rotate(-4deg)">Урок №11</div>
+            <div class="sl-card-top"><span class="sl-dots"><i></i><i></i><i></i></span><span class="sl-close"></span></div>
+            <div style="padding:26px 70px 62px;text-align:center">
+              <h3 class="sl-h1" style="font-size:54px">Как работают вложенные и каскадные условия</h3>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="slide-caption"><b>Титульный слайд</b><span>фиолетовый · орбита · карточка-окно</span></div>
+    </div>
+
+    <!-- 2. Код -->
+    <div>
+      <div class="slide-frame js-scale">
+        <div class="slide slide--violet">
+          <div class="sl-orbit" style="opacity:.35">
+            <svg class="sl-ico" viewBox="0 0 100 100" style="left:-40px;top:430px;width:260px;height:260px;transform:rotate(-14deg)"><use href="#ek-i-heart"/></svg>
+            <i class="sl-letter" style="left:1150px;top:80px;width:150px;height:150px;--fs:64px">X</i>
+          </div>
+          <div class="sl-card" style="position:absolute;left:64px;right:64px;top:56px;bottom:56px;border-radius:30px">
+            <div style="padding:52px 64px 0">
+              <h3 class="sl-h2">Проверьте домашнее задание</h3>
+              <div class="sl-codebox" style="margin-top:34px;font-size:20px"><span class="c"># --- Покупка билета ---</span>
+age = <span style="font-weight:700">int</span>(<span style="font-weight:700">input</span>("Введи возраст: "))
+balance = <span style="font-weight:700">int</span>(<span style="font-weight:700">input</span>("Сколько денег на карте? (руб): "))
+<span class="c"># (старше 18 ИЛИ есть согласие родителей) И достаточно денег</span>
+<span style="font-weight:700">if</span> (age &gt;= 18 <span style="font-weight:700">or</span> parent_consent) <span style="font-weight:700">and</span> balance &gt; 300:
+    <span style="font-weight:700">print</span>("Билет куплен!")
+<span style="font-weight:700">else</span>:
+    <span style="font-weight:700">print</span>("Покупка невозможна")</div>
+            </div>
+          </div>
+          <div class="sl-pagenum">2</div>
+        </div>
+      </div>
+      <div class="slide-caption"><b>Слайд с кодом</b><span>карточка во весь слайд · код-блок 21 px</span></div>
+    </div>
+
+    <!-- 3. Разделитель -->
+    <div>
+      <div class="slide-frame js-scale">
+        <div class="slide slide--green">
+          <div class="sl-orbit">
+            <i class="sl-ring"></i>
+            <svg class="sl-ico" viewBox="0 0 100 100" style="left:75px;top:20px;width:150px;height:150px;transform:rotate(-10deg)"><use href="#ek-i-trophy"/></svg>
+            <i class="sl-letter" style="left:466px;top:13px;width:78px;height:78px;--fs:36px">Y</i>
+            <svg class="sl-ico" viewBox="0 0 100 100" style="left:1040px;top:15px;width:130px;height:130px;transform:rotate(12deg)"><use href="#ek-i-heart"/></svg>
+            <i class="sl-letter" style="left:68px;top:268px;width:100px;height:100px;--fs:46px">X</i>
+            <i class="sl-letter" style="left:1137px;top:327px;width:95px;height:95px;--fs:44px">B</i>
+            <svg class="sl-ico" viewBox="0 0 100 100" style="left:102px;top:532px;width:125px;height:125px;transform:rotate(-15deg)"><use href="#ek-i-star"/></svg>
+            <i class="sl-letter" style="left:726px;top:613px;width:78px;height:78px;--fs:36px">A</i>
+            <svg class="sl-ico" viewBox="0 0 100 100" style="left:1045px;top:540px;width:110px;height:110px;transform:rotate(8deg)"><use href="#ek-i-gem"/></svg>
+          </div>
+          <div class="sl-bubble" style="position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);width:640px">
+            <span style="font:800 40px/1.25 var(--ek-font-head)">Пришло время задавать вопросы</span>
+          </div>
+        </div>
+      </div>
+      <div class="slide-caption"><b>Слайд-разделитель</b><span>зелёный · спич-бабл · без номера страницы</span></div>
+    </div>
+
+    <!-- 4. Вопросы -->
+    <div>
+      <div class="slide-frame js-scale">
+        <div class="slide slide--white">
+          <div class="sl-waves"><!--WAVES_SVG--></div>
+          <div style="position:absolute;left:100px;top:150px;width:640px">
+            <h3 class="sl-h2" style="font-size:46px">Чем elif отличается от второго if?</h3>
+            <h3 class="sl-h2" style="font-size:46px;margin-top:120px">Для чего применяется elif?</h3>
+          </div>
+        </div>
+      </div>
+      <div class="slide-caption"><b>Слайд с вопросами</b><span>белый · вопросы слева · волны-декор справа</span></div>
+    </div>
+
+    <!-- 5. Контент с буллетами -->
+    <div>
+      <div class="slide-frame js-scale">
+        <div class="slide slide--white">
+          <div class="sl-orbit">
+            <svg class="sl-ico" viewBox="0 0 100 100" style="left:1120px;top:560px;width:100px;height:100px;transform:rotate(14deg)"><use href="#ek-i-star"/></svg>
+          </div>
+          <div style="position:absolute;left:80px;right:80px;top:80px">
+            <h3 class="sl-h2">Три правила каскада</h3>
+            <div style="display:grid;gap:26px;margin-top:48px">
+              <div style="display:flex;gap:26px;align-items:center;background:#F7F7FB;border-radius:22px;padding:30px 36px">
+                <span style="flex:0 0 auto;width:64px;height:64px;border-radius:50%;background:var(--ek-violet);color:#fff;display:flex;align-items:center;justify-content:center;font:800 30px var(--ek-font-head)">1</span>
+                <span class="sl-body" style="font-size:26px">Python читает каскад сверху вниз, ветку за веткой</span>
+              </div>
+              <div style="display:flex;gap:26px;align-items:center;background:#F7F7FB;border-radius:22px;padding:30px 36px">
+                <span style="flex:0 0 auto;width:64px;height:64px;border-radius:50%;background:var(--ek-violet);color:#fff;display:flex;align-items:center;justify-content:center;font:800 30px var(--ek-font-head)">2</span>
+                <span class="sl-body" style="font-size:26px">Выполняется только первая истинная ветка</span>
+              </div>
+              <div style="display:flex;gap:26px;align-items:center;background:#F7F7FB;border-radius:22px;padding:30px 36px">
+                <span style="flex:0 0 auto;width:64px;height:64px;border-radius:50%;background:var(--ek-green);color:var(--ek-ink);display:flex;align-items:center;justify-content:center;font:800 30px var(--ek-font-head)">3</span>
+                <span class="sl-body" style="font-size:26px">else ловит всё, что не подошло ни одному условию</span>
+              </div>
+            </div>
+          </div>
+          <div class="sl-pagenum">7</div>
+        </div>
+      </div>
+      <div class="slide-caption"><b>Контентный слайд</b><span>белый · нумерованные тезисы · до трёх пунктов</span></div>
+    </div>
+
+    <!-- 6. Практика -->
+    <div>
+      <div class="slide-frame js-scale">
+        <div class="slide slide--violet">
+          <div class="sl-orbit" style="opacity:.35">
+            <svg class="sl-ico" viewBox="0 0 100 100" style="left:1130px;top:520px;width:200px;height:200px;transform:rotate(10deg)"><use href="#ek-i-gem"/></svg>
+          </div>
+          <div class="sl-card" style="position:absolute;left:64px;right:64px;top:56px;bottom:56px;border-radius:30px">
+            <div style="padding:48px 64px 0">
+              <span class="ek-badge ek-badge--violet" style="font-size:24px;padding:13px 22px">Практика · 10 минут</span>
+              <h3 class="sl-h2" style="margin-top:26px">Допиши каскад скидок</h3>
+              <p class="sl-body" style="margin:18px 0 26px;font-size:25px">Скидка 30% — от 5000 руб, 10% — от 2000 руб, иначе без скидки. Заполни пропуски:</p>
+              <div class="sl-codebox" style="font-size:20px"><span style="font-weight:700">if</span> total &gt;= 5000:
+    discount = 30
+____ total &gt;= 2000:
+    discount = 10
+____:
+    discount = 0</div>
+            </div>
+          </div>
+          <div class="sl-pagenum">12</div>
+        </div>
+      </div>
+      <div class="slide-caption"><b>Слайд практики</b><span>бейдж с таймингом · задание + заготовка кода</span></div>
+    </div>
+
+    <!-- 7. Интерактив -->
+    <div>
+      <div class="slide-frame js-scale">
+        <div class="slide slide--violet">
+          <div class="sl-orbit" style="opacity:.4">
+            <svg class="sl-ico" viewBox="0 0 100 100" style="left:-30px;top:-30px;width:200px;height:200px;transform:rotate(-12deg)"><use href="#ek-i-trophy"/></svg>
+            <i class="sl-letter" style="left:1160px;top:560px;width:110px;height:110px;--fs:50px">A</i>
+          </div>
+          <div class="sl-card" style="position:absolute;left:140px;right:140px;top:70px;bottom:70px;border-radius:30px">
+            <div style="padding:44px 60px 0">
+              <span class="ek-badge" style="font-size:22px;padding:12px 20px">Квиз</span>
+              <h3 style="font:800 34px/1.2 var(--ek-font-head);margin:22px 0 28px">Сколько веток выполнится, если истинны все условия каскада?</h3>
+              <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px">
+                <span class="ek-option" style="font-size:20px;padding:18px 22px"><span class="ek-chip" style="width:42px;height:42px;font-size:18px">А</span>Все</span>
+                <span class="ek-option is-selected" style="font-size:20px;padding:18px 22px"><span class="ek-chip" style="width:42px;height:42px;font-size:18px">Б</span>Только первая</span>
+                <span class="ek-option" style="font-size:20px;padding:18px 22px"><span class="ek-chip" style="width:42px;height:42px;font-size:18px">В</span>Только последняя</span>
+                <span class="ek-option" style="font-size:20px;padding:18px 22px"><span class="ek-chip" style="width:42px;height:42px;font-size:18px">Г</span>Ни одной</span>
+              </div>
+              <p style="font:600 17px var(--ek-font-body);color:var(--ek-gray);margin-top:24px">Живые версии блоков — в разделе 08 «Интерактив»</p>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="slide-caption"><b>Слайд с интерактивом</b><span>карточка-окно · сетка вариантов 2×2</span></div>
+    </div>
+
+  </div>
+</section>

@@ -1,0 +1,49 @@
+<section class="book-section" id="assets">
+  <div class="sec-head"><span class="sec-num">10</span><h2>Библиотека ассетов</h2></div>
+  <p class="sec-lead">Готовые SVG: кнопка «SVG» копирует код элемента в буфер — вставляй прямо в слайд, Figma или другой HTML.</p>
+
+  <div class="grid-2">
+    <div class="asset-card">
+      <div class="asset-view" style="padding:0" id="asset-bg-violet"><!--BG_VIOLET_SVG--></div>
+      <div class="asset-info"><div><b>Фон «Орбита» · фиолетовый</b><span>1280 × 720 · титульные слайды</span></div><button class="copy-btn" data-svg-target="asset-bg-violet">SVG</button></div>
+    </div>
+    <div class="asset-card">
+      <div class="asset-view" style="padding:0" id="asset-bg-green"><!--BG_GREEN_SVG--></div>
+      <div class="asset-info"><div><b>Фон «Орбита» · зелёный</b><span>1280 × 720 · слайды-разделители</span></div><button class="copy-btn" data-svg-target="asset-bg-green">SVG</button></div>
+    </div>
+  </div>
+
+  <div class="grid-3" style="margin-top:22px">
+    <div class="asset-card">
+      <div class="asset-view asset-view--dotted" id="asset-waves" style="min-height:230px"><div style="width:180px"><!--WAVES_SVG2--></div></div>
+      <div class="asset-info"><div><b>Волны с планетами · минт</b><span>520 × 720 · правый край белых слайдов</span></div><button class="copy-btn" data-svg-target="asset-waves">SVG</button></div>
+    </div>
+    <div class="asset-card">
+      <div class="asset-view asset-view--dotted" style="gap:18px;flex-wrap:wrap">
+        <div id="asset-i-trophy" style="width:74px;color:var(--ek-violet)"><!--ICON_TROPHY_SVG--></div>
+        <div id="asset-i-heart" style="width:74px;color:var(--ek-violet)"><!--ICON_HEART_SVG--></div>
+        <div id="asset-i-star" style="width:74px;color:var(--ek-violet)"><!--ICON_STAR_SVG--></div>
+        <div id="asset-i-gem" style="width:74px;color:var(--ek-violet)"><!--ICON_GEM_SVG--></div>
+      </div>
+      <div class="asset-info" style="flex-wrap:wrap"><div><b>Иконки-планеты</b><span>100 × 100 · fill: currentColor</span></div>
+        <div style="display:flex;gap:6px;flex-wrap:wrap">
+          <button class="copy-btn" data-svg-target="asset-i-trophy">кубок</button>
+          <button class="copy-btn" data-svg-target="asset-i-heart">сердце</button>
+          <button class="copy-btn" data-svg-target="asset-i-star">звезда</button>
+          <button class="copy-btn" data-svg-target="asset-i-gem">гем</button>
+        </div>
+      </div>
+    </div>
+    <div class="asset-card">
+      <div class="asset-view asset-view--dark" style="gap:14px">
+        <i class="sl-letter" style="position:static;width:64px;height:64px;--fs:30px;background:#A79EF9;color:#C4BEFA">X</i>
+        <i class="sl-letter" style="position:static;width:64px;height:64px;--fs:30px;background:#A79EF9;color:#C4BEFA">Y</i>
+        <i class="sl-letter" style="position:static;width:64px;height:64px;--fs:30px;background:#A79EF9;color:#C4BEFA">A</i>
+        <i class="sl-letter" style="position:static;width:64px;height:64px;--fs:30px;background:#A79EF9;color:#C4BEFA">B</i>
+      </div>
+      <div class="asset-info"><div><b>Буквы-планеты</b><span>HTML: класс .sl-letter, без SVG</span></div><button class="copy-btn" data-copy='&lt;i class="sl-letter" style="width:78px;height:78px;--fs:36px"&gt;X&lt;/i&gt;'>HTML</button></div>
+    </div>
+  </div>
+
+  <div class="book-note"><b>Регенерация ассетов:</b> исходные файлы — bg-orbit-violet.svg, bg-orbit-green.svg, decor-waves-mint.svg и icons/*.svg. Иконки одноцветные (currentColor): перекрашиваются CSS-свойством color родителя.</div>
+</section>

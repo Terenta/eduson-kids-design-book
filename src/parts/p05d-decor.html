@@ -1,0 +1,46 @@
+<section class="book-section" id="decor">
+  <div class="sec-head"><span class="sec-num">05</span><h2>Декор «Орбита»</h2></div>
+  <p class="sec-lead">Фирменные украшения — «планеты» на тонкой линии-орбите: трофей, сердце, звезда, гем и буквы X, Y, A, B. Восемь фиксированных позиций по краям слайда, центр всегда свободен.</p>
+
+  <div class="grid-2" style="margin-bottom:22px">
+    <div class="spec-card">
+      <h3>Инвентарь</h3>
+      <p class="sub">4 иконки + 4 буквы-планеты · один цвет на слайд</p>
+      <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:12px;padding:4px 0 14px">
+        <div style="background:var(--ek-violet);border-radius:16px;aspect-ratio:1;display:flex;align-items:center;justify-content:center"><svg viewBox="0 0 100 100" style="width:54%;height:54%;color:#A79EF9"><use href="#ek-i-trophy"/></svg></div>
+        <div style="background:var(--ek-violet);border-radius:16px;aspect-ratio:1;display:flex;align-items:center;justify-content:center"><svg viewBox="0 0 100 100" style="width:54%;height:54%;color:#A79EF9"><use href="#ek-i-heart"/></svg></div>
+        <div style="background:var(--ek-violet);border-radius:16px;aspect-ratio:1;display:flex;align-items:center;justify-content:center"><svg viewBox="0 0 100 100" style="width:54%;height:54%;color:#A79EF9"><use href="#ek-i-star"/></svg></div>
+        <div style="background:var(--ek-violet);border-radius:16px;aspect-ratio:1;display:flex;align-items:center;justify-content:center"><svg viewBox="0 0 100 100" style="width:54%;height:54%;color:#A79EF9"><use href="#ek-i-gem"/></svg></div>
+        <div style="background:var(--ek-green);border-radius:16px;aspect-ratio:1;display:flex;align-items:center;justify-content:center"><i class="sl-letter" style="position:static;width:56%;height:56%;--fs:26px;background:#7BF9BD;color:#C4FCE0">X</i></div>
+        <div style="background:var(--ek-green);border-radius:16px;aspect-ratio:1;display:flex;align-items:center;justify-content:center"><i class="sl-letter" style="position:static;width:56%;height:56%;--fs:26px;background:#7BF9BD;color:#C4FCE0">Y</i></div>
+        <div style="background:var(--ek-green);border-radius:16px;aspect-ratio:1;display:flex;align-items:center;justify-content:center"><i class="sl-letter" style="position:static;width:56%;height:56%;--fs:26px;background:#7BF9BD;color:#C4FCE0">A</i></div>
+        <div style="background:var(--ek-green);border-radius:16px;aspect-ratio:1;display:flex;align-items:center;justify-content:center"><i class="sl-letter" style="position:static;width:56%;height:56%;--fs:26px;background:#7BF9BD;color:#C4FCE0">B</i></div>
+      </div>
+      <span class="tag">спрайт #ek-i-* · буквы — .sl-letter</span>
+    </div>
+    <div class="spec-card">
+      <h3>Правила орбиты</h3>
+      <p class="sub">Как расставлять декор, чтобы он не мешал</p>
+      <ul style="margin:0;padding-left:20px;font-size:14.5px;color:#4B4B55;line-height:1.75">
+        <li><b>Кольцо</b> — эллипс ≈1040 × 660 по центру слайда, линия 3 px, цвет декора.</li>
+        <li><b>8 позиций:</b> трофей, Y и сердце — сверху; X и B — по бокам; звезда, A и гем — снизу.</li>
+        <li><b>Цвет — на полтона светлее фона:</b> фиолетовый фон → декор #A79EF9, буквы #C4BEFA; зелёный фон → #7BF9BD и #C4FCE0; белый фон → минт #97F3C8, буквы белые, линии #C9F7E3.</li>
+        <li><b>Повороты</b> — от −15° до +12°, лёгкая живая асимметрия.</li>
+        <li><b>Плотные слайды</b> (код, практика): полная орбита не нужна — 1–2 крупных элемента по углам с opacity 0.35.</li>
+        <li><b>Белые слайды</b> — вместо орбиты две волнистые минт-линии справа с 4–5 «планетами».</li>
+      </ul>
+    </div>
+  </div>
+
+  <div class="grid-2">
+    <div>
+      <div class="slide-frame" style="aspect-ratio:16/9" id="asset-bg-violet-preview"><!--BG_VIOLET_SVG--></div>
+      <div class="slide-caption"><b>Готовый фон: орбита на фиолетовом</b><span>bg-orbit-violet.svg · титулы</span></div>
+    </div>
+    <div>
+      <div class="slide-frame" style="aspect-ratio:16/9" id="asset-bg-green-preview"><!--BG_GREEN_SVG--></div>
+      <div class="slide-caption"><b>Готовый фон: орбита на зелёном</b><span>bg-orbit-green.svg · разделители</span></div>
+    </div>
+  </div>
+  <div class="book-note"><b>Как пользоваться:</b> фоны и иконки лежат в разделе 10 «Ассеты» — кнопка «SVG» копирует готовый код. В HTML-слайдах удобнее собирать орбиту из спрайта (класс <span class="tag">.sl-orbit</span>) — так декор перекрашивается одной CSS-переменной.</div>
+</section>

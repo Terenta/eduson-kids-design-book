@@ -1,0 +1,101 @@
+</main>
+
+<footer>
+  <div class="footer-in">
+    <span><b>Eduson Kids</b> · дизайн-бук презентаций · v1.0 · 02.07.2026</span>
+    <span>Документ самодостаточен: слайды, компоненты и интерактивы — живой HTML</span>
+  </div>
+</footer>
+
+<svg width="0" height="0" style="position:absolute" aria-hidden="true"><defs>
+<symbol id="ek-i-trophy" viewBox="0 0 100 100"><path fill="currentColor" d="M24 16h52v12h8c6 0 10 4 10 10 0 15-11 25-23 27-3 5-8 9-14 10v8h14c4 0 7 3 7 7v4H22v-4c0-4 3-7 7-7h14v-8c-6-1-11-5-14-10C17 63 6 53 6 38c0-6 4-10 10-10h8V16zM24 36h-7c-2 0-4 2-4 4 0 8 5 15 12 18-1-5-1-10-1-16v-6zM76 36v6c0 6 0 11-1 16 7-3 12-10 12-18 0-2-2-4-4-4h-7z"/></symbol>
+<symbol id="ek-i-heart" viewBox="0 0 100 100"><path fill="currentColor" d="M50 88C28 70 8 56 8 35C8 22 19 13 32 13C41 13 47 18 50 27C53 18 59 13 68 13C81 13 92 22 92 35C92 56 72 70 50 88z"/></symbol>
+<symbol id="ek-i-star" viewBox="0 0 100 100"><path fill="currentColor" d="M50 8C53 8 55 10 56 13L63 34C64 36 66 37 68 37L90 37C94 37 96 42 92 45L74 58C72 60 72 62 73 64L80 85C82 89 78 93 74 90L53 77C51 76 49 76 47 77L26 90C22 93 18 89 20 85L27 64C28 62 28 60 26 58L8 45C4 42 6 37 10 37L32 37C34 37 36 36 37 34L44 13C45 10 47 8 50 8z"/></symbol>
+<symbol id="ek-i-gem" viewBox="0 0 100 100"><path fill="currentColor" fill-rule="evenodd" d="M22 14H78L94 38L50 90L6 38L22 14zM49 40H51V81H49V40zM21 18L46 38L44 40L19 20zM79 18L54 38L56 40L81 20zM12 37H88V40H12z"/></symbol>
+</defs></svg>
+
+<script>
+/* Масштабирование превью слайдов 1280×720 */
+(function(){
+  'use strict';
+  var frames = document.querySelectorAll('.js-scale');
+  function fit(fr){
+    var slide = fr.querySelector('.slide');
+    if(!slide) return;
+    var s = fr.clientWidth / 1280;
+    slide.style.transform = 'scale(' + s + ')';
+    fr.style.height = (720 * s) + 'px';
+  }
+  if('ResizeObserver' in window){
+    var ro = new ResizeObserver(function(entries){ entries.forEach(function(e){ fit(e.target); }); });
+    frames.forEach(function(f){ ro.observe(f); fit(f); });
+  } else {
+    var all = function(){ frames.forEach(fit); };
+    window.addEventListener('resize', all); all();
+  }
+})();
+
+/* Копирование HEX и SVG */
+(function(){
+  'use strict';
+  function done(btn){
+    btn.classList.add('is-copied');
+    var old = btn.textContent;
+    btn.textContent = 'Скопировано';
+    setTimeout(function(){ btn.classList.remove('is-copied'); btn.textContent = old; }, 1200);
+  }
+  function copyText(btn, text){
+    if(navigator.clipboard && navigator.clipboard.writeText){
+      navigator.clipboard.writeText(text).then(function(){ done(btn); }, function(){ legacy(btn, text); });
+    } else { legacy(btn, text); }
+  }
+  function legacy(btn, text){
+    var ta = document.createElement('textarea');
+    ta.value = text; ta.style.position = 'fixed'; ta.style.opacity = '0';
+    document.body.appendChild(ta); ta.select();
+    try { document.execCommand('copy'); done(btn); } catch(e){}
+    document.body.removeChild(ta);
+  }
+  document.addEventListener('click', function(ev){
+    var b = ev.target.closest('.copy-btn');
+    if(!b) return;
+    if(b.dataset.copy){ copyText(b, b.dataset.copy); return; }
+    if(b.dataset.svgTarget){
+      var el = document.getElementById(b.dataset.svgTarget);
+      if(el) copyText(b, el.innerHTML.trim());
+    }
+  });
+})();
+
+/* Подсветка активного раздела в навигации */
+(function(){
+  'use strict';
+  var links = Array.prototype.slice.call(document.querySelectorAll('#navlinks a'));
+  if(!links.length) return;
+  var map = [];
+  links.forEach(function(a){
+    var sec = document.getElementById(a.getAttribute('href').slice(1));
+    if(sec) map.push([sec, a]);
+  });
+  var last = null;
+  function update(){
+    var pos = window.scrollY + window.innerHeight * 0.25;
+    var active = null;
+    for(var i = 0; i < map.length; i++){
+      if(map[i][0].offsetTop <= pos) active = map[i][1];
+    }
+    if(active === last) return;
+    last = active;
+    links.forEach(function(a){ a.classList.remove('is-active'); });
+    if(active) active.classList.add('is-active');
+  }
+  window.addEventListener('scroll', update, { passive: true });
+  window.addEventListener('resize', update);
+  update();
+})();
+
+/* JS интерактивных блоков */
+/*__COMPONENT_JS__*/
+</script>
+</body>
+</html>
