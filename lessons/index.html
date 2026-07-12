@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Уроки · Программирование с нейросетями | Eduson Kids</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter+Tight:wght@600;700;800;900&family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;700&display=swap">
+<style>
+:root{
+  --ek-violet:#8C7FF6; --ek-violet-soft:#A79EF9; --ek-violet-deep:#6F61E8; --ek-violet-bg:#F0EEFE;
+  --ek-green:#3DF79D; --ek-green-pale:#E7FDF2; --ek-green-deep:#0FBF6E;
+  --ek-ink:#17171C; --ek-gray:#8F8F98; --ek-gray-light:#EFEFF2; --ek-line:#E3E3EA;
+  --f-head:'Inter Tight','Inter',system-ui,sans-serif;
+  --f-body:'Inter',system-ui,sans-serif;
+  --f-mono:'JetBrains Mono','Consolas',monospace;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:var(--f-body);background:#F7F7FA;color:var(--ek-ink);-webkit-font-smoothing:antialiased}
+.wrap{max-width:900px;margin:0 auto;padding:64px 24px 96px}
+.crumb{font:600 13px var(--f-body);margin-bottom:36px}
+.crumb a{color:var(--ek-violet-deep);text-decoration:none}
+.crumb a:hover{text-decoration:underline}
+.crumb span{color:var(--ek-gray)}
+.hero-badge{display:inline-block;background:var(--ek-green);color:var(--ek-ink);font:800 15px/1 var(--f-head);padding:10px 18px;border-radius:11px;transform:rotate(-2deg);box-shadow:0 8px 20px rgba(23,23,28,.10);margin-bottom:22px}
+h1{font:800 clamp(34px,5vw,52px)/1.1 var(--f-head);letter-spacing:-.015em;margin-bottom:14px}
+.sub{font:500 18px/1.55 var(--f-body);color:#3C3C45;max-width:620px;margin-bottom:44px}
+.cards{display:flex;flex-direction:column;gap:18px}
+a.lesson{display:block;text-decoration:none;color:inherit;background:#fff;border:1.5px solid var(--ek-line);border-radius:22px;padding:26px 30px;position:relative;transition:transform .18s,box-shadow .18s,border-color .18s}
+a.lesson:hover{transform:translateY(-3px);border-color:var(--ek-violet-soft);box-shadow:0 18px 44px rgba(23,23,28,.10)}
+a.lesson .num{font:700 13px var(--f-mono);letter-spacing:.1em;text-transform:uppercase;color:var(--ek-violet-deep)}
+a.lesson h2{font:800 24px/1.25 var(--f-head);margin:8px 0 8px}
+a.lesson p{font:500 15.5px/1.55 var(--f-body);color:#3C3C45;max-width:640px}
+a.lesson .go{position:absolute;top:26px;right:28px;width:40px;height:40px;border-radius:50%;background:var(--ek-violet-bg);color:var(--ek-violet-deep);display:flex;align-items:center;justify-content:center;font:800 18px var(--f-head);transition:background .18s,color .18s}
+a.lesson:hover .go{background:var(--ek-violet);color:#fff}
+.chips{display:flex;gap:8px;flex-wrap:wrap;margin-top:14px}
+.chip{font:700 12.5px/1 var(--f-body);padding:7px 12px;border-radius:999px;background:var(--ek-violet-bg);color:var(--ek-violet-deep)}
+.chip--green{background:var(--ek-green-pale);color:var(--ek-green-deep)}
+.chip--gray{background:var(--ek-gray-light);color:#3C3C45}
+.foot{margin-top:46px;font:500 13px var(--f-mono);color:var(--ek-gray)}
+.foot kbd{background:var(--ek-gray-light);padding:2px 7px;border-radius:5px;color:var(--ek-ink);font-family:var(--f-mono);font-size:11px}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="crumb"><a href="../">← Дизайн-бук Eduson Kids</a> <span>/ Уроки</span></div>
+  <div class="hero-badge">Step 2 · 13–15 лет</div>
+  <h1>Программирование с&nbsp;нейросетями</h1>
+  <p class="sub">Практические уроки модулей 3–4: пишете код в диалоге с нейросетью и сразу видите результат. Каждый урок — рабочий проект за 60 минут.</p>
+
+  <div class="cards">
+    <a class="lesson" href="urok_10.html">
+      <span class="num">Занятие 10 · Модуль 3</span>
+      <h2>Своё веб-приложение в интернете</h2>
+      <p>AI-помощник на Streamlit: веб-страница на чистом Python, чат с нейросетью и публикация на Streamlit Cloud — с публичной ссылкой, которой можно делиться.</p>
+      <div class="chips"><span class="chip">Streamlit</span><span class="chip chip--green">DeepSeek API</span><span class="chip chip--gray">Streamlit Cloud</span></div>
+      <span class="go">→</span>
+    </a>
+    <a class="lesson" href="urok_11.html">
+      <span class="num">Занятие 11 · Модуль 4</span>
+      <h2>Как программы общаются с нейросетью</h2>
+      <p>Программа-журналист: генератор статей на openai SDK. Управляем длиной и креативностью ответов через max_tokens и temperature.</p>
+      <div class="chips"><span class="chip chip--green">DeepSeek API</span><span class="chip">openai SDK</span><span class="chip chip--gray">Python</span></div>
+      <span class="go">→</span>
+    </a>
+    <a class="lesson" href="urok_12.html">
+      <span class="num">Занятие 12 · Модуль 4</span>
+      <h2>Чат с AI, как в ChatGPT</h2>
+      <p>AI-собеседник с личностями на выбор — учитель, друг, пират, философ. Ответ печатается по словам, а чатом управляют команды /start, /help и /clear.</p>
+      <div class="chips"><span class="chip chip--green">DeepSeek API</span><span class="chip">Streaming</span><span class="chip chip--gray">System prompt</span></div>
+      <span class="go">→</span>
+    </a>
+  </div>
+
+  <div class="foot">В уроках: <kbd>←</kbd><kbd>→</kbd> — слайды · <kbd>N</kbd> — заметки преподавателя · <kbd>F</kbd> — во весь экран</div>
+</div>
+</body>
+</html>

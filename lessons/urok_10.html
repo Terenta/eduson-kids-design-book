@@ -1,0 +1,1115 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Урок 10 — Своё веб-приложение в интернете | Eduson Kids</title>
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter+Tight:wght@600;700;800;900&family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;700&display=swap">
+
+<style>
+/* ============ Дизайн-токены Eduson Kids ============ */
+:root{
+  --ek-violet:#8C7FF6; --ek-violet-soft:#A79EF9; --ek-violet-deep:#6F61E8; --ek-violet-bg:#F0EEFE;
+  --ek-green:#3DF79D; --ek-green-soft:#7BF9BD; --ek-green-mint:#C9F7E3; --ek-green-pale:#E7FDF2; --ek-green-deep:#0FBF6E;
+  --ek-ink:#17171C; --ek-gray:#8F8F98; --ek-gray-light:#EFEFF2; --ek-line:#E3E3EA;
+  --ek-red:#FF6B6B; --ek-red-pale:#FFECEC;
+  --f-head:'Inter Tight','Inter','Segoe UI',system-ui,sans-serif;
+  --f-body:'Inter','Segoe UI',system-ui,sans-serif;
+  --f-mono:'JetBrains Mono','Cascadia Mono','Consolas',monospace;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{height:100%;overflow:hidden}
+body{font-family:var(--f-body);background:#E9E9F1;color:var(--ek-ink);-webkit-font-smoothing:antialiased}
+
+/* ============ Хром: прогресс, счётчик, подсказка ============ */
+.progress{position:fixed;top:0;left:0;right:0;height:4px;background:rgba(23,23,28,.08);z-index:100}
+.progress__fill{height:100%;width:0%;background:var(--ek-violet);transition:width 300ms ease}
+.counter{position:fixed;top:14px;right:18px;z-index:90;font:600 13px var(--f-body);color:var(--ek-gray);background:#fff;border:1px solid var(--ek-line);padding:6px 14px;border-radius:999px;font-variant-numeric:tabular-nums}
+.counter b{color:var(--ek-ink)}
+.hint{position:fixed;bottom:12px;left:50%;transform:translateX(-50%);z-index:90;font:500 11px var(--f-body);color:var(--ek-gray);background:#fff;border:1px solid var(--ek-line);padding:6px 14px;border-radius:999px;letter-spacing:.03em}
+.hint kbd{font-family:var(--f-mono);background:var(--ek-gray-light);padding:1px 6px;border-radius:4px;font-size:10px;margin:0 2px;color:var(--ek-ink)}
+
+/* ============ Сцена 1280×720 ============ */
+.stage{position:absolute;left:50%;top:50%;width:1280px;height:720px;transform:translate(-50%,-50%);border-radius:18px;overflow:hidden;box-shadow:0 30px 90px rgba(23,23,28,.18);background:#fff}
+.slide{position:absolute;inset:0;background:#fff;opacity:0;transform:translateY(26px);transition:opacity 280ms ease,transform 280ms ease;pointer-events:none;font-family:var(--f-head)}
+.slide.active{opacity:1;transform:none;pointer-events:auto}
+.slide.prev{transform:translateY(-26px)}
+.slide--violet{background:var(--ek-violet)}
+.slide--green{background:var(--ek-green)}
+
+/* Номер страницы на контентных слайдах */
+.slide--content::after{content:attr(data-page);position:absolute;right:54px;bottom:30px;font:800 30px/1 var(--f-head);color:var(--ek-ink);opacity:.5}
+
+/* ============ Декор «Орбита» ============ */
+.sl-orbit{position:absolute;inset:0;pointer-events:none}
+.slide--violet .sl-orbit{--decor:#A79EF9;--letter:#C4BEFA}
+.slide--green .sl-orbit{--decor:#7BF9BD;--letter:#C4FCE0}
+.sl-ring{position:absolute;left:50%;top:50%;width:1040px;height:660px;transform:translate(-50%,-50%);border:3px solid var(--decor);border-radius:50%;opacity:.9}
+.sl-ico{position:absolute;color:var(--decor)}
+.sl-letter{position:absolute;border-radius:50%;background:var(--decor);color:var(--letter);display:flex;align-items:center;justify-content:center;font:800 var(--fs,40px)/1 var(--f-head);font-style:normal}
+
+/* ============ Каверы: карточка-окно и спич-бабл ============ */
+.cover-center{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);z-index:2}
+.cover-card{position:relative;width:860px;background:#fff;border-radius:28px;box-shadow:0 30px 80px rgba(23,23,28,.18)}
+.card-top{display:flex;justify-content:space-between;align-items:center;padding:24px 30px 0}
+.win-dots{display:flex;gap:9px}
+.win-dots i{width:13px;height:13px;border-radius:50%;background:var(--ek-violet)}
+.win-close{position:relative;width:22px;height:22px}
+.win-close::before,.win-close::after{content:"";position:absolute;left:-1px;top:9px;width:24px;height:4px;border-radius:2px;background:var(--ek-violet)}
+.win-close::before{transform:rotate(45deg)}
+.win-close::after{transform:rotate(-45deg)}
+.cover-card .badge{position:absolute;left:50%;top:-30px;transform:translateX(-50%) rotate(-4deg)}
+.cover-card h1{padding:26px 64px 30px;text-align:center;font:800 50px/1.14 var(--f-head);letter-spacing:-.015em;color:var(--ek-ink)}
+.cover-card .cover-sub{padding:0 80px 34px;text-align:center;font:500 19px/1.5 var(--f-body);color:#3C3C45}
+.cover-card .cover-chips{display:flex;justify-content:center;gap:10px;flex-wrap:wrap;padding:0 40px 40px}
+.bubble{position:relative;width:660px;background:#EFEFF1;border-radius:30px;padding:56px 70px;text-align:center}
+.bubble::after{content:"";position:absolute;right:56px;bottom:-24px;width:0;height:0;border-left:38px solid transparent;border-top:28px solid #EFEFF1}
+.bubble h1{font:800 42px/1.25 var(--f-head);letter-spacing:-.01em;color:var(--ek-ink)}
+.bubble p{margin-top:16px;font:500 18px/1.5 var(--f-body);color:#3C3C45}
+
+/* ============ Стикер-бейдж и чипы ============ */
+.badge{display:inline-block;background:var(--ek-green);color:var(--ek-ink);font:800 24px/1 var(--f-head);padding:13px 22px;border-radius:13px;transform:rotate(-3deg);box-shadow:0 10px 24px rgba(23,23,28,.10)}
+.badge--violet{background:var(--ek-violet);color:#fff}
+.badge--sm{font-size:16px;padding:9px 16px;border-radius:10px}
+.chip{display:inline-block;font:700 14px/1 var(--f-body);padding:8px 14px;border-radius:999px;background:var(--ek-violet-bg);color:var(--ek-violet-deep)}
+.chip--green{background:var(--ek-green-pale);color:var(--ek-green-deep)}
+.chip--gray{background:var(--ek-gray-light);color:#3C3C45}
+
+/* ============ Контентные слайды ============ */
+.sl-body{position:absolute;inset:0;padding:56px 80px 62px;display:flex;flex-direction:column;gap:16px;overflow:hidden}
+h2{font:800 38px/1.16 var(--f-head);letter-spacing:-.01em;color:var(--ek-ink)}
+.acc{color:var(--ek-violet-deep)}
+.sl-body>p, .col p{font:500 18px/1.5 var(--f-body);color:#3C3C45}
+.code-chip{font-family:var(--f-mono);font-weight:700;font-size:.88em;background:var(--ek-violet-bg);color:var(--ek-violet-deep);padding:2px 8px;border-radius:8px;white-space:nowrap}
+.hl{color:var(--ek-violet-deep);font-weight:700}
+.out-chip{font-family:var(--f-mono);font-weight:700;font-size:.88em;background:var(--ek-green-pale);color:#0B7A48;padding:2px 8px;border-radius:8px;white-space:nowrap}
+
+.grid-2{display:grid;grid-template-columns:1fr 1fr;gap:22px;align-items:start}
+.grid-3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:18px;align-items:stretch}
+
+.info-card{background:#F5F5F9;border-radius:18px;padding:18px 22px;font:500 16px/1.55 var(--f-body);color:#3C3C45}
+.info-card h3{font:800 19px/1.3 var(--f-head);color:var(--ek-ink);margin-bottom:8px}
+.ek-note{background:var(--ek-violet-bg);border-left:4px solid var(--ek-violet);border-radius:0 14px 14px 0;padding:14px 20px;font:600 17px/1.5 var(--f-body);color:#3C3560}
+.ek-note--green{background:var(--ek-green-pale);border-left-color:var(--ek-green-deep);color:#0B5B39}
+.ek-note--red{background:var(--ek-red-pale);border-left-color:var(--ek-red);color:#7A2E2E}
+
+ul.clean{list-style:none;display:flex;flex-direction:column;gap:10px}
+ul.clean li{display:flex;gap:14px;align-items:flex-start;font:500 17.5px/1.5 var(--f-body);color:#3C3C45}
+ul.clean li::before{content:'—';flex:0 0 auto;color:var(--ek-violet-deep);font-weight:800}
+
+ol.steps{list-style:none;counter-reset:step;display:flex;flex-direction:column;gap:12px}
+ol.steps li{counter-increment:step;display:flex;gap:16px;align-items:center;padding:14px 20px;background:#F5F5F9;border-radius:16px;font:500 17.5px/1.45 var(--f-body);color:#2E2E36}
+ol.steps li::before{content:counter(step);flex:0 0 40px;height:40px;display:flex;align-items:center;justify-content:center;border-radius:50%;background:var(--ek-violet);font:800 18px var(--f-head);color:#fff}
+ol.steps li:last-child::before{background:var(--ek-green);color:var(--ek-ink)}
+ol.steps.steps--tight{gap:8px}
+ol.steps.steps--tight li{padding:9px 16px;font-size:15.5px;gap:12px}
+ol.steps.steps--tight li::before{flex-basis:32px;height:32px;font-size:14px}
+
+.q-label{font:700 13px/1 var(--f-head);letter-spacing:.08em;text-transform:uppercase;color:var(--ek-gray)}
+
+/* ============ План занятия (agenda) ============ */
+.agenda{display:flex;flex-direction:column;gap:8px}
+.agenda-row{display:flex;gap:16px;align-items:center;padding:10px 18px;background:#F5F5F9;border-radius:14px}
+.agenda-row .t{flex:0 0 84px;text-align:center;font:800 14px/1 var(--f-mono);color:var(--ek-ink);background:var(--ek-green);border-radius:999px;padding:8px 0}
+.agenda-row .tt{font:700 16.5px/1.3 var(--f-head);color:var(--ek-ink)}
+.agenda-row .dd{font:500 14px/1.4 var(--f-body);color:var(--ek-gray)}
+
+/* ============ Ключ-значение (привычки, шпаргалки) ============ */
+.kv{display:flex;flex-direction:column}
+.kv-row{display:grid;grid-template-columns:250px 1fr;gap:18px;align-items:start;padding:11px 4px;border-bottom:1.5px solid var(--ek-line)}
+.kv-row:last-child{border-bottom:none}
+.kv-row .k{font:800 14px/1.35 var(--f-head);letter-spacing:.05em;text-transform:uppercase;color:var(--ek-violet-deep);padding-top:2px}
+.kv-row .v{font:500 16.5px/1.5 var(--f-body);color:#3C3C45}
+
+/* ============ Окно кода (статичное) ============ */
+.code-win{background:#fff;border:2.5px solid var(--ek-ink);border-radius:16px;overflow:hidden;font-family:var(--f-mono);box-shadow:10px 10px 0 rgba(140,127,246,.14)}
+.code-head{display:flex;align-items:center;justify-content:space-between;padding:9px 16px;border-bottom:2px solid var(--ek-ink)}
+.code-head .win-dots i{width:11px;height:11px}
+.lang-badge{font:700 11px var(--f-mono);letter-spacing:.14em;color:var(--ek-gray)}
+.code-body{padding:14px 20px;font:500 14.5px/1.6 var(--f-mono);color:var(--ek-ink);white-space:pre;overflow:auto;max-height:400px;tab-size:4}
+.code-body .cm{color:var(--ek-gray)}
+.code-body .st{color:var(--ek-green-deep)}
+.code-body .kw{color:var(--ek-violet-deep);font-weight:700}
+
+/* ============ Терминал (тёмное окно) ============ */
+.term{background:var(--ek-ink);border-radius:16px;overflow:hidden;font-family:var(--f-mono);box-shadow:10px 10px 0 rgba(23,23,28,.12)}
+.term-head{display:flex;align-items:center;justify-content:space-between;padding:9px 16px;border-bottom:1px solid rgba(255,255,255,.14)}
+.term-head .win-dots i{width:11px;height:11px;background:var(--ek-green)}
+.term-head .lang-badge{color:rgba(255,255,255,.5)}
+.term-body{padding:14px 20px;font:500 14.5px/1.62 var(--f-mono);color:var(--ek-green);white-space:pre-wrap;word-break:break-word;overflow:auto;max-height:420px}
+.term-body .usr{color:#fff}
+.term-body .dim{color:rgba(255,255,255,.55)}
+
+/* ============ Промпт-карточка (диалог с DeepSeek) ============ */
+.prompt-card{position:relative;background:var(--ek-violet-bg);border:2.5px solid var(--ek-violet);border-radius:18px;padding:20px 26px 18px;box-shadow:10px 10px 0 rgba(140,127,246,.18)}
+.prompt-card .pc-tag{position:absolute;top:-16px;left:22px;background:var(--ek-violet);color:#fff;font:800 14px/1 var(--f-head);padding:9px 16px;border-radius:10px;transform:rotate(-2deg);box-shadow:0 8px 18px rgba(23,23,28,.12)}
+.prompt-card .pc-text{margin-top:6px;font:500 15px/1.62 var(--f-mono);color:#2E2A52;white-space:pre-wrap}
+.prompt-card .pc-text .hl{color:var(--ek-violet-deep)}
+.prompt-card--copy .pc-tag{background:var(--ek-green);color:var(--ek-ink)}
+
+/* ============ Сравнение (vs) ============ */
+.vs{display:grid;grid-template-columns:1fr 1fr;gap:20px;align-items:stretch}
+.vs-col{border-radius:18px;padding:20px 24px}
+.vs-col h4{font:800 15px/1 var(--f-head);letter-spacing:.08em;text-transform:uppercase;margin-bottom:12px}
+.vs-col p{font:500 16px/1.55 var(--f-body)}
+.vs-col .note{margin-top:12px;font:500 13.5px/1.4 var(--f-body);opacity:.75}
+.vs-col--plain{background:var(--ek-gray-light);color:#3C3C45}
+.vs-col--plain h4{color:var(--ek-gray)}
+.vs-col--win{background:var(--ek-green-pale);color:#124F35;border:2px solid var(--ek-green-soft)}
+.vs-col--win h4{color:var(--ek-green-deep)}
+
+/* ============ Квиз с раскрытием ответа ============ */
+.quiz-box{background:#F5F5F9;border:2.5px solid var(--ek-ink);border-radius:18px;padding:22px 26px;box-shadow:10px 10px 0 rgba(61,247,157,.25)}
+.quiz-box .q-num{display:inline-block;background:var(--ek-green);color:var(--ek-ink);font:800 13px/1 var(--f-head);letter-spacing:.08em;text-transform:uppercase;padding:8px 14px;border-radius:999px;margin-bottom:14px}
+.quiz-box .q-text{font:700 21px/1.42 var(--f-head);color:var(--ek-ink)}
+.quiz-answer{margin-top:16px}
+.quiz-btn{border:0;border-radius:12px;padding:12px 22px;font:800 15px/1 var(--f-head);cursor:pointer;background:var(--ek-violet);color:#fff;transition:background .15s}
+.quiz-btn:hover{background:var(--ek-violet-deep)}
+.quiz-reveal{display:none;margin-top:14px;background:var(--ek-green-pale);border-left:4px solid var(--ek-green-deep);border-radius:0 14px 14px 0;padding:14px 20px;font:500 16.5px/1.55 var(--f-body);color:#0B5B39}
+.quiz-reveal.show{display:block}
+.quiz-reveal p+p{margin-top:8px}
+
+/* Появление контента */
+.slide.active .info-card,.slide.active ul.clean li,.slide.active ol.steps li,.slide.active .grid-2>*,.slide.active .grid-3>*,.slide.active .agenda-row,.slide.active .kv-row{animation:reveal 450ms ease backwards}
+.slide.active .info-card:nth-child(2),.slide.active ul.clean li:nth-child(2),.slide.active ol.steps li:nth-child(2),.slide.active .grid-2>*:nth-child(2),.slide.active .grid-3>*:nth-child(2),.slide.active .agenda-row:nth-child(2),.slide.active .kv-row:nth-child(2){animation-delay:80ms}
+.slide.active ul.clean li:nth-child(3),.slide.active ol.steps li:nth-child(3),.slide.active .grid-3>*:nth-child(3),.slide.active .agenda-row:nth-child(3),.slide.active .kv-row:nth-child(3){animation-delay:160ms}
+.slide.active ol.steps li:nth-child(4),.slide.active .agenda-row:nth-child(4),.slide.active .kv-row:nth-child(4){animation-delay:240ms}
+.slide.active ol.steps li:nth-child(5),.slide.active .agenda-row:nth-child(5),.slide.active .kv-row:nth-child(5){animation-delay:320ms}
+.slide.active .agenda-row:nth-child(6),.slide.active ol.steps li:nth-child(6),.slide.active .kv-row:nth-child(6){animation-delay:400ms}
+.slide.active .agenda-row:nth-child(7),.slide.active ol.steps li:nth-child(7),.slide.active .kv-row:nth-child(7){animation-delay:480ms}
+@keyframes reveal{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:translateY(0)}}
+@media (prefers-reduced-motion:reduce){.slide.active .info-card,.slide.active ul.clean li,.slide.active ol.steps li,.slide.active .grid-2>*,.slide.active .grid-3>*,.slide.active .agenda-row,.slide.active .kv-row{animation:none}}
+
+/* ============ Заметки преподавателя ============ */
+.notes{position:fixed;bottom:0;left:0;right:0;background:#fff;border-top:1px solid var(--ek-line);box-shadow:0 -16px 40px rgba(23,23,28,.10);padding:20px 40px;z-index:95;max-height:40vh;overflow-y:auto;transform:translateY(100%);transition:transform 300ms ease}
+.notes.active{transform:translateY(0)}
+.notes__header{font:800 11px var(--f-head);letter-spacing:.2em;text-transform:uppercase;color:var(--ek-violet-deep);margin-bottom:8px}
+.notes__body{font:500 15px/1.55 var(--f-body);color:#3C3C45}
+
+:focus-visible{outline:3px solid var(--ek-violet-soft);outline-offset:2px;border-radius:6px}
+::-webkit-scrollbar{width:8px;height:8px}
+::-webkit-scrollbar-track{background:transparent}
+::-webkit-scrollbar-thumb{background:rgba(23,23,28,.15);border-radius:4px}
+</style>
+</head>
+<body>
+
+<div class="progress"><div class="progress__fill" id="progress"></div></div>
+<div class="counter"><b id="current">1</b> / <span id="total">38</span></div>
+
+<main class="stage" id="deck">
+<section class="slide slide--violet active"
+  data-notes="Поприветствуйте. Сегодня делаем следующий шаг после терминала: соберём веб-приложение. Streamlit превращает Python-скрипт в страницу с полем и кнопкой — без единой строчки HTML. Затем опубликуем проект на Streamlit Cloud и получим ссылку, которую можно открыть с любого устройства. К концу урока у каждого — рабочий AI-помощник в браузере.">
+<div class="sl-orbit">
+    <i class="sl-ring"></i>
+    <svg class="sl-ico" viewBox="0 0 100 100" style="left:75px;top:20px;width:150px;height:150px;transform:rotate(-10deg)"><use href="#ek-i-trophy"/></svg>
+    <i class="sl-letter" style="left:466px;top:13px;width:78px;height:78px;--fs:36px">S</i>
+    <svg class="sl-ico" viewBox="0 0 100 100" style="left:1040px;top:15px;width:130px;height:130px;transform:rotate(12deg)"><use href="#ek-i-heart"/></svg>
+    <i class="sl-letter" style="left:68px;top:268px;width:100px;height:100px;--fs:46px">W</i>
+    <i class="sl-letter" style="left:1137px;top:327px;width:95px;height:95px;--fs:44px">A</i>
+    <svg class="sl-ico" viewBox="0 0 100 100" style="left:102px;top:532px;width:125px;height:125px;transform:rotate(-15deg)"><use href="#ek-i-star"/></svg>
+    <i class="sl-letter" style="left:726px;top:613px;width:78px;height:78px;--fs:36px">C</i>
+    <svg class="sl-ico" viewBox="0 0 100 100" style="left:1045px;top:540px;width:110px;height:110px;transform:rotate(8deg)"><use href="#ek-i-gem"/></svg>
+  </div>
+  <div class="cover-center">
+    <div class="cover-card">
+      <div class="badge">Урок №10</div>
+      <div class="card-top"><span class="win-dots"><i></i><i></i><i></i></span><span class="win-close"></span></div>
+      <h1>AI-помощник<br>в&nbsp;браузере</h1>
+      <p class="cover-sub">Соберём сайт на Streamlit: вы пишете вопрос в браузере — DeepSeek отвечает, а переписка сохраняется в чате. Затем опубликуем приложение и получим собственную ссылку для любого устройства.</p>
+      <div class="cover-chips"><span class="chip">Streamlit</span><span class="chip chip--green">DeepSeek</span><span class="chip chip--gray">GitHub</span><span class="chip chip--gray">Streamlit Cloud</span></div>
+    </div>
+  </div>
+</section>
+
+<section class="slide slide--content"
+  data-notes="План. Теории — минимум: уже на 12-й минуте каждый видит свою веб-страницу в браузере, к 30-й — каркас AI-помощника с полем и ответом. Дальше — правки через диалог. Обязательный результат к 48–55-й минуте — локальный чат с AI (правки 1–4). Публикация (правка 5) опциональна: она требует аккаунтов GitHub и Streamlit Cloud, поэтому её делают только успевающие; если не хватает времени или доступов — продемонстрируйте деплой со своего экрана или отдайте в ДЗ, а на уроке доведите локальный чат.">
+<div class="sl-body">
+  <div>
+    <div class="q-label">Agenda · план занятия</div>
+    <h2>Как пройдут <span class="acc">60 минут</span></h2>
+  </div>
+  <div class="agenda">
+    <div class="agenda-row"><span class="t">0–5</span><div><div class="tt">Разбор ДЗ</div><div class="dd">Смотрим Telegram-ботов: команда /joke, свой характер, кнопки.</div></div></div>
+    <div class="agenda-row"><span class="t">5–12</span><div><div class="tt">Streamlit без HTML</div><div class="dd">Минимум теории — только чтобы собрать сайт.</div></div></div>
+    <div class="agenda-row"><span class="t">12–20</span><div><div class="tt">Промпт-разминка</div><div class="dd">Первое приложение открывается в браузере.</div></div></div>
+    <div class="agenda-row"><span class="t">20–30</span><div><div class="tt">Каркас AI-помощника</div><div class="dd">Интерфейс с полем и ответом.</div></div></div>
+    <div class="agenda-row"><span class="t">30–48</span><div><div class="tt">Правки через диалог</div><div class="dd">Нейросеть → чат-история → сайдбар → оформление.</div></div></div>
+    <div class="agenda-row"><span class="t">48–55</span><div><div class="tt">Мини-вопросы и отладка</div><div class="dd">session_state, ошибки Streamlit. Публикация — для успевающих.</div></div></div>
+    <div class="agenda-row"><span class="t">55–60</span><div><div class="tt">Демо в группе</div><div class="dd">Открываем свои чаты, у кого готово — по ссылке.</div></div></div>
+  </div>
+</div>
+</section>
+
+<section class="slide slide--content"
+  data-notes="Откройте 1–2 присланных бота (на весь блок 5 минут). Разбирайте диалог с нейросетью, а не только результат. Подведите к главному: бот работает внутри мессенджера, поэтому интерфейс задан Telegram. Сегодня соберём собственный сайт, где внешний вид и элементы управления настраиваем сами.">
+<div class="sl-body">
+  <div>
+    <div class="q-label">Разбор ДЗ урока 9</div>
+    <h2>Смотрим <span class="acc">Telegram-ботов</span></h2>
+  </div>
+  <p>Открываем 1–2 присланных бота и разбираем именно <span class="hl">диалог с нейросетью</span>: команда <span class="code-chip">/joke</span>, свой характер бота через системную роль, кнопки (inline-клавиатура).</p>
+  <div class="grid-3" style="margin-top:8px">
+    <div class="info-card">
+      <h3>Что сработало</h3>
+      <p>Точечные промпты: <span class="code-chip">/joke</span> отдельным хендлером, характер бота через системную роль, кнопки одним запросом.</p>
+    </div>
+    <div class="info-card">
+      <h3>Что переделывали</h3>
+      <p>Если в промпте не просили сохранить остальной код, нейросеть могла случайно изменить рабочий хендлер сообщений.</p>
+    </div>
+    <div class="info-card">
+      <h3>Вывод</h3>
+      <p>Бот работает внутри мессенджера, и интерфейс задаёт <b>Telegram</b>. Сегодня соберём собственный сайт — с интерфейсом, который настраиваем сами.</p>
+    </div>
+  </div>
+</div>
+</section>
+
+<section class="slide slide--content"
+  data-notes="Главная мысль: терминал видите только вы, а бот с урока 9 работает внутри готового интерфейса Telegram. Сегодня — свой сайт: Streamlit делает из Python-скрипта веб-страницу без HTML, а затем публикуем проект и получаем ссылку для любого устройства. Две линии: виджеты st.* как интерфейс и публикация на Streamlit Cloud.">
+<div class="sl-body">
+  <div>
+    <div class="q-label">Идея урока</div>
+    <h2>Настоящий сайт из <span class="acc">Python-скрипта</span></h2>
+  </div>
+  <p>Терминал видите только вы, а Telegram-бот работает в <span class="hl">готовом интерфейсе мессенджера</span>, и его внешний вид определяет сам Telegram.</p>
+  <div class="ek-note" style="margin-top:6px">Сегодня соберём <b>веб-приложение</b>: Streamlit превращает Python-скрипт в веб-страницу с полями и кнопками — <b>без единой строчки HTML</b>. А потом <b>опубликуем</b> его и получим ссылку, которую можно открыть с любого устройства и отправить кому угодно.</div>
+  <p>Идея урока 10: пишем <b>Python</b> — виджеты <span class="code-chip">st.*</span> сами рисуют страницу; потом <b>публикуем</b> и получаем <span class="hl">свою ссылку</span>.</p>
+</div>
+</section>
+
+<section class="slide slide--content"
+  data-notes="Быстрый recap трёх форматов, где мог жить наш код: терминал (только у вас), Telegram-бот (внутри мессенджера), веб-приложение (открывается в браузере по ссылке на любом устройстве). Не углубляйтесь — это короткая теория, главное впереди.">
+<div class="sl-body">
+  <div>
+    <div class="q-label">Короткая теория · 1/3</div>
+    <h2>Что такое <span class="acc">веб-приложение</span></h2>
+  </div>
+  <p>Веб-приложение <span class="hl">открывается в браузере по ссылке</span> — с телефона, планшета, любого компьютера. Не нужно ничего устанавливать: просто перейти по адресу.</p>
+  <div class="grid-3" style="margin-top:8px">
+    <div class="info-card">
+      <h3>Терминал</h3>
+      <p>Программа запускается на вашем компьютере. Результат видите <b>только вы</b>.</p>
+    </div>
+    <div class="info-card">
+      <h3>Telegram-бот</h3>
+      <p>Живёт внутри мессенджера. Интерфейс задаёт <b>Telegram</b> — поле и кнопки не ваши.</p>
+    </div>
+    <div class="ek-note ek-note--green" style="font-size:16px"><b>Веб-приложение</b><br>Открывается в <b>браузере по ссылке</b> на любом устройстве. Интерфейс собираете вы. Это соберём сегодня.</div>
+  </div>
+</div>
+</section>
+
+<section class="slide slide--content"
+  data-notes="Ключевая мысль слайда: обычный сайт — это три языка (HTML, CSS, JavaScript) и много работы. Со Streamlit вы пишете только Python: виджеты st.* сами рисуют страницу. Python-скрипт становится интерфейсом. Не перегружайте группу веб-разработкой — покажите контраст и идите дальше.">
+<div class="sl-body">
+  <div>
+    <div class="q-label">Короткая теория · 2/3</div>
+    <h2>Streamlit — сайт <span class="acc">без HTML</span></h2>
+  </div>
+  <div class="vs" style="margin-top:6px">
+    <div class="vs-col vs-col--plain">
+      <h4>Обычный сайт</h4>
+      <p>Три языка: HTML — разметка, CSS — оформление, JavaScript — логика. Долго и много кода даже ради одного поля с кнопкой.</p>
+      <p class="note">Так обычно собирают сложные сайты.</p>
+    </div>
+    <div class="vs-col vs-col--win">
+      <h4>Streamlit</h4>
+      <p>Пишете только <b>Python</b>. Виджеты <span class="code-chip">st.*</span> сами превращают код в страницу с полями и кнопками.</p>
+      <p class="note">Это соберём сегодня.</p>
+    </div>
+  </div>
+  <p>Со Streamlit ваш <span class="hl">Python-скрипт становится интерфейсом</span> — HTML и CSS писать не нужно.</p>
+</div>
+</section>
+
+<section class="slide slide--content"
+  data-notes="Виджеты — это готовые элементы страницы, каждый — одна строка Python. Покажите пять главных на маленьком примере: st.title, st.text_input, st.write, st.button, а st.chat_input и st.chat_message — для чата, к ним придём к концу урока. Мысль: строчка кода = элемент на странице.">
+<div class="sl-body">
+  <div>
+    <div class="q-label">Короткая теория · 3/3</div>
+    <h2>Виджеты — по строчке на <span class="acc">элемент</span></h2>
+  </div>
+  <p>Виджет — готовый элемент страницы. Каждый — <span class="hl">одна строка Python</span>: написали строчку — на сайте появился элемент.</p>
+  <div class="code-win">
+    <div class="code-head"><span class="win-dots"><i></i><i></i><i></i></span><span class="lang-badge">PYTHON</span></div>
+    <div class="code-body"><span class="kw">import</span> streamlit <span class="kw">as</span> st
+
+st.title(<span class="st">"Мой сайт"</span>)                 <span class="cm"># заголовок</span>
+name = st.text_input(<span class="st">"Имя"</span>)          <span class="cm"># поле ввода</span>
+st.write(<span class="st">"Привет, "</span> + name)          <span class="cm"># вывод текста</span>
+st.button(<span class="st">"Нажми меня"</span>)              <span class="cm"># кнопка</span></div>
+  </div>
+  <div class="ek-note">Ещё два для чата: <span class="code-chip">st.chat_input</span> — поле сообщения, <span class="code-chip">st.chat_message</span> — пузырь переписки. К ним придём, когда сделаем AI-помощника.</div>
+</div>
+</section>
+
+<section class="slide slide--content"
+  data-notes="Никакой долгой подготовки: сразу просим у DeepSeek минимальное Streamlit-приложение и запускаем. Промпт с ролью и форматом — техники прошлых уроков работают и здесь. Ученики копируют промпт целиком в новый чат.">
+<div class="sl-body">
+  <div>
+    <div class="q-label">Промпт #1 · разминка</div>
+    <h2>Первое приложение за <span class="acc">две минуты</span></h2>
+  </div>
+  <p>Не будем долго готовиться — попросим у DeepSeek минимальное Streamlit-приложение и сразу откроем его в браузере.</p>
+  <div class="prompt-card" style="margin-top:14px">
+    <span class="pc-tag">→ Новый чат DeepSeek</span>
+    <div class="pc-text">Ты — опытный Python-разработчик и наставник школьника. Напиши минимальное Streamlit-приложение app.py: заголовок «Мой первый сайт», поле ввода st.text_input для имени и вывод «Привет, {имя}!» через st.write. Только streamlit. Напомни в комментарии, что запускать нужно командой streamlit run app.py. Ответь одним блоком.</div>
+  </div>
+</div>
+</section>
+
+<section class="slide slide--content"
+  data-notes="Фундамент урока: дождитесь, пока у каждого в браузере откроется страница на localhost:8501. Streamlit может устанавливаться дольше обычных библиотек — проверьте pip install streamlit requests python-dotenv заранее, до урока, на компьютерах учеников. Не идите дальше, пока страница не открылась у всех.">
+<div class="sl-body">
+  <div>
+    <div class="q-label">Запуск и разбор</div>
+    <h2>Первый сайт в <span class="acc">браузере</span></h2>
+  </div>
+  <div class="grid-2">
+    <div class="col">
+      <ol class="steps steps--tight">
+        <li><div>В <span class="code-chip">vibe-coding</span> создайте папку <span class="code-chip">lesson-10</span></div></li>
+        <li><div>Один раз: <span class="code-chip">pip install streamlit requests python-dotenv</span></div></li>
+        <li><div>Создайте <span class="code-chip">app.py</span> и вставьте код из ответа</div></li>
+        <li><div>Выполните <span class="code-chip">streamlit run app.py</span></div></li>
+      </ol>
+      <div class="ek-note ek-note--green" style="margin-top:14px;font-size:15px">Streamlit <b>сам откроет браузер</b> на <span class="code-chip">http://localhost:8501</span>. Ввели имя — на странице появился привет? Первый сайт готов.</div>
+    </div>
+    <div class="kv">
+      <div class="kv-row"><div class="k">st.title</div><div class="v">Нарисовал заголовок страницы.</div></div>
+      <div class="kv-row"><div class="k">st.text_input</div><div class="v">Поле ввода прямо в браузере.</div></div>
+      <div class="kv-row"><div class="k">st.write</div><div class="v">Вывел текст на страницу.</div></div>
+    </div>
+  </div>
+</div>
+</section>
+
+<section class="slide slide--content"
+  data-notes="Шпаргалка по первому запуску streamlit run. Почините у всех — тот же localhost:8501 и папка lesson-10 нужны дальше для самого AI-помощника. Если streamlit не находится — почти всегда дело в установке или не той среде. Ключа на этом этапе ещё нет, поэтому про 401 здесь не говорим — эта ошибка появится позже, когда подключим DeepSeek.">
+<div class="sl-body">
+  <div>
+    <div class="q-label">Первый запуск · streamlit run</div>
+    <h2>Если сайт <span class="acc">не открылся</span></h2>
+  </div>
+  <div class="grid-3" style="margin-top:8px">
+    <div class="ek-note ek-note--red" style="font-size:15px"><b>ModuleNotFoundError</b><br><span class="code-chip">streamlit: command not found</span> или <span class="code-chip">ModuleNotFoundError</span> — библиотека не установлена или не та среда. Выполните <span class="code-chip" style="white-space:normal">pip install streamlit requests python-dotenv</span> ещё раз.</div>
+    <div class="ek-note ek-note--red" style="font-size:15px"><b>Порт 8501 занят</b><br>Уже открыт старый Streamlit. Закройте прежний процесс или запустите с другим портом: <span class="code-chip">--server.port 8502</span>.</div>
+    <div class="ek-note ek-note--red" style="font-size:15px"><b>Страница не обновилась</b><br>Белая страница или изменения не видны. Откройте <span class="code-chip">http://localhost:8501</span> вручную и обновите вкладку.</div>
+  </div>
+</div>
+</section>
+
+<section class="slide slide--content"
+  data-notes="Главная идея урока. При каждом действии пользователя Streamlit прогоняет весь app.py сверху вниз. Отсюда и простота, и проблема памяти — переменные обнуляются. Не углубляйтесь: держите эту мысль в голове для следующего слайда.">
+<div class="sl-body">
+  <div>
+    <div class="q-label">Как это работает</div>
+    <h2>Streamlit <span class="acc">перезапускает</span> весь скрипт</h2>
+  </div>
+  <p>Главное правило урока: при <span class="hl">каждом</span> действии пользователя — ввод текста, клик по кнопке — Streamlit прогоняет весь <span class="code-chip">app.py</span> заново, сверху вниз.</p>
+  <div class="grid-2">
+    <div class="ek-note ek-note--green"><b>Отсюда простота.</b> Вы просто пишете код сверху вниз, как обычный скрипт. Никаких обработчиков событий и обновлений вручную — Streamlit сам перерисовывает страницу.</div>
+    <div class="ek-note ek-note--red"><b>Отсюда проблема.</b> Раз скрипт запускается заново — обычные переменные <b>обнуляются</b>. История переписки сотрётся при каждом новом вопросе. Это чиним на следующем слайде.</div>
+  </div>
+  <div class="ek-note">Запомните одну фразу: <b>Streamlit перезапускает весь</b> <span class="code-chip">app.py</span> <b>на каждый ввод и клик</b>. Из неё следует всё остальное.</div>
+</div>
+</section>
+
+<section class="slide slide--content"
+  data-notes="Решение проблемы с прошлого слайда: обычная переменная обнуляется, а st.session_state живёт между перезапусками. Свяжите с уроком 7: список entries, но здесь он живёт в памяти сессии. Готовит правку 2 (чат-история).">
+<div class="sl-body">
+  <div>
+    <div class="q-label">Как это работает</div>
+    <h2>Память диалога — <span class="acc">st.session_state</span></h2>
+  </div>
+  <p>Обычная переменная на каждом перезапуске <span class="hl">обнуляется</span>. Чтобы переписка не терялась, историю храним в особом месте — <span class="code-chip">st.session_state</span>.</p>
+  <div class="grid-2">
+    <div class="info-card"><h3>Обычная переменная</h3>Создаётся заново при каждом запуске скрипта. После вопроса всё, что в ней было, <span class="hl">пропадает</span>.</div>
+    <div class="info-card"><h3><span class="code-chip">st.session_state</span></h3>Хранилище, которое <span class="hl">живёт между перезапусками</span>. Здесь живёт история чата — список <span class="code-chip">st.session_state.messages</span>.</div>
+  </div>
+  <div class="ek-note"><span class="code-chip">st.session_state.messages</span> — это <b>список</b>, как <span class="code-chip">entries</span> в дневнике урока 7. Только он живёт не в файле, а в <b>памяти сессии</b>, пока открыта вкладка.</div>
+</div>
+</section>
+
+<section class="slide slide--content"
+  data-notes="Новая роль DeepSeek: тот же движок, что в советчике и боте, но ответ рисуется на веб-странице. Системная роль — «полезный помощник». Функция ask_deepseek(question) шлёт запрос и возвращает текст.">
+<div class="sl-body">
+  <div>
+    <div class="q-label">Новая роль нейросети</div>
+    <h2>Нейросеть отвечает <span class="acc">в браузере</span></h2>
+  </div>
+  <p>На уроке 5 DeepSeek был <span class="hl">советчиком</span>, на уроке 9 жил в <span class="hl">Telegram-боте</span>. Сегодня движок тот же, но ответ рисуется прямо на <span class="hl">веб-странице</span>.</p>
+  <div class="info-card"><h3>Системная роль</h3>«Ты — полезный помощник. Отвечай понятно и по делу». Вопрос из поля уходит в сеть, ответ возвращается текстом.</div>
+  <div class="ek-note">Всю работу с сетью прячем в функцию <span class="code-chip">ask_deepseek(question)</span>: она шлёт запрос к DeepSeek и <b>возвращает готовый текст ответа</b>, который сразу показываем на странице.</div>
+</div>
+</section>
+
+<section class="slide slide--content"
+  data-notes="Прочитайте цель вслух. Подчеркните: локальный чат-сайт — обязательный минимум для всех, публикация с публичной ссылкой — для успевающих. Слева теория, справа практика.">
+<div class="sl-body">
+  <div>
+    <div class="q-label">Цель · что будет в конце</div>
+    <h2><span class="acc">Цель</span> урока</h2>
+  </div>
+  <div class="ek-note">К 55-й минуте у каждого — сайт-чат с AI-помощником: он открывается в браузере, помнит переписку и отвечает голосом DeepSeek. А у успевающих он уже <b>опубликован на Streamlit Cloud</b> — с публичной ссылкой на любое устройство.</div>
+  <div class="grid-2">
+    <div class="info-card"><h3>Узнаете</h3>
+      <ul class="clean">
+        <li>Как Streamlit делает сайт из Python без единой строчки HTML</li>
+        <li>Почему Streamlit перезапускает весь скрипт и зачем нужен <span class="code-chip">st.session_state</span></li>
+        <li>Почему ключ хранят в Secrets, а не в коде</li>
+      </ul>
+    </div>
+    <div class="info-card"><h3>Сделаете</h3>
+      <ul class="clean">
+        <li>Соберёте чат-интерфейс на виджетах <span class="code-chip">st.*</span></li>
+        <li>Подключите DeepSeek через <span class="code-chip">requests</span> — ответы в браузере</li>
+        <li>Успеете — опубликуете сайт и получите свою ссылку</li>
+      </ul>
+    </div>
+  </div>
+</div>
+</section>
+
+<section class="slide slide--content"
+  data-notes="Покажите готовое приложение — соберите заранее. Задайте вопрос при группе, чтобы все увидели пузыри переписки и сайдбар. Обязательно покажите публичную ссылку вида ...streamlit.app в адресной строке.">
+<div class="sl-body">
+  <div>
+    <div class="q-label">Демо результата</div>
+    <h2>Что соберём <span class="acc">сегодня</span></h2>
+  </div>
+  <div class="term">
+    <div class="term-head"><span class="win-dots"><i></i><i></i><i></i></span><span class="lang-badge">БРАУЗЕР</span></div>
+    <div class="term-body">🤖 Мой AI-помощник
+<span class="dim">[ сайдбар ]  Характер: дружелюбный  ·  [ Очистить чат ]</span>
+
+user      <span class="usr">Объясни, что такое рекурсия</span>
+assistant Рекурсия — это когда функция вызывает саму себя...
+
+Спроси что-нибудь ▸ <span class="dim">______________________________</span>
+
+<span class="usr">https://moy-ai-pomoshnik.streamlit.app</span></div>
+  </div>
+  <p>Это <span class="hl">веб-приложение</span> в браузере: поле, пузыри переписки, сайдбар с выбором характера. Внизу — <b>публичная ссылка</b>, её можно открыть с телефона и отправить кому угодно.</p>
+</div>
+</section>
+
+<section class="slide slide--content"
+  data-notes="Подготовка: папка lesson-10, файл app.py. ВАЖНО: Streamlit может устанавливаться дольше обычных библиотек — проверьте pip install streamlit requests python-dotenv заранее, до урока, на компьютерах учеников. Ставим requests, а не openai: в этом уроке к DeepSeek обращаемся напрямую через requests.post; официальный openai SDK — тема следующего урока 11. requirements.txt добавим на этапе публикации.">
+<div class="sl-body">
+  <div>
+    <div class="q-label">Подготовка</div>
+    <h2>Папка lesson-10 и <span class="acc">библиотеки</span></h2>
+  </div>
+  <div class="grid-2">
+    <div class="col">
+      <ol class="steps steps--tight">
+        <li><div>Создайте папку <span class="code-chip">lesson-10</span> в <span class="code-chip">vibe-coding</span></div></li>
+        <li><div>Внутри создайте файл <span class="code-chip">app.py</span></div></li>
+        <li><div>Поставьте библиотеки одной командой:</div></li>
+      </ol>
+      <div class="term" style="margin-top:12px">
+        <div class="term-head"><span class="win-dots"><i></i><i></i><i></i></span><span class="lang-badge">ТЕРМИНАЛ</span></div>
+        <div class="term-body"><span class="usr">pip install streamlit requests python-dotenv</span></div>
+      </div>
+    </div>
+    <div class="col">
+      <div class="term">
+        <div class="term-head"><span class="win-dots"><i></i><i></i><i></i></span><span class="lang-badge">ПАПКА</span></div>
+        <div class="term-body">D:/vibe-coding/lesson-10/
+└── app.py
+    <span class="dim">(requirements.txt
+     добавим при публикации)</span></div>
+      </div>
+      <div class="ek-note ek-note--red" style="margin-top:14px"><span class="code-chip">streamlit</span> может устанавливаться <b>заметно дольше</b> обычных библиотек. Проверьте установку заранее, до урока — иначе старт затянется.</div>
+    </div>
+  </div>
+</div>
+</section>
+
+<section class="slide slide--content"
+  data-notes="Скопировать промпт целиком в новый чат DeepSeek. Это рабочая заготовка: заголовок, поле ввода и вывод самого вопроса (эхо). Нейросеть подключим первой правкой, поэтому пока никакого DeepSeek и ключа тут нет. Роль наставника нужна, чтобы код был с понятными комментариями.">
+<div class="sl-body">
+  <div>
+    <div class="q-label">Промпт #2 · стартовый каркас</div>
+    <h2>Каркас AI-помощника (пока <span class="acc">эхо</span>)</h2>
+  </div>
+  <div class="prompt-card" style="margin-top:10px">
+    <span class="pc-tag">→ Новый чат DeepSeek</span>
+    <div class="pc-text">Ты — <span class="hl">опытный Python-разработчик</span> и наставник школьника.
+Собери базовый интерфейс app.py на Streamlit.
+
+Каркас:
+- заголовок страницы через st.title
+- поле ввода вопроса через st.text_input
+- вывод самого вопроса под полем (эхо) через st.write
+
+Никакой нейросети пока не подключай — просто повтори введённый вопрос. Нейросеть добавим следующим шагом.
+Запусти командой streamlit run app.py и открой в браузере.
+Прокомментируй код для новичка. Верни весь файл одним блоком.</div>
+  </div>
+</div>
+</section>
+
+<section class="slide slide--content"
+  data-notes="Запуск каркаса. Streamlit сам откроет браузер на localhost:8501. Напомните: страница обновляется сама при каждом вводе, потому что Streamlit перезапускает скрипт. Дождитесь, пока у всех откроется страница с полем.">
+<div class="sl-body">
+  <div>
+    <div class="q-label">Запуск каркаса</div>
+    <h2>Запускаем и смотрим <span class="acc">в браузере</span></h2>
+  </div>
+  <ol class="steps steps--tight">
+    <li><div>Скопируйте код из ответа DeepSeek в <span class="code-chip">app.py</span></div></li>
+    <li><div>Сохраните файл (<span class="code-chip">Ctrl+S</span>)</div></li>
+    <li><div>В терминале выполните <span class="code-chip">streamlit run app.py</span></div></li>
+    <li><div>Streamlit сам откроет браузер на <span class="code-chip">http://localhost:8501</span></div></li>
+    <li><div>Проверьте: видны заголовок и поле вопроса, а эхо-ответ появляется под ним</div></li>
+  </ol>
+  <div class="ek-note">Введёте вопрос — страница <b>обновится сама</b>. Это и есть перезапуск скрипта: Streamlit прогнал весь <span class="code-chip">app.py</span> заново и перерисовал страницу.</div>
+</div>
+</section>
+
+<section class="slide slide--content"
+  data-notes="Момент: интерфейс уже работает в браузере, но отвечает эхом. Дальше добавляем по одной правке — нейросеть, чат-история, сайдбар, публикация. Структура правильная, добавлять функции в такую программу легко.">
+<div class="sl-body">
+  <div>
+    <div class="q-label">Момент урока</div>
+    <h2>Каркас готов — интерфейс уже <span class="acc">работает</span></h2>
+  </div>
+  <p>У вас в браузере <span class="hl">рабочая страница</span>: заголовок, поле, ответ под ним. Пока она «отвечает» эхом — просто повторяет ваш вопрос. Это нормально: интерфейс есть, логику добавим правками.</p>
+  <div class="ek-note ek-note--green">Вы собрали веб-страницу <b>без единой строчки HTML</b> — всё нарисовали виджеты <span class="code-chip">st.*</span>. И запускается она одной командой <span class="code-chip">streamlit run app.py</span>.</div>
+  <div class="ek-note">Дальше наполняем по одной правке: подключим <b>нейросеть</b>, сделаем <b>чат-историю</b>, добавим <b>сайдбар</b> и <b>опубликуем</b> сайт.</div>
+</div>
+</section>
+
+<section class="slide slide--content"
+  data-notes="Поздний troubleshooting — уже не про первый запуск (это было на раннем слайде), а про специфику AI-приложения: ключ, библиотека requests, память. Чаще всего — забытый pip install и незаметное «ключ не подставлен». Про 401 говорим именно здесь, потому что ключ появляется только сейчас, с подключением DeepSeek. Напомните: после правки файла Streamlit сам предложит кнопку Rerun. Помогите лично тем, у кого не работает, остальные сверяются со слайдом.">
+<div class="sl-body">
+  <div>
+    <div class="q-label">Специфика AI-приложения</div>
+    <h2>Типичные ситуации с <span class="acc">нейросетью</span></h2>
+  </div>
+  <div class="kv">
+    <div class="kv-row"><div class="k">ModuleNotFoundError</div><div class="v">Не установлены <span class="code-chip">streamlit</span> или <span class="code-chip">requests</span>. В терминале: <span class="code-chip">pip install streamlit requests python-dotenv</span> — и запускайте снова.</div></div>
+    <div class="kv-row"><div class="k">401 Unauthorized</div><div class="v">Пустой ответ или ошибка от DeepSeek — ключ не подставлен. Проверьте, что <span class="code-chip">API_KEY</span> на месте: локально в <span class="code-chip">.env</span>, а на Streamlit Cloud — в разделе Secrets.</div></div>
+    <div class="kv-row"><div class="k">requirements.txt</div><div class="v">На Streamlit Cloud библиотеки не ставятся сами. Без файла со списком (<span class="code-chip">streamlit</span>, <span class="code-chip">requests</span>) на хостинге снова вылезет <span class="code-chip">ModuleNotFoundError</span>.</div></div>
+    <div class="kv-row"><div class="k">Переписка стирается</div><div class="v">История не в <span class="code-chip">st.session_state</span>. Streamlit перезапускает скрипт на каждый ввод — обычная переменная обнуляется.</div></div>
+  </div>
+</div>
+</section>
+
+<section class="slide slide--content"
+  data-notes="Первая правка идёт в тот же чат: каркас-эхо превращается в рабочего AI-помощника. Вопрос уходит в DeepSeek API, ответ показывается на странице. Проверьте, что ключ подставлен и есть интернет. Это первый видимый результат — спросили, на сайте появился ответ нейросети.">
+<div class="sl-body">
+  <div>
+    <div class="q-label">Правка 1 · отвечает нейросеть</div>
+    <h2>Вопрос уходит в сеть, <span class="acc">ответ — на странице</span></h2>
+  </div>
+  <p>Первый шаг: поле больше не эхо. Вопрос уходит в DeepSeek API, а ответ появляется прямо на веб-странице.</p>
+  <div class="prompt-card prompt-card--copy" style="margin-top:10px">
+    <span class="pc-tag">→ В тот же чат</span>
+    <div class="pc-text">Подключи DeepSeek через библиотеку requests (requests.post на https://api.deepseek.com/chat/completions, модель deepseek-chat): вопрос из поля отправляется нейросети, ответ показывается на странице вместо эха. Ключ читай из переменной API_KEY. Не используй библиотеку openai. Верни весь файл.</div>
+  </div>
+</div>
+</section>
+
+<section class="slide slide--content"
+  data-notes="Покажите, что запрос идёт в API: тот же url и модель, что в советчике и боте, но через requests.post — библиотеку openai не ставим, это тема урока 11. Ключ берём из единой переменной API_KEY. Ответ достаём из choices[0].message.content. Дайте ученикам спросить «Объясни, что такое рекурсия» и увидеть ответ на своём сайте.">
+<div class="sl-body">
+  <div>
+    <div class="q-label">Разбор кода</div>
+    <h2>Запрос к DeepSeek через <span class="acc">requests</span></h2>
+  </div>
+  <div class="code-win">
+    <div class="code-head"><span class="win-dots"><i></i><i></i><i></i></span><span class="lang-badge">PYTHON</span></div>
+    <div class="code-body"><span class="kw">import</span> requests
+
+<span class="kw">def</span> ask_deepseek(question):
+    headers = {<span class="st">"Authorization"</span>: f<span class="st">"Bearer {API_KEY}"</span>}
+    data = {
+        <span class="st">"model"</span>: <span class="st">"deepseek-chat"</span>,
+        <span class="st">"messages"</span>: [
+            {<span class="st">"role"</span>: <span class="st">"system"</span>, <span class="st">"content"</span>: <span class="st">"Ты полезный помощник"</span>},
+            {<span class="st">"role"</span>: <span class="st">"user"</span>, <span class="st">"content"</span>: question},
+        ],
+    }
+    url = <span class="st">"https://api.deepseek.com/chat/completions"</span>
+    resp = requests.post(url, headers=headers, json=data)
+    <span class="kw">return</span> resp.json()[<span class="st">"choices"</span>][0][<span class="st">"message"</span>][<span class="st">"content"</span>]</div>
+  </div>
+  <div class="ek-note ek-note--green">Тот же движок, что в советчике и боте, но обращаемся напрямую через <span class="code-chip">requests.post</span>: url <span class="code-chip">https://api.deepseek.com/chat/completions</span>, модель <span class="code-chip">deepseek-chat</span>. Ответ берём из <span class="code-chip">choices[0].message.content</span>. Библиотеку <span class="code-chip">openai</span> не ставим — это тема урока 11.</div>
+</div>
+</section>
+
+<section class="slide slide--content"
+  data-notes="Правка 2 превращает поле в чат: st.chat_input, st.chat_message, история в st.session_state.messages. После неё переписка держится пузырями и не стирается. Дождитесь, пока у всех чат помнит несколько сообщений.">
+<div class="sl-body">
+  <div>
+    <div class="q-label">Правка 2 · чат-история</div>
+    <h2>Настоящий чат, который <span class="acc">помнит</span></h2>
+  </div>
+  <p>Теперь поле превращается в чат: сообщения показываются пузырями, а вся переписка держится в памяти и не стирается.</p>
+  <div class="prompt-card prompt-card--copy" style="margin-top:10px">
+    <span class="pc-tag">→ В тот же чат</span>
+    <div class="pc-text">Сделай интерфейс чатом: используй st.chat_input и st.chat_message, храни переписку в st.session_state.messages, показывай всю историю. Верни весь файл.</div>
+  </div>
+</div>
+</section>
+
+<section class="slide slide--content"
+  data-notes="Вставьте канонический код целиком. Свяжите с уроком 7: список messages — как entries, только живёт в памяти сессии. Поля role/content; st.rerun перерисовывает страницу с новым сообщением. ask_deepseek(question) — та же функция на requests из предыдущего разбора. Не углубляйтесь в каждый символ.">
+<div class="sl-body">
+  <div>
+    <div class="q-label">Разбор кода</div>
+    <h2>История чата живёт в <span class="acc">session_state</span></h2>
+  </div>
+  <div class="code-win">
+    <div class="code-head"><span class="win-dots"><i></i><i></i><i></i></span><span class="lang-badge">PYTHON</span></div>
+    <div class="code-body"><span class="kw">if</span> <span class="st">"messages"</span> <span class="kw">not in</span> st.session_state:      <span class="cm"># память между перезапусками</span>
+    st.session_state.messages = []
+
+<span class="kw">for</span> m <span class="kw">in</span> st.session_state.messages:          <span class="cm"># показать историю</span>
+    st.chat_message(m[<span class="st">"role"</span>]).write(m[<span class="st">"content"</span>])
+
+question = st.chat_input(<span class="st">"Спроси что-нибудь"</span>)
+<span class="kw">if</span> question:
+    st.session_state.messages.append({<span class="st">"role"</span>: <span class="st">"user"</span>, <span class="st">"content"</span>: question})
+    answer = ask_deepseek(question)          <span class="cm"># запрос к DeepSeek через requests</span>
+    st.session_state.messages.append({<span class="st">"role"</span>: <span class="st">"assistant"</span>, <span class="st">"content"</span>: answer})
+    st.rerun()</div>
+  </div>
+  <p>Каждое сообщение — словарь с полями <span class="code-chip">role</span> и <span class="code-chip">content</span>. Список <span class="code-chip">messages</span> — как <span class="code-chip">entries</span> из дневника, только живёт в памяти сессии. <span class="code-chip">st.rerun</span> перерисовывает страницу с новой репликой.</p>
+</div>
+</section>
+
+<section class="slide slide--content"
+  data-notes="Зафиксируйте, почему без session_state переписка стирается: Streamlit перезапускает весь app.py на каждый ввод, обычные переменные обнуляются. Это готовит квиз 2.">
+<div class="sl-body">
+  <div>
+    <div class="q-label">Полезное знание</div>
+    <h2>Почему переписка <span class="acc">стирается</span></h2>
+  </div>
+  <div class="vs">
+    <div class="vs-col vs-col--plain">
+      <h4>Обычная переменная</h4>
+      <p>При каждом вводе Streamlit перезапускает весь <span class="code-chip">app.py</span> сверху вниз.</p>
+      <p class="note">Переменная обнуляется — история чата пропадает.</p>
+    </div>
+    <div class="vs-col vs-col--win">
+      <h4>st.session_state</h4>
+      <p>Хранит данные <b>между перезапусками</b> скрипта.</p>
+      <p class="note">Здесь и живёт <span class="code-chip">st.session_state.messages</span> — вся переписка.</p>
+    </div>
+  </div>
+  <p>Streamlit перезапускает скрипт на каждый ввод и клик. Всё, что нужно запомнить, кладём в <span class="code-chip">st.session_state</span>.</p>
+</div>
+</section>
+
+<section class="slide slide--content"
+  data-notes="Правка 3 добавляет боковую панель: выбор характера помощника через selectbox и кнопку «Очистить чат». После неё программа настраивается без правки кода. Дайте детям переключить характер и увидеть разницу в ответах.">
+<div class="sl-body">
+  <div>
+    <div class="q-label">Правка 3 · настройки в сайдбаре</div>
+    <h2>Характер помощника и <span class="acc">«Очистить чат»</span></h2>
+  </div>
+  <p>Добавляем боковую панель: выбор характера помощника и кнопка «Очистить чат» — приложение настраивается без правки кода.</p>
+  <div class="prompt-card prompt-card--copy" style="margin-top:10px">
+    <span class="pc-tag">→ В тот же чат</span>
+    <div class="pc-text">Добавь боковую панель st.sidebar: выбор характера помощника (selectbox) и кнопку «Очистить чат». Выбранный характер передавай в системную роль DeepSeek. Верни весь файл.</div>
+  </div>
+</div>
+</section>
+
+<section class="slide slide--content"
+  data-notes="Главная мысль: выбранный характер уходит в системную роль DeepSeek — программа стала настраиваемой без правки кода. Кнопка «Очистить чат» просто обнуляет messages. Дайте сфотографировать.">
+<div class="sl-body">
+  <div>
+    <div class="q-label">Разбор кода</div>
+    <h2>Настройки, <span class="acc">не трогая код</span></h2>
+  </div>
+  <div class="code-win">
+    <div class="code-head"><span class="win-dots"><i></i><i></i><i></i></span><span class="lang-badge">PYTHON</span></div>
+    <div class="code-body"><span class="kw">with</span> st.sidebar:
+    character = st.selectbox(<span class="st">"Характер"</span>, [<span class="st">"Дружелюбный"</span>, <span class="st">"Строгий"</span>, <span class="st">"Весёлый"</span>])
+    <span class="kw">if</span> st.button(<span class="st">"Очистить чат"</span>):
+        st.session_state.messages = []       <span class="cm"># обнулили историю</span>
+        st.rerun()</div>
+  </div>
+  <div class="ek-note"><span class="code-chip">st.sidebar</span> рисует боковую панель. Выбранный характер уходит в <b>системную роль DeepSeek</b> — и тон ответов меняется без правки кода. Кнопка «Очистить чат» обнуляет <span class="code-chip">st.session_state.messages</span> — история очищается, и новый диалог начинается без прошлых сообщений.</div>
+</div>
+</section>
+
+<section class="slide slide--content"
+  data-notes="Правка 4 — финальная отделка локального чата: эмодзи и заголовок, короткое описание под ним, и st.spinner «Думаю…», чтобы пока DeepSeek отвечает, пользователь видел индикатор, а не замерший экран. После неё локальный AI-чат готов полностью — это обязательный результат к 48–55-й минуте. Публикацию (правку 5) делают только успевающие, остальным — в ДЗ.">
+<div class="sl-body">
+  <div>
+    <div class="q-label">Правка 4 · оформление</div>
+    <h2>Эмодзи, описание и <span class="acc">«Думаю…»</span></h2>
+  </div>
+  <p>Финальная отделка: приятный заголовок с эмодзи, короткое описание под ним и индикатор ожидания, пока нейросеть думает.</p>
+  <div class="prompt-card prompt-card--copy" style="margin-top:10px">
+    <span class="pc-tag">→ В тот же чат</span>
+    <div class="pc-text">Наведи красоту: добавь эмодзи и заголовок приложения, короткое описание под ним. Пока DeepSeek отвечает, показывай индикатор ожидания через st.spinner с текстом «Думаю…». Верни весь файл.</div>
+  </div>
+</div>
+</section>
+
+<section class="slide slide--content"
+  data-notes="Главная мысль: st.spinner как контекст with оборачивает медленный запрос — пользователь видит «Думаю…», а не замерший экран. Плюс st.title с эмодзи и st.caption с описанием. На этом локальный AI-чат полностью готов. Дальше — опциональная публикация для успевающих.">
+<div class="sl-body">
+  <div>
+    <div class="q-label">Разбор кода</div>
+    <h2>Индикатор ожидания и <span class="acc">заголовок</span></h2>
+  </div>
+  <div class="code-win">
+    <div class="code-head"><span class="win-dots"><i></i><i></i><i></i></span><span class="lang-badge">PYTHON</span></div>
+    <div class="code-body">st.title(<span class="st">"🤖 Мой AI-помощник"</span>)
+st.caption(<span class="st">"Спрашивай что угодно — отвечает DeepSeek"</span>)
+
+<span class="kw">if</span> question:
+    st.session_state.messages.append({<span class="st">"role"</span>: <span class="st">"user"</span>, <span class="st">"content"</span>: question})
+    <span class="kw">with</span> st.spinner(<span class="st">"Думаю…"</span>):                <span class="cm"># индикатор, пока идёт запрос</span>
+        answer = ask_deepseek(question)
+    st.session_state.messages.append({<span class="st">"role"</span>: <span class="st">"assistant"</span>, <span class="st">"content"</span>: answer})
+    st.rerun()</div>
+  </div>
+  <div class="ek-note ek-note--green"><span class="code-chip">st.spinner("Думаю…")</span> оборачивает медленный запрос: пока DeepSeek отвечает, на странице крутится индикатор, а не замирает пустой экран. <span class="code-chip">st.title</span> с эмодзи и <span class="code-chip">st.caption</span> с описанием делают интерфейс понятнее. Локальный чат готов — это обязательный результат урока.</div>
+</div>
+</section>
+
+<section class="slide slide--content"
+  data-notes="Опциональный финальный шаг: локальное приложение превращается в сайт с публичной ссылкой. Правка объёмная — нужны аккаунты GitHub и Streamlit Cloud, поэтому она для успевающих. Если не хватает времени или доступов, продемонстрируйте деплой со своего экрана или отдайте в ДЗ, а обязательный результат урока — готовый локальный чат с AI (правки 1–4) — уже достигнут. Главный смысл следующего слайда: код попадает на публичный GitHub, поэтому ключа в нём быть не должно. Имя переменной ключа сквозное — API_KEY.">
+<div class="sl-body">
+  <div>
+    <div class="q-label">Правка 5 · публикация · для успевающих</div>
+    <h2>Свой сайт с <span class="acc">публичной ссылкой</span></h2>
+  </div>
+  <p>Опциональный шаг для тех, кто закончил локальный чат: заливаем проект на GitHub и получаем публичную ссылку через Streamlit Cloud.</p>
+  <div style="display:flex;gap:10px;flex-wrap:wrap"><span class="chip">GitHub</span><span class="chip chip--gray">requirements.txt</span><span class="chip chip--green">Streamlit Cloud</span></div>
+  <div class="prompt-card prompt-card--copy" style="margin-top:10px">
+    <span class="pc-tag">→ В тот же чат</span>
+    <div class="pc-text">Подготовь к публикации: залей проект на GitHub, добавь requirements.txt (streamlit, requests), задеплой на Streamlit Cloud (share.streamlit.io). Ключ DeepSeek положи в Secrets и читай в код так: API_KEY = st.secrets["DEEPSEEK_KEY"]. Дай пошаговую инструкцию. Верни весь файл.</div>
+  </div>
+</div>
+</section>
+
+<section class="slide slide--content"
+  data-notes="Ключевой слайд урока. Подчеркните главное: app.py попадает на публичный GitHub, значит ключ в коде увидят все. Имя переменной сквозное — API_KEY: та же, что в ask_deepseek. В облаке ключ берётся из st.secrets, локально — из os.getenv (файл .env). На Streamlit Cloud секрет кладут в раздел Secrets в формате toml. Если это пропустить, ученики могут случайно опубликовать ключ.">
+<div class="sl-body">
+  <div>
+    <div class="q-label">Разбор кода</div>
+    <h2>Ключ — в <span class="acc">Secrets</span>, не в коде</h2>
+  </div>
+  <p>Файл <span class="code-chip">app.py</span> попадает на <span class="hl">публичный GitHub</span> — всё, что в нём написано, увидят посторонние. Ключ, попавший в код, увидят все. Читаем его в ту же переменную <span class="code-chip">API_KEY</span>, что и в <span class="code-chip">ask_deepseek</span>:</p>
+  <div class="code-win">
+    <div class="code-head"><span class="win-dots"><i></i><i></i><i></i></span><span class="lang-badge">PYTHON</span></div>
+    <div class="code-body"><span class="kw">import</span> os
+<span class="kw">import</span> streamlit <span class="kw">as</span> st
+
+<span class="cm"># в облаке — из Secrets, локально — из .env</span>
+API_KEY = st.secrets.get(<span class="st">"DEEPSEEK_KEY"</span>) <span class="kw">or</span> os.getenv(<span class="st">"DEEPSEEK_KEY"</span>)</div>
+  </div>
+  <p>Сам ключ живёт в панели Streamlit Cloud, в разделе <span class="hl">Secrets</span>, в формате <span class="code-chip">toml</span>:</p>
+  <div class="code-win">
+    <div class="code-head"><span class="win-dots"><i></i><i></i><i></i></span><span class="lang-badge">TOML</span></div>
+    <div class="code-body">DEEPSEEK_KEY = <span class="st">"sk-..."</span></div>
+  </div>
+  <div class="ek-note ek-note--red">Никогда не пишите <span class="code-chip">API_KEY = "sk-..."</span> прямо в <span class="code-chip">app.py</span>. На хостинге секрет кладут в Secrets и читают через <span class="code-chip">st.secrets["DEEPSEEK_KEY"]</span> — тогда на GitHub попадает только код, без ключа.</div>
+</div>
+</section>
+
+<section class="slide slide--content"
+  data-notes="Вопрос про ключ в коде — прямое следствие предыдущего слайда. Дайте 10–15 секунд, потом раскройте ответ. Свяжите с привычкой: ключ никогда не в коде, всегда в Secrets.">
+<div class="sl-body">
+  <div>
+    <div class="q-label">Проверка · вопрос 1</div>
+    <h2>Изучите ситуацию и <span class="acc">ответьте</span></h2>
+  </div>
+  <div class="quiz-box">
+    <span class="q-num">Вопрос 1</span>
+    <p class="q-text">Оля добавила в <span class="code-chip">app.py</span> строку <span class="code-chip">API_KEY = "sk-..."</span>. Приложение работает локально, но перед публикацией на GitHub наставник сказал так не делать. Почему и как правильно?</p>
+    <div class="quiz-answer">
+      <button class="quiz-btn" type="button">Показать ответ</button>
+      <div class="quiz-reveal">
+        <p><span class="code-chip">app.py</span> заливается на <b>публичный GitHub</b> — ключ увидят все. На Streamlit Cloud секреты кладут в раздел <b>Secrets</b> (панель хостинга), а в коде читают через <span class="code-chip">st.secrets["DEEPSEEK_KEY"]</span>.</p>
+        <p>Ключа в коде быть не должно.</p>
+      </div>
+    </div>
+  </div>
+</div>
+</section>
+
+<section class="slide slide--content"
+  data-notes="Вопрос про session_state — вторая ключевая идея урока. Свяжите с привычкой: Streamlit перезапускает весь скрипт, память диалога живёт в st.session_state.">
+<div class="sl-body">
+  <div>
+    <div class="q-label">Проверка · вопрос 2</div>
+    <h2>Изучите ситуацию и <span class="acc">ответьте</span></h2>
+  </div>
+  <div class="quiz-box">
+    <span class="q-num">Вопрос 2</span>
+    <p class="q-text">Максим заметил: при каждом вопросе Streamlit будто запускает скрипт заново, и без <span class="code-chip">st.session_state</span> переписка стирается. Зачем нужен <span class="code-chip">session_state</span>?</p>
+    <div class="quiz-answer">
+      <button class="quiz-btn" type="button">Показать ответ</button>
+      <div class="quiz-reveal">
+        <p>Streamlit <b>перезапускает весь</b> <span class="code-chip">app.py</span> при каждом действии пользователя. Обычные переменные обнуляются.</p>
+        <p><span class="code-chip">st.session_state</span> хранит данные (историю чата) между перезапусками — поэтому переписка не теряется.</p>
+      </div>
+    </div>
+  </div>
+</div>
+</section>
+
+<section class="slide slide--content"
+  data-notes="Научите читать traceback снизу вверх — пригодится на всех уроках Python. Напомните привычку: непонятную ошибку целиком копируем в DeepSeek. Три поломки справа — самые частые именно на Streamlit Cloud.">
+<div class="sl-body">
+  <div>
+    <div class="q-label">Отладка</div>
+    <h2>Читаем <span class="acc">ошибки</span> Streamlit</h2>
+  </div>
+  <div class="grid-2">
+    <div class="col">
+      <p><span class="hl">Traceback — снизу вверх.</span> Последняя строка — <b>что</b> случилось, строкой выше — <b>где</b>.</p>
+      <div class="term" style="margin-top:14px">
+        <div class="term-head"><span class="win-dots"><i></i><i></i><i></i></span><span class="lang-badge">ТЕРМИНАЛ</span></div>
+        <div class="term-body"><span class="dim">Traceback (most recent call last):
+  File "app.py", line 5, in &lt;module&gt;
+    API_KEY = st.secrets["DEEPSEEK_KEY"]</span>
+<span class="usr">KeyError: 'DEEPSEEK_KEY'</span></div>
+      </div>
+      <p style="margin-top:12px;font-size:15px"><span class="code-chip">KeyError</span> значит: секрет не добавлен в Secrets на Cloud.</p>
+    </div>
+    <div class="info-card">
+      <h3>Если застряли</h3>
+      <ul class="clean">
+        <li>Скопируйте <b>traceback целиком</b> в чат DeepSeek — попросите объяснить и починить</li>
+        <li><span class="code-chip">ModuleNotFoundError</span> на Cloud — забыли <span class="code-chip">requirements.txt</span> со списком библиотек</li>
+        <li>Приложение «спит» на бесплатном тарифе — нажмите кнопку «wake up» и подождите</li>
+      </ul>
+      <p style="margin-top:12px;font-size:14px;color:var(--ek-gray)">Та же привычка, что <span class="code-chip">console.log</span> в «Змейке» и print-метки на прошлых уроках.</p>
+    </div>
+  </div>
+</div>
+</section>
+
+<section class="slide slide--content"
+  data-notes="5 привычек урока. Дайте сфотографировать слайд. Особо подчеркните вторую (память в session_state) и третью (ключ в Secrets) — это две главные идеи урока.">
+<div class="sl-body">
+  <div>
+    <div class="q-label">Запомните</div>
+    <h2>Привычки работы со <span class="acc">Streamlit</span></h2>
+  </div>
+  <div class="kv">
+    <div class="kv-row"><div class="k">01 · Streamlit = Python как сайт</div><div class="v">Виджеты <span class="code-chip">st.title</span>, <span class="code-chip">st.chat_input</span>, <span class="code-chip">st.write</span> рисуют страницу — HTML писать не нужно.</div></div>
+    <div class="kv-row"><div class="k">02 · Память — в session_state</div><div class="v">Streamlit перезапускает весь скрипт. Историю чата храним в <span class="code-chip">st.session_state</span>, иначе она стирается.</div></div>
+    <div class="kv-row"><div class="k">03 · Ключ — не в коде</div><div class="v">Всегда в Secrets, читаем через <span class="code-chip">st.secrets["DEEPSEEK_KEY"]</span>. На GitHub попадает только код.</div></div>
+    <div class="kv-row"><div class="k">04 · requirements.txt</div><div class="v">Список библиотек, чтобы Streamlit Cloud их поставил. Без него — <span class="code-chip">ModuleNotFoundError</span>.</div></div>
+    <div class="kv-row"><div class="k">05 · Публикация = ссылка</div><div class="v">GitHub плюс Streamlit Cloud дают свою ссылку — сайт открывается с любого устройства.</div></div>
+  </div>
+</div>
+</section>
+
+<section class="slide slide--content"
+  data-notes="Чек-лист завершения приложения. Левая колонка — обязательный минимум (правки 1–4): рабочий локальный AI-чат к 48–55-й минуте. Правая колонка — публикация, только для успевающих; кто дошёл до ссылки, пусть откроет её на телефоне и задаст вопрос. Остальным публикация уходит в ДЗ.">
+<div class="sl-body">
+  <div>
+    <div class="q-label">Чек-лист</div>
+    <h2>Что должно быть к <span class="acc">55-й минуте</span></h2>
+  </div>
+  <div class="grid-2">
+    <div class="info-card">
+      <h3 style="color:var(--ek-green-deep)">Обязательно · локальный чат</h3>
+      <ul class="clean">
+        <li><span class="code-chip">app.py</span> запускается командой <span class="code-chip">streamlit run app.py</span></li>
+        <li>Нейросеть отвечает на вопрос в браузере на <span class="code-chip">localhost:8501</span></li>
+        <li>Чат помнит переписку</li>
+        <li>Есть сайдбар с выбором характера и «Очистить чат», эмодзи и «Думаю…»</li>
+      </ul>
+    </div>
+    <div class="info-card">
+      <h3 style="color:var(--ek-violet-deep)">Для успевающих · публикация</h3>
+      <ul class="clean">
+        <li>Проект залит на GitHub с <span class="code-chip">requirements.txt</span></li>
+        <li>Приложение задеплоено на Streamlit Cloud, ключ в Secrets</li>
+        <li>Есть публичная ссылка</li>
+      </ul>
+    </div>
+  </div>
+  <div class="ek-note ek-note--green">Обязательный минимум — рабочий локальный чат из левой колонки. Успели опубликовать? Откройте свою ссылку на телефоне и задайте вопрос — сайт живёт в интернете. Не успели — публикация уходит в ДЗ.</div>
+</div>
+</section>
+
+<section class="slide slide--content"
+  data-notes="ДЗ — прокачать приложение, примерно 30 минут. Каждое улучшение — отдельный диалог с DeepSeek, не всё сразу. Кто не успел опубликовать сайт на уроке — доводит публикацию (GitHub + Streamlit Cloud, ключ в Secrets) дома и присылает публичную ссылку. Напомните про ключ на скриншотах: его обязательно скрыть.">
+<div class="sl-body">
+  <div>
+    <div class="q-label">Домашнее задание · около 30 минут</div>
+    <h2>Прокачайте <span class="acc">приложение</span></h2>
+  </div>
+  <p>Три улучшения — каждое через отдельный диалог с DeepSeek:</p>
+  <div class="grid-3">
+    <div class="info-card">
+      <h3>Оформление</h3>
+      <p>Поменяйте тему, эмодзи и заголовок, добавьте короткое описание приложения под ним.</p>
+    </div>
+    <div class="info-card">
+      <h3>Вопрос по файлу</h3>
+      <p>Добавьте <span class="code-chip">st.file_uploader</span>: пользователь грузит текст, а помощник отвечает по нему.</p>
+    </div>
+    <div class="info-card">
+      <h3>Опубликуйте и поделитесь</h3>
+      <p>Не успели на уроке — задеплойте на Streamlit Cloud (ключ в Secrets), отправьте публичную ссылку другу и попросите задать вопрос.</p>
+    </div>
+  </div>
+  <div class="ek-note ek-note--red">Пришлите скриншот приложения — <b>ключ скройте!</b> — и публичную ссылку на свой сайт.</div>
+</div>
+</section>
+
+<section class="slide slide--green"
+  data-notes="Закройте урок и весь Модуль 3. Сегодня программа стала веб-приложением с публичной ссылкой, которую можно отправить кому угодно — чат откроется у человека в браузере. Теперь у учеников две публичные ссылки: бот в Telegram и сайт на Streamlit. На уроке 11 заглянем под капот нейросети: перейдём на официальный openai SDK, разберём temperature и max_tokens и соберём генератор статей.">
+<div class="sl-orbit">
+    <i class="sl-ring"></i>
+    <svg class="sl-ico" viewBox="0 0 100 100" style="left:75px;top:20px;width:150px;height:150px;transform:rotate(-10deg)"><use href="#ek-i-trophy"/></svg>
+    <i class="sl-letter" style="left:466px;top:13px;width:78px;height:78px;--fs:36px">L</i>
+    <svg class="sl-ico" viewBox="0 0 100 100" style="left:1040px;top:15px;width:130px;height:130px;transform:rotate(12deg)"><use href="#ek-i-heart"/></svg>
+    <i class="sl-letter" style="left:68px;top:268px;width:100px;height:100px;--fs:46px">I</i>
+    <i class="sl-letter" style="left:1137px;top:327px;width:95px;height:95px;--fs:44px">N</i>
+    <svg class="sl-ico" viewBox="0 0 100 100" style="left:102px;top:532px;width:125px;height:125px;transform:rotate(-15deg)"><use href="#ek-i-star"/></svg>
+    <i class="sl-letter" style="left:726px;top:613px;width:78px;height:78px;--fs:36px">K</i>
+    <svg class="sl-ico" viewBox="0 0 100 100" style="left:1045px;top:540px;width:110px;height:110px;transform:rotate(8deg)"><use href="#ek-i-gem"/></svg>
+  </div>
+  <div class="cover-center">
+    <div class="bubble">
+      <h1>До встречи<br>на уроке 11!</h1>
+      <p>Модуль 3 закрыт: у вас теперь две публичные ссылки — бот в Telegram и сайт на Streamlit. Отправьте их кому угодно: чат откроется у человека в браузере. На уроке 11 заглянем под капот нейросети: openai SDK, temperature и max_tokens, генератор статей.</p>
+    </div>
+  </div>
+</section>
+</main>
+
+<div class="notes" id="notes">
+  <div class="notes__header">Заметки преподавателя &middot; N — скрыть</div>
+  <div class="notes__body" id="notesBody">—</div>
+</div>
+
+<div class="hint"><kbd>←</kbd><kbd>→</kbd> слайды &middot; <kbd>N</kbd> заметки &middot; <kbd>F</kbd> весь экран</div>
+
+<svg width="0" height="0" style="position:absolute" aria-hidden="true"><defs>
+<symbol id="ek-i-trophy" viewBox="0 0 100 100"><path fill="currentColor" d="M24 16h52v12h8c6 0 10 4 10 10 0 15-11 25-23 27-3 5-8 9-14 10v8h14c4 0 7 3 7 7v4H22v-4c0-4 3-7 7-7h14v-8c-6-1-11-5-14-10C17 63 6 53 6 38c0-6 4-10 10-10h8V16zM24 36h-7c-2 0-4 2-4 4 0 8 5 15 12 18-1-5-1-10-1-16v-6zM76 36v6c0 6 0 11-1 16 7-3 12-10 12-18 0-2-2-4-4-4h-7z"/></symbol>
+<symbol id="ek-i-heart" viewBox="0 0 100 100"><path fill="currentColor" d="M50 88C28 72 10 56 10 38 10 24 21 14 34 14c6 0 12 3 16 8 4-5 10-8 16-8 13 0 24 10 24 24 0 18-18 34-40 50z"/></symbol>
+<symbol id="ek-i-star" viewBox="0 0 100 100"><path fill="currentColor" d="M50 8l12 27 29 3-22 20 6 29-25-15-25 15 6-29L9 38l29-3z"/></symbol>
+<symbol id="ek-i-gem" viewBox="0 0 100 100"><path fill="currentColor" d="M30 12h40l18 24-38 52L12 36zM36 20l-12 16h20zM64 20l-8 16h20zM50 22l-9 14h18zM26 44l20 30-8-30zM62 44l-8 30 20-30zM46 44h8l-4 26z"/></symbol>
+</defs></svg>
+
+<script>
+/* ============ Автомасштаб сцены ============ */
+(function(){
+  'use strict';
+  var stage = document.getElementById('deck');
+  function fit(){
+    var w = window.innerWidth, h = window.innerHeight;
+    if (!w || !h) return;
+    var s = Math.min(w / 1320, h / 780);
+    if (document.fullscreenElement) s = Math.min(w / 1280, h / 720);
+    stage.style.transform = 'translate(-50%,-50%) scale(' + s + ')';
+    stage.style.borderRadius = document.fullscreenElement ? '0' : '18px';
+  }
+  window.addEventListener('resize', fit);
+  document.addEventListener('fullscreenchange', fit);
+  fit();
+})();
+
+/* ============ Навигация по слайдам ============ */
+(function(){
+  'use strict';
+  var slides = Array.prototype.slice.call(document.querySelectorAll('.slide'));
+  var total = slides.length;
+  var idx = 0;
+  document.getElementById('total').textContent = total;
+
+  var progressEl = document.getElementById('progress');
+  var currentEl = document.getElementById('current');
+  var notesPanel = document.getElementById('notes');
+  var notesBody = document.getElementById('notesBody');
+
+  slides.forEach(function(s, i){
+    if (s.classList.contains('slide--content')) s.setAttribute('data-page', i + 1);
+  });
+
+  function render(){
+    slides.forEach(function(s, i){
+      s.classList.remove('active', 'prev');
+      if (i === idx) s.classList.add('active');
+      else if (i < idx) s.classList.add('prev');
+    });
+    progressEl.style.width = ((idx + 1) / total * 100).toFixed(2) + '%';
+    currentEl.textContent = idx + 1;
+    notesBody.textContent = slides[idx].getAttribute('data-notes') || '—';
+  }
+
+  function go(n){ idx = Math.max(0, Math.min(total - 1, n)); render(); }
+  function next(){ go(idx + 1); }
+  function prev(){ go(idx - 1); }
+
+  document.addEventListener('keydown', function(e){
+    var active = document.activeElement;
+    if (active && (active.isContentEditable || active.tagName === 'TEXTAREA' || active.tagName === 'INPUT')) return;
+    switch (e.key){
+      case 'ArrowRight': case 'PageDown': case ' ':
+        e.preventDefault(); next(); break;
+      case 'ArrowLeft': case 'PageUp':
+        e.preventDefault(); prev(); break;
+      case 'Home': e.preventDefault(); go(0); break;
+      case 'End': e.preventDefault(); go(total - 1); break;
+      case 'f': case 'F': case 'а': case 'А':
+        e.preventDefault();
+        if (!document.fullscreenElement){ if (document.documentElement.requestFullscreen) document.documentElement.requestFullscreen(); }
+        else if (document.exitFullscreen) document.exitFullscreen();
+        break;
+      case 'n': case 'N': case 'т': case 'Т':
+        e.preventDefault(); notesPanel.classList.toggle('active'); break;
+      case 'Escape':
+        if (document.fullscreenElement && document.exitFullscreen) document.exitFullscreen();
+        notesPanel.classList.remove('active'); break;
+    }
+  });
+
+  var tx = 0, ty = 0;
+  document.addEventListener('touchstart', function(e){ tx = e.changedTouches[0].screenX; ty = e.changedTouches[0].screenY; }, { passive: true });
+  document.addEventListener('touchend', function(e){
+    var dx = e.changedTouches[0].screenX - tx, dy = e.changedTouches[0].screenY - ty;
+    if (Math.abs(dx) > 60 && Math.abs(dx) > Math.abs(dy)){ if (dx < 0) next(); else prev(); }
+  }, { passive: true });
+
+  document.addEventListener('click', function(e){
+    if (e.target.closest('a,button,input,textarea,code,pre,[contenteditable],.code-win,.term,.prompt-card,.quiz-box,.notes')) return;
+    var x = e.clientX, w = window.innerWidth;
+    if (x < w * 0.25) prev();
+    else if (x > w * 0.75) next();
+  });
+
+  render();
+})();
+
+/* ============ Квизы: показать ответ ============ */
+(function(){
+  'use strict';
+  Array.prototype.slice.call(document.querySelectorAll('.quiz-btn')).forEach(function(btn){
+    btn.addEventListener('click', function(e){
+      e.stopPropagation();
+      var box = btn.closest('.quiz-box');
+      var reveal = box && box.querySelector('.quiz-reveal');
+      if (!reveal) return;
+      var shown = reveal.classList.toggle('show');
+      btn.textContent = shown ? 'Скрыть ответ' : 'Показать ответ';
+    });
+  });
+})();
+</script>
+</body>
+</html>

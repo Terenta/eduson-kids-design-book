@@ -1,0 +1,1124 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Урок 11 — Как программы общаются с нейросетью | Eduson Kids</title>
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter+Tight:wght@600;700;800;900&family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;700&display=swap">
+
+<style>
+/* ============ Дизайн-токены Eduson Kids ============ */
+:root{
+  --ek-violet:#8C7FF6; --ek-violet-soft:#A79EF9; --ek-violet-deep:#6F61E8; --ek-violet-bg:#F0EEFE;
+  --ek-green:#3DF79D; --ek-green-soft:#7BF9BD; --ek-green-mint:#C9F7E3; --ek-green-pale:#E7FDF2; --ek-green-deep:#0FBF6E;
+  --ek-ink:#17171C; --ek-gray:#8F8F98; --ek-gray-light:#EFEFF2; --ek-line:#E3E3EA;
+  --ek-red:#FF6B6B; --ek-red-pale:#FFECEC;
+  --f-head:'Inter Tight','Inter','Segoe UI',system-ui,sans-serif;
+  --f-body:'Inter','Segoe UI',system-ui,sans-serif;
+  --f-mono:'JetBrains Mono','Cascadia Mono','Consolas',monospace;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{height:100%;overflow:hidden}
+body{font-family:var(--f-body);background:#E9E9F1;color:var(--ek-ink);-webkit-font-smoothing:antialiased}
+
+/* ============ Хром: прогресс, счётчик, подсказка ============ */
+.progress{position:fixed;top:0;left:0;right:0;height:4px;background:rgba(23,23,28,.08);z-index:100}
+.progress__fill{height:100%;width:0%;background:var(--ek-violet);transition:width 300ms ease}
+.counter{position:fixed;top:14px;right:18px;z-index:90;font:600 13px var(--f-body);color:var(--ek-gray);background:#fff;border:1px solid var(--ek-line);padding:6px 14px;border-radius:999px;font-variant-numeric:tabular-nums}
+.counter b{color:var(--ek-ink)}
+.hint{position:fixed;bottom:12px;left:50%;transform:translateX(-50%);z-index:90;font:500 11px var(--f-body);color:var(--ek-gray);background:#fff;border:1px solid var(--ek-line);padding:6px 14px;border-radius:999px;letter-spacing:.03em}
+.hint kbd{font-family:var(--f-mono);background:var(--ek-gray-light);padding:1px 6px;border-radius:4px;font-size:10px;margin:0 2px;color:var(--ek-ink)}
+
+/* ============ Сцена 1280×720 ============ */
+.stage{position:absolute;left:50%;top:50%;width:1280px;height:720px;transform:translate(-50%,-50%);border-radius:18px;overflow:hidden;box-shadow:0 30px 90px rgba(23,23,28,.18);background:#fff}
+.slide{position:absolute;inset:0;background:#fff;opacity:0;transform:translateY(26px);transition:opacity 280ms ease,transform 280ms ease;pointer-events:none;font-family:var(--f-head)}
+.slide.active{opacity:1;transform:none;pointer-events:auto}
+.slide.prev{transform:translateY(-26px)}
+.slide--violet{background:var(--ek-violet)}
+.slide--green{background:var(--ek-green)}
+
+/* Номер страницы на контентных слайдах */
+.slide--content::after{content:attr(data-page);position:absolute;right:54px;bottom:30px;font:800 30px/1 var(--f-head);color:var(--ek-ink);opacity:.5}
+
+/* ============ Декор «Орбита» ============ */
+.sl-orbit{position:absolute;inset:0;pointer-events:none}
+.slide--violet .sl-orbit{--decor:#A79EF9;--letter:#C4BEFA}
+.slide--green .sl-orbit{--decor:#7BF9BD;--letter:#C4FCE0}
+.sl-ring{position:absolute;left:50%;top:50%;width:1040px;height:660px;transform:translate(-50%,-50%);border:3px solid var(--decor);border-radius:50%;opacity:.9}
+.sl-ico{position:absolute;color:var(--decor)}
+.sl-letter{position:absolute;border-radius:50%;background:var(--decor);color:var(--letter);display:flex;align-items:center;justify-content:center;font:800 var(--fs,40px)/1 var(--f-head);font-style:normal}
+
+/* ============ Каверы: карточка-окно и спич-бабл ============ */
+.cover-center{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);z-index:2}
+.cover-card{position:relative;width:860px;background:#fff;border-radius:28px;box-shadow:0 30px 80px rgba(23,23,28,.18)}
+.card-top{display:flex;justify-content:space-between;align-items:center;padding:24px 30px 0}
+.win-dots{display:flex;gap:9px}
+.win-dots i{width:13px;height:13px;border-radius:50%;background:var(--ek-violet)}
+.win-close{position:relative;width:22px;height:22px}
+.win-close::before,.win-close::after{content:"";position:absolute;left:-1px;top:9px;width:24px;height:4px;border-radius:2px;background:var(--ek-violet)}
+.win-close::before{transform:rotate(45deg)}
+.win-close::after{transform:rotate(-45deg)}
+.cover-card .badge{position:absolute;left:50%;top:-30px;transform:translateX(-50%) rotate(-4deg)}
+.cover-card h1{padding:26px 64px 30px;text-align:center;font:800 50px/1.14 var(--f-head);letter-spacing:-.015em;color:var(--ek-ink)}
+.cover-card .cover-sub{padding:0 80px 34px;text-align:center;font:500 19px/1.5 var(--f-body);color:#3C3C45}
+.cover-card .cover-chips{display:flex;justify-content:center;gap:10px;flex-wrap:wrap;padding:0 40px 40px}
+.bubble{position:relative;width:660px;background:#EFEFF1;border-radius:30px;padding:56px 70px;text-align:center}
+.bubble::after{content:"";position:absolute;right:56px;bottom:-24px;width:0;height:0;border-left:38px solid transparent;border-top:28px solid #EFEFF1}
+.bubble h1{font:800 42px/1.25 var(--f-head);letter-spacing:-.01em;color:var(--ek-ink)}
+.bubble p{margin-top:16px;font:500 18px/1.5 var(--f-body);color:#3C3C45}
+
+/* ============ Стикер-бейдж и чипы ============ */
+.badge{display:inline-block;background:var(--ek-green);color:var(--ek-ink);font:800 24px/1 var(--f-head);padding:13px 22px;border-radius:13px;transform:rotate(-3deg);box-shadow:0 10px 24px rgba(23,23,28,.10)}
+.badge--violet{background:var(--ek-violet);color:#fff}
+.badge--sm{font-size:16px;padding:9px 16px;border-radius:10px}
+.chip{display:inline-block;font:700 14px/1 var(--f-body);padding:8px 14px;border-radius:999px;background:var(--ek-violet-bg);color:var(--ek-violet-deep)}
+.chip--green{background:var(--ek-green-pale);color:var(--ek-green-deep)}
+.chip--gray{background:var(--ek-gray-light);color:#3C3C45}
+
+/* ============ Контентные слайды ============ */
+.sl-body{position:absolute;inset:0;padding:56px 80px 62px;display:flex;flex-direction:column;gap:16px;overflow:hidden}
+h2{font:800 38px/1.16 var(--f-head);letter-spacing:-.01em;color:var(--ek-ink)}
+.acc{color:var(--ek-violet-deep)}
+.sl-body>p, .col p{font:500 18px/1.5 var(--f-body);color:#3C3C45}
+.code-chip{font-family:var(--f-mono);font-weight:700;font-size:.88em;background:var(--ek-violet-bg);color:var(--ek-violet-deep);padding:2px 8px;border-radius:8px;white-space:nowrap}
+.hl{color:var(--ek-violet-deep);font-weight:700}
+.out-chip{font-family:var(--f-mono);font-weight:700;font-size:.88em;background:var(--ek-green-pale);color:#0B7A48;padding:2px 8px;border-radius:8px;white-space:nowrap}
+
+.grid-2{display:grid;grid-template-columns:1fr 1fr;gap:22px;align-items:start}
+.grid-3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:18px;align-items:stretch}
+
+.info-card{background:#F5F5F9;border-radius:18px;padding:18px 22px;font:500 16px/1.55 var(--f-body);color:#3C3C45}
+.info-card h3{font:800 19px/1.3 var(--f-head);color:var(--ek-ink);margin-bottom:8px}
+.ek-note{background:var(--ek-violet-bg);border-left:4px solid var(--ek-violet);border-radius:0 14px 14px 0;padding:14px 20px;font:600 17px/1.5 var(--f-body);color:#3C3560}
+.ek-note--green{background:var(--ek-green-pale);border-left-color:var(--ek-green-deep);color:#0B5B39}
+.ek-note--red{background:var(--ek-red-pale);border-left-color:var(--ek-red);color:#7A2E2E}
+
+ul.clean{list-style:none;display:flex;flex-direction:column;gap:10px}
+ul.clean li{display:flex;gap:14px;align-items:flex-start;font:500 17.5px/1.5 var(--f-body);color:#3C3C45}
+ul.clean li::before{content:'—';flex:0 0 auto;color:var(--ek-violet-deep);font-weight:800}
+
+ol.steps{list-style:none;counter-reset:step;display:flex;flex-direction:column;gap:12px}
+ol.steps li{counter-increment:step;display:flex;gap:16px;align-items:center;padding:14px 20px;background:#F5F5F9;border-radius:16px;font:500 17.5px/1.45 var(--f-body);color:#2E2E36}
+ol.steps li::before{content:counter(step);flex:0 0 40px;height:40px;display:flex;align-items:center;justify-content:center;border-radius:50%;background:var(--ek-violet);font:800 18px var(--f-head);color:#fff}
+ol.steps li:last-child::before{background:var(--ek-green);color:var(--ek-ink)}
+ol.steps.steps--tight{gap:8px}
+ol.steps.steps--tight li{padding:9px 16px;font-size:15.5px;gap:12px}
+ol.steps.steps--tight li::before{flex-basis:32px;height:32px;font-size:14px}
+
+.q-label{font:700 13px/1 var(--f-head);letter-spacing:.08em;text-transform:uppercase;color:var(--ek-gray)}
+
+/* ============ План занятия (agenda) ============ */
+.agenda{display:flex;flex-direction:column;gap:8px}
+.agenda-row{display:flex;gap:16px;align-items:center;padding:10px 18px;background:#F5F5F9;border-radius:14px}
+.agenda-row .t{flex:0 0 84px;text-align:center;font:800 14px/1 var(--f-mono);color:var(--ek-ink);background:var(--ek-green);border-radius:999px;padding:8px 0}
+.agenda-row .tt{font:700 16.5px/1.3 var(--f-head);color:var(--ek-ink)}
+.agenda-row .dd{font:500 14px/1.4 var(--f-body);color:var(--ek-gray)}
+
+/* ============ Ключ-значение (привычки, шпаргалки) ============ */
+.kv{display:flex;flex-direction:column}
+.kv-row{display:grid;grid-template-columns:250px 1fr;gap:18px;align-items:start;padding:11px 4px;border-bottom:1.5px solid var(--ek-line)}
+.kv-row:last-child{border-bottom:none}
+.kv-row .k{font:800 14px/1.35 var(--f-head);letter-spacing:.05em;text-transform:uppercase;color:var(--ek-violet-deep);padding-top:2px}
+.kv-row .v{font:500 16.5px/1.5 var(--f-body);color:#3C3C45}
+
+/* ============ Окно кода (статичное) ============ */
+.code-win{background:#fff;border:2.5px solid var(--ek-ink);border-radius:16px;overflow:hidden;font-family:var(--f-mono);box-shadow:10px 10px 0 rgba(140,127,246,.14)}
+.code-head{display:flex;align-items:center;justify-content:space-between;padding:9px 16px;border-bottom:2px solid var(--ek-ink)}
+.code-head .win-dots i{width:11px;height:11px}
+.lang-badge{font:700 11px var(--f-mono);letter-spacing:.14em;color:var(--ek-gray)}
+.code-body{padding:14px 20px;font:500 14.5px/1.6 var(--f-mono);color:var(--ek-ink);white-space:pre;overflow:auto;max-height:400px;tab-size:4}
+.code-body .cm{color:var(--ek-gray)}
+.code-body .st{color:var(--ek-green-deep)}
+.code-body .kw{color:var(--ek-violet-deep);font-weight:700}
+
+/* ============ Терминал (тёмное окно) ============ */
+.term{background:var(--ek-ink);border-radius:16px;overflow:hidden;font-family:var(--f-mono);box-shadow:10px 10px 0 rgba(23,23,28,.12)}
+.term-head{display:flex;align-items:center;justify-content:space-between;padding:9px 16px;border-bottom:1px solid rgba(255,255,255,.14)}
+.term-head .win-dots i{width:11px;height:11px;background:var(--ek-green)}
+.term-head .lang-badge{color:rgba(255,255,255,.5)}
+.term-body{padding:14px 20px;font:500 14.5px/1.62 var(--f-mono);color:var(--ek-green);white-space:pre-wrap;word-break:break-word;overflow:auto;max-height:420px}
+.term-body .usr{color:#fff}
+.term-body .dim{color:rgba(255,255,255,.55)}
+
+/* ============ Промпт-карточка (диалог с DeepSeek) ============ */
+.prompt-card{position:relative;background:var(--ek-violet-bg);border:2.5px solid var(--ek-violet);border-radius:18px;padding:20px 26px 18px;box-shadow:10px 10px 0 rgba(140,127,246,.18)}
+.prompt-card .pc-tag{position:absolute;top:-16px;left:22px;background:var(--ek-violet);color:#fff;font:800 14px/1 var(--f-head);padding:9px 16px;border-radius:10px;transform:rotate(-2deg);box-shadow:0 8px 18px rgba(23,23,28,.12)}
+.prompt-card .pc-text{margin-top:6px;font:500 15px/1.62 var(--f-mono);color:#2E2A52;white-space:pre-wrap}
+.prompt-card .pc-text .hl{color:var(--ek-violet-deep)}
+.prompt-card--copy .pc-tag{background:var(--ek-green);color:var(--ek-ink)}
+
+/* ============ Сравнение (vs) ============ */
+.vs{display:grid;grid-template-columns:1fr 1fr;gap:20px;align-items:stretch}
+.vs-col{border-radius:18px;padding:20px 24px}
+.vs-col h4{font:800 15px/1 var(--f-head);letter-spacing:.08em;text-transform:uppercase;margin-bottom:12px}
+.vs-col p{font:500 16px/1.55 var(--f-body)}
+.vs-col .note{margin-top:12px;font:500 13.5px/1.4 var(--f-body);opacity:.75}
+.vs-col--plain{background:var(--ek-gray-light);color:#3C3C45}
+.vs-col--plain h4{color:var(--ek-gray)}
+.vs-col--win{background:var(--ek-green-pale);color:#124F35;border:2px solid var(--ek-green-soft)}
+.vs-col--win h4{color:var(--ek-green-deep)}
+
+/* ============ Квиз с раскрытием ответа ============ */
+.quiz-box{background:#F5F5F9;border:2.5px solid var(--ek-ink);border-radius:18px;padding:22px 26px;box-shadow:10px 10px 0 rgba(61,247,157,.25)}
+.quiz-box .q-num{display:inline-block;background:var(--ek-green);color:var(--ek-ink);font:800 13px/1 var(--f-head);letter-spacing:.08em;text-transform:uppercase;padding:8px 14px;border-radius:999px;margin-bottom:14px}
+.quiz-box .q-text{font:700 21px/1.42 var(--f-head);color:var(--ek-ink)}
+.quiz-answer{margin-top:16px}
+.quiz-btn{border:0;border-radius:12px;padding:12px 22px;font:800 15px/1 var(--f-head);cursor:pointer;background:var(--ek-violet);color:#fff;transition:background .15s}
+.quiz-btn:hover{background:var(--ek-violet-deep)}
+.quiz-reveal{display:none;margin-top:14px;background:var(--ek-green-pale);border-left:4px solid var(--ek-green-deep);border-radius:0 14px 14px 0;padding:14px 20px;font:500 16.5px/1.55 var(--f-body);color:#0B5B39}
+.quiz-reveal.show{display:block}
+.quiz-reveal p+p{margin-top:8px}
+
+/* Появление контента */
+.slide.active .info-card,.slide.active ul.clean li,.slide.active ol.steps li,.slide.active .grid-2>*,.slide.active .grid-3>*,.slide.active .agenda-row,.slide.active .kv-row{animation:reveal 450ms ease backwards}
+.slide.active .info-card:nth-child(2),.slide.active ul.clean li:nth-child(2),.slide.active ol.steps li:nth-child(2),.slide.active .grid-2>*:nth-child(2),.slide.active .grid-3>*:nth-child(2),.slide.active .agenda-row:nth-child(2),.slide.active .kv-row:nth-child(2){animation-delay:80ms}
+.slide.active ul.clean li:nth-child(3),.slide.active ol.steps li:nth-child(3),.slide.active .grid-3>*:nth-child(3),.slide.active .agenda-row:nth-child(3),.slide.active .kv-row:nth-child(3){animation-delay:160ms}
+.slide.active ol.steps li:nth-child(4),.slide.active .agenda-row:nth-child(4),.slide.active .kv-row:nth-child(4){animation-delay:240ms}
+.slide.active ol.steps li:nth-child(5),.slide.active .agenda-row:nth-child(5),.slide.active .kv-row:nth-child(5){animation-delay:320ms}
+.slide.active .agenda-row:nth-child(6),.slide.active ol.steps li:nth-child(6),.slide.active .kv-row:nth-child(6){animation-delay:400ms}
+.slide.active .agenda-row:nth-child(7),.slide.active ol.steps li:nth-child(7),.slide.active .kv-row:nth-child(7){animation-delay:480ms}
+@keyframes reveal{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:translateY(0)}}
+@media (prefers-reduced-motion:reduce){.slide.active .info-card,.slide.active ul.clean li,.slide.active ol.steps li,.slide.active .grid-2>*,.slide.active .grid-3>*,.slide.active .agenda-row,.slide.active .kv-row{animation:none}}
+
+/* ============ Заметки преподавателя ============ */
+.notes{position:fixed;bottom:0;left:0;right:0;background:#fff;border-top:1px solid var(--ek-line);box-shadow:0 -16px 40px rgba(23,23,28,.10);padding:20px 40px;z-index:95;max-height:40vh;overflow-y:auto;transform:translateY(100%);transition:transform 300ms ease}
+.notes.active{transform:translateY(0)}
+.notes__header{font:800 11px var(--f-head);letter-spacing:.2em;text-transform:uppercase;color:var(--ek-violet-deep);margin-bottom:8px}
+.notes__body{font:500 15px/1.55 var(--f-body);color:#3C3C45}
+
+:focus-visible{outline:3px solid var(--ek-violet-soft);outline-offset:2px;border-radius:6px}
+::-webkit-scrollbar{width:8px;height:8px}
+::-webkit-scrollbar-track{background:transparent}
+::-webkit-scrollbar-thumb{background:rgba(23,23,28,.15);border-radius:4px}
+</style>
+</head>
+<body>
+
+<div class="progress"><div class="progress__fill" id="progress"></div></div>
+<div class="counter"><b id="current">1</b> / <span id="total">38</span></div>
+
+<main class="stage" id="deck">
+<section class="slide slide--violet active"
+  data-notes="Поприветствуйте. Сегодня соберём генератор статей: называете тему — нейросеть пишет статью с заголовком и разделами. Новое — переходим с ручного requests на аккуратный openai SDK и учимся управлять двумя настройками: temperature и max_tokens. К концу урока у каждого — рабочий writer.py в терминале.">
+<div class="sl-orbit">
+    <i class="sl-ring"></i>
+    <svg class="sl-ico" viewBox="0 0 100 100" style="left:75px;top:20px;width:150px;height:150px;transform:rotate(-10deg)"><use href="#ek-i-trophy"/></svg>
+    <i class="sl-letter" style="left:466px;top:13px;width:78px;height:78px;--fs:36px">A</i>
+    <svg class="sl-ico" viewBox="0 0 100 100" style="left:1040px;top:15px;width:130px;height:130px;transform:rotate(12deg)"><use href="#ek-i-heart"/></svg>
+    <i class="sl-letter" style="left:68px;top:268px;width:100px;height:100px;--fs:46px">P</i>
+    <i class="sl-letter" style="left:1137px;top:327px;width:95px;height:95px;--fs:44px">I</i>
+    <svg class="sl-ico" viewBox="0 0 100 100" style="left:102px;top:532px;width:125px;height:125px;transform:rotate(-15deg)"><use href="#ek-i-star"/></svg>
+    <i class="sl-letter" style="left:726px;top:613px;width:78px;height:78px;--fs:36px">S</i>
+    <svg class="sl-ico" viewBox="0 0 100 100" style="left:1045px;top:540px;width:110px;height:110px;transform:rotate(8deg)"><use href="#ek-i-gem"/></svg>
+  </div>
+  <div class="cover-center">
+    <div class="cover-card">
+      <div class="badge">Урок №11</div>
+      <div class="card-top"><span class="win-dots"><i></i><i></i><i></i></span><span class="win-close"></span></div>
+      <h1>Как программы общаются с&nbsp;нейросетью</h1>
+      <p class="cover-sub">Соберём генератор статей: вы называете тему — нейросеть пишет статью с заголовком и разделами. Переходим с ручного requests на openai SDK и учимся управлять temperature и max_tokens.</p>
+      <div class="cover-chips"><span class="chip chip--gray">Python</span><span class="chip">openai SDK</span><span class="chip chip--green">temperature · max_tokens</span><span class="chip chip--gray">DeepSeek API</span></div>
+    </div>
+  </div>
+</section>
+
+<section class="slide slide--content"
+  data-notes="План. Теории — минимум: уже на 12-й минуте каждый получает ответ нейросети через openai SDK, к 30-й — каркас writer.py. Дальше — 5 правок, как на прошлых уроках.">
+<div class="sl-body">
+  <div>
+    <div class="q-label">Agenda · план занятия</div>
+    <h2>Как пройдут <span class="acc">60 минут</span></h2>
+  </div>
+  <div class="agenda">
+    <div class="agenda-row"><span class="t">0–5</span><div><div class="tt">Разбор ДЗ</div><div class="dd">Смотрим Streamlit-приложения: оформление, вопрос по файлу, публичная ссылка.</div></div></div>
+    <div class="agenda-row"><span class="t">5–12</span><div><div class="tt">SDK и две настройки</div><div class="dd">Минимум теории — только чтобы собрать генератор статей.</div></div></div>
+    <div class="agenda-row"><span class="t">12–20</span><div><div class="tt">Промпт-разминка</div><div class="dd">warmup.py: один вопрос к deepseek-chat через openai SDK.</div></div></div>
+    <div class="agenda-row"><span class="t">20–30</span><div><div class="tt">Каркас генератора</div><div class="dd">Клиент OpenAI, запрос к нейросети и печать статьи.</div></div></div>
+    <div class="agenda-row"><span class="t">30–48</span><div><div class="tt">5 правок через диалог</div><div class="dd">Статьи → temperature → план и max_tokens → сохранение и цикл → стиль.</div></div></div>
+    <div class="agenda-row"><span class="t">48–55</span><div><div class="tt">Мини-вопросы и отладка</div><div class="dd">Читаем ошибки, проверяем понимание temperature и base_url.</div></div></div>
+    <div class="agenda-row"><span class="t">55–60</span><div><div class="tt">Демо в группе</div><div class="dd">Каждый называет тему и получает готовую статью.</div></div></div>
+  </div>
+</div>
+</section>
+
+<section class="slide slide--content"
+  data-notes="Откройте 2–3 присланных Streamlit-приложения (на весь блок 5 минут). Разбирайте диалог с нейросетью, а не только результат. Подведите к главному: внутри Streamlit запрос к нейросети всё ещё собирали руками через requests. Сегодня заменим его на аккуратный openai SDK — тот же результат, но код короче.">
+<div class="sl-body">
+  <div>
+    <div class="q-label">Разбор ДЗ урока 10</div>
+    <h2>Смотрим <span class="acc">Streamlit-приложения</span></h2>
+  </div>
+  <p>Открываем 2–3 присланных приложения и разбираем именно <span class="hl">диалог с нейросетью</span>: оформление и тема, вопрос по загруженному файлу, публичная ссылка.</p>
+  <div class="grid-3" style="margin-top:8px">
+    <div class="info-card"><h3>Что сработало</h3>Точечные промпты: своя тема и эмодзи через настройки, вопрос по файлу через <span class="code-chip">st.file_uploader</span>, ссылка, чтобы поделиться.</div>
+    <div class="info-card"><h3>Что переделывали</h3>Где забыли «не трогай остальной код» — нейросеть заодно ломала рабочую функцию запроса.</div>
+    <div class="info-card"><h3>Вывод</h3>Внутри приложения запрос к нейросети собирали руками через <span class="code-chip">requests</span>. Сегодня заменим его на аккуратный <span class="code-chip">openai</span> SDK.</div>
+  </div>
+</div>
+</section>
+
+<section class="slide slide--content"
+  data-notes="Главная мысль: две новинки. Первая — переходим с ручного requests на openai SDK: тот же запрос, но короче и чище. Вторая — получаем две настройки ответа: temperature (насколько нейросеть креативна) и max_tokens (длина ответа). На этом соберём генератор статей writer.py.">
+<div class="sl-body">
+  <div>
+    <div class="q-label">Идея урока</div>
+    <h2>Тот же запрос, но <span class="acc">чище и с настройками</span></h2>
+  </div>
+  <p>Всё это время запрос к нейросети мы собирали <span class="hl">руками через requests</span> (уроки 8–10) — со своим URL, заголовками и разбором JSON.</p>
+  <div class="ek-note" style="margin-top:6px">Сегодня две новинки: переходим на <b>openai SDK</b> — библиотеку, которая делает то же самое короче, и получаем <b>две настройки ответа</b> — <span class="code-chip">temperature</span> (насколько нейросеть креативна) и <span class="code-chip">max_tokens</span> (длина ответа). На этом соберём <b>генератор статей</b> <span class="code-chip">writer.py</span>.</div>
+  <p style="margin-top:6px">Идея урока 11: с ручного <b>requests</b> — на <b>openai SDK</b>, настраиваем <b>temperature</b> и <b>max_tokens</b>, называете тему — получаете <b>статью</b>.</p>
+</div>
+</section>
+
+<section class="slide slide--content"
+  data-notes="Быстрый recap: как запрос выглядел через requests на уроках 8–10 — свой url, заголовки, json и разбор ответа. SDK делает ту же работу, только библиотека берёт URL, заголовки и разбор JSON на себя. Не углубляйтесь — главное впереди.">
+<div class="sl-body">
+  <div>
+    <div class="q-label">Вспоминаем</div>
+    <h2>Что такое <span class="acc">SDK</span></h2>
+  </div>
+  <p>На уроках 8–10 запрос к нейросети мы собирали <span class="hl">вручную через requests</span>: свой адрес, заголовок с ключом, словарь с данными и разбор JSON в ответе.</p>
+  <div class="code-win">
+    <div class="code-head"><span class="win-dots"><i></i><i></i><i></i></span><span class="lang-badge">PYTHON</span></div>
+    <div class="code-body"><span class="kw">import</span> requests
+url = <span class="st">"https://api.deepseek.com/chat/completions"</span>
+headers = {<span class="st">"Authorization"</span>: <span class="st">"Bearer "</span> + API_KEY}
+data = {<span class="st">"model"</span>: <span class="st">"deepseek-chat"</span>, <span class="st">"messages"</span>: messages}
+response = requests.post(url, headers=headers, json=data)
+answer = response.json()[<span class="st">"choices"</span>][0][<span class="st">"message"</span>][<span class="st">"content"</span>]</div>
+  </div>
+  <div class="info-card">SDK — это <span class="hl">библиотека-помощник</span>: она берёт URL, заголовки и разбор JSON на себя. Мы описываем только <b>суть запроса</b>, а не технику.</div>
+</div>
+</section>
+
+<section class="slide slide--content"
+  data-notes="Главная мысль урока: библиотека называется openai, но через base_url её можно использовать с совместимыми API, в том числе с DeepSeek. Это удобный клиент: один и тот же код работает с разными провайдерами, меняются только адрес и ключ. Подчеркните это несколько раз за урок.">
+<div class="sl-body">
+  <div>
+    <div class="q-label">Главная мысль</div>
+    <h2>Библиотека openai — <span class="acc">не только про OpenAI</span></h2>
+  </div>
+  <p>Библиотека называется <span class="code-chip">openai</span>, но через <span class="code-chip">base_url</span> её можно направить к <span class="hl">совместимому API</span> — в том числе к DeepSeek.</p>
+  <div class="code-win">
+    <div class="code-head"><span class="win-dots"><i></i><i></i><i></i></span><span class="lang-badge">PYTHON</span></div>
+    <div class="code-body"><span class="kw">from</span> openai <span class="kw">import</span> OpenAI
+client = OpenAI(api_key=API_KEY,
+                base_url=<span class="st">"https://api.deepseek.com"</span>)  <span class="cm"># едем к DeepSeek</span></div>
+  </div>
+  <div class="ek-note">Именно <span class="hl">base_url</span> перенаправляет запрос на серверы DeepSeek. Без него SDK пошёл бы на серверы OpenAI. <b>Один и тот же код работает с разными провайдерами — меняется только адрес и ключ.</b></div>
+</div>
+</section>
+
+<section class="slide slide--content"
+  data-notes="Две настройки запроса. temperature от 0 до 1 управляет строгостью и креативностью: около 0.2 — строго и предсказуемо, около 0.9 — свободнее и образнее. max_tokens ограничивает длину ответа: обрывается на полуслове — увеличьте, хотите короче — уменьшите. Живую разницу temperature покажем позже на одной теме.">
+<div class="sl-body">
+  <div>
+    <div class="q-label">Новое · две настройки</div>
+    <h2><span class="acc">temperature</span> и <span class="acc">max_tokens</span></h2>
+  </div>
+  <p>У запроса через SDK есть <span class="hl">две настройки</span>, с помощью которых управляем ответом нейросети.</p>
+  <div class="vs">
+    <div class="vs-col vs-col--plain">
+      <h4>temperature (0 → 1)</h4>
+      <p>Регулятор между строгим и творческим ответом. Около <b>0.2</b> — предсказуемо и по делу, около <b>0.9</b> — свободнее и образнее.</p>
+      <p class="note">Для инструкции — низкая, для сказки — высокая.</p>
+    </div>
+    <div class="vs-col vs-col--win">
+      <h4>max_tokens</h4>
+      <p>Ограничение длины ответа. Обрывается на полуслове — увеличьте; хотите короче — уменьшите.</p>
+      <p class="note">Один токен — примерно часть слова или короткое слово.</p>
+    </div>
+  </div>
+  <p>Настройки <span class="code-chip">temperature</span> и <span class="code-chip">max_tokens</span> задаются прямо в запросе <span class="code-chip">create(...)</span>.</p>
+</div>
+</section>
+
+<section class="slide slide--content"
+  data-notes="Никакой долгой подготовки: сразу просим у DeepSeek маленький скрипт на openai SDK и запускаем. Промпт с ролью и форматом — техники прошлых уроков работают и здесь. Ученики копируют промпт целиком в новый чат DeepSeek.">
+<div class="sl-body">
+  <div>
+    <div class="q-label">Промпт #1 · разминка</div>
+    <h2>warmup.py за <span class="acc">две минуты</span></h2>
+  </div>
+  <p>Не будем долго готовиться — попросим у DeepSeek маленький скрипт на openai SDK и сразу запустим его в терминале.</p>
+  <div class="prompt-card" style="margin-top:10px">
+    <span class="pc-tag">→ Новый чат DeepSeek</span>
+    <div class="pc-text">Ты — опытный Python-разработчик и наставник школьника.
+Напиши маленький скрипт warmup.py на библиотеке openai (SDK):
+создай клиент OpenAI с api_key из константы и
+base_url="https://api.deepseek.com", отправь один вопрос модели
+deepseek-chat через client.chat.completions.create и распечатай
+ответ. Прокомментируй, чем это короче ручного requests.
+Ответь одним блоком.</div>
+  </div>
+</div>
+</section>
+
+<section class="slide slide--content"
+  data-notes="Фундамент урока: дождитесь, пока у всех в терминале появится ответ нейросети. На живом коде показываем сразу три вещи: OpenAI(...) с base_url, client.chat.completions.create вместо requests.post и response.choices[0].message.content вместо длинного разбора JSON. Не идите дальше, пока не запустилось у каждого.">
+<div class="sl-body">
+  <div>
+    <div class="q-label">Запуск и разбор</div>
+    <h2>Один вопрос через <span class="acc">openai SDK</span></h2>
+  </div>
+  <div class="grid-2">
+    <div class="col">
+      <ol class="steps steps--tight">
+        <li><div>В <span class="code-chip">vibe-coding</span> создайте папку <span class="code-chip">lesson-11</span></div></li>
+        <li><div>Выполните <span class="code-chip">pip install openai python-dotenv</span></div></li>
+        <li><div>Создайте <span class="code-chip">warmup.py</span> и вставьте код из ответа</div></li>
+        <li><div>Выполните <span class="code-chip">python warmup.py</span></div></li>
+      </ol>
+      <div class="ek-note ek-note--green" style="margin-top:14px">В терминале появился ответ нейросети? Значит, SDK работает — фундамент генератора готов.</div>
+    </div>
+    <div class="kv">
+      <div class="kv-row"><div class="k" style="text-transform:none">OpenAI(...)</div><div class="v">Клиент с base_url DeepSeek.</div></div>
+      <div class="kv-row"><div class="k" style="text-transform:none">create(...)</div><div class="v">Одна строка вместо requests.post.</div></div>
+      <div class="kv-row"><div class="k" style="text-transform:none">choices[0]...</div><div class="v">Короткий путь к тексту ответа.</div></div>
+    </div>
+  </div>
+</div>
+</section>
+
+<section class="slide slide--content"
+  data-notes="Шпаргалка по трём типичным проблемам запуска. Почините у всех — этот же клиент, ключ и папка нужны дальше для самого генератора статей.">
+<div class="sl-body">
+  <div>
+    <div class="q-label">Типичные ситуации запуска</div>
+    <h2>Если warmup.py <span class="acc">не запустился</span></h2>
+  </div>
+  <div class="grid-3" style="margin-top:10px">
+    <div class="ek-note ek-note--red"><b>ModuleNotFoundError: openai</b><br>Забыли установить библиотеку. Выполните в терминале <span class="code-chip">pip install openai python-dotenv</span> и запустите снова.</div>
+    <div class="ek-note ek-note--red"><b>Ключ не подхватился</b><br>Ключ пустой или не там. Проверьте константу с ключом (или <span class="code-chip">DEEPSEEK_KEY</span> в <span class="code-chip">.env</span>) — как на уроках 8–10.</div>
+    <div class="ek-note ek-note--red"><b>AuthenticationError</b><br>Ключ неверный. Скопируйте <span class="code-chip">DEEPSEEK_KEY</span> заново без лишних пробелов; на скриншотах ключ скрывайте.</div>
+  </div>
+</div>
+</section>
+
+<section class="slide slide--content"
+  data-notes="Сравнение бок о бок: было (ручной requests уроков 8–10) и стало (openai SDK). Подчеркните: результат тот же, кода меньше. URL, заголовки и разбор JSON библиотека берёт на себя.">
+<div class="sl-body">
+  <div>
+    <div class="q-label">Как это работает</div>
+    <h2>Ручной requests и <span class="acc">openai SDK</span></h2>
+  </div>
+  <p>Один и тот же запрос к DeepSeek — двумя способами. Результат одинаковый, но <span class="hl">SDK</span> берёт на себя URL, заголовки и разбор JSON.</p>
+  <div class="vs">
+    <div class="vs-col vs-col--plain">
+      <h4>Было · уроки 8–10</h4>
+      <p>Собирали запрос руками: <span class="code-chip">url</span>, <span class="code-chip">headers</span>, словарь <span class="code-chip">data</span>, потом <span class="code-chip">requests.post</span> и длинный разбор <span class="code-chip">response.json()["choices"][0]...</span></p>
+      <p class="note">Много строк, легко ошибиться в скобках</p>
+    </div>
+    <div class="vs-col vs-col--win">
+      <h4>Стало · урок 11</h4>
+      <p>Создаём <span class="code-chip">client</span> и вызываем <span class="code-chip">client.chat.completions.create(...)</span>. Ответ достаём коротко: <span class="code-chip">response.choices[0].message.content</span></p>
+      <p class="note">Описываем только суть запроса</p>
+    </div>
+  </div>
+  <div class="ek-note">Мы больше не пишем адрес и заголовки руками — их знает библиотека <span class="code-chip">openai</span>. Меняем инструмент, а нейросеть та же — <b>DeepSeek</b>.</div>
+</div>
+</section>
+
+<section class="slide slide--content"
+  data-notes="Роли system/user остались те же, что на уроках 8–10 — SDK их не меняет. Покажите, что текст достаём короче: response.choices[0].message.content вместо длинной цепочки из json().">
+<div class="sl-body">
+  <div>
+    <div class="q-label">Как это работает</div>
+    <h2>Как устроен <span class="acc">ответ SDK</span></h2>
+  </div>
+  <p>Отправляем <span class="hl">список сообщений</span> с ролями — как на уроках 8–10. А ответ достаём одной короткой строкой.</p>
+  <div class="code-win">
+    <div class="code-head"><span class="win-dots"><i></i><i></i><i></i></span><span class="lang-badge">PYTHON</span></div>
+    <div class="code-body">messages=[
+    {"role": <span class="st">"system"</span>, "content": <span class="st">"Ты журналист. Пиши статью с заголовком и разделами."</span>},
+    {"role": <span class="st">"user"</span>,   "content": <span class="st">"Напиши статью на тему: "</span> + topic},
+]
+
+article = response.choices[0].message.content   <span class="cm"># текст ответа</span></div>
+  </div>
+  <div class="grid-2">
+    <div class="info-card"><h3>Роли те же</h3><span class="code-chip">system</span> задаёт характер, <span class="code-chip">user</span> — вопрос. SDK ничего в этом не меняет.</div>
+    <div class="info-card"><h3>Ответ короче</h3>Вместо <span class="code-chip">response.json()["choices"][0]...</span> пишем <span class="code-chip">response.choices[0].message.content</span>.</div>
+  </div>
+</div>
+</section>
+
+<section class="slide slide--content"
+  data-notes="Новая роль DeepSeek на этом уроке: журналист. Урок 8 — переводчик, урок 9 — собеседник, сегодня пишет статью с заголовком и разделами. Снова всё решает системная роль.">
+<div class="sl-body">
+  <div>
+    <div class="q-label">Новая роль нейросети</div>
+    <h2>Системная роль <span class="acc">журналиста</span></h2>
+  </div>
+  <p>В прошлых проектах DeepSeek был <span class="hl">помощником</span>. Сегодня у него новая работа: услышать тему и <span class="hl">написать статью</span> с заголовком и разделами.</p>
+  <div class="info-card"><h3>Системная роль</h3>«Ты журналист. Пиши статью с заголовком и разделами».</div>
+  <div class="ek-note">Видимый результат: называете тему — нейросеть <b>выдаёт готовую статью</b>. Не просто набор фактов, а текст с заголовком и разделами.</div>
+</div>
+</section>
+
+<section class="slide slide--content"
+  data-notes="Прочитайте цель вслух. Подчеркните: статью пишет нейросеть, поэтому у каждого она своя. Две настройки temperature и max_tokens — то новое, ради чего урок. Слева теория, справа практика.">
+<div class="sl-body">
+  <div>
+    <div class="q-label">Цель · что будет в конце</div>
+    <h2>Цель <span class="acc">урока</span></h2>
+  </div>
+  <div class="ek-note">К концу урока у каждого — генератор статей <span class="code-chip">writer.py</span>: называете тему, нейросеть через <b>openai SDK</b> пишет статью с заголовком и разделами, а вы настраиваете <span class="code-chip">temperature</span> и <span class="code-chip">max_tokens</span>.</div>
+  <div class="grid-2" style="margin-top:10px">
+    <div>
+      <span class="chip">Узнаете</span>
+      <ul class="clean" style="margin-top:14px">
+        <li>Чем openai SDK удобнее ручного requests</li>
+        <li>Что библиотека openai работает и с DeepSeek через base_url</li>
+        <li>Как temperature и max_tokens управляют ответом</li>
+      </ul>
+    </div>
+    <div>
+      <span class="chip chip--green">Сделаете</span>
+      <ul class="clean" style="margin-top:14px">
+        <li>Соберёте генератор статей на openai SDK</li>
+        <li>Сравните строгую и творческую версии</li>
+        <li>Сохраните готовую статью в файл</li>
+      </ul>
+    </div>
+  </div>
+</div>
+</section>
+
+<section class="slide slide--content"
+  data-notes="Покажите рабочий writer.py — соберите заранее. Введите тему при группе, чтобы все увидели, как нейросеть выдаёт статью. Затем покажите строгую и творческую версии.">
+<div class="sl-body">
+  <div>
+    <div class="q-label">Демо результата</div>
+    <h2>Что <span class="acc">соберём</span> сегодня</h2>
+  </div>
+  <div class="term">
+    <div class="term-head"><span class="win-dots"><i></i><i></i><i></i></span><span class="lang-badge">ТЕРМИНАЛ</span></div>
+    <div class="term-body">✍️ Генератор статей
+Тема статьи? <span class="usr">История видеоигр</span>
+<span class="dim">Пишу статью... (openai SDK, temperature=0.7)</span>
+
+# История видеоигр: от пикселей до целых миров
+## С чего всё началось
+Первые игры были простыми точками на экране...
+## Золотая эпоха приставок
+...
+Статья сохранена в stat_История-видеоигр.md</div>
+  </div>
+  <p>Заголовок и разделы придумала <span class="hl">нейросеть</span> через openai SDK; готовый текст лёг в файл <span class="code-chip">stat_тема.md</span>.</p>
+</div>
+</section>
+
+<section class="slide slide--content"
+  data-notes="Подготовка: warmup.py и writer.py лежат в той же папке lesson-11, библиотеки openai и python-dotenv уже стоят с разминки. Ключ DEEPSEEK_KEY берётся из .env: скопируйте .env с ключом в папку lesson-11, потому что load_dotenv читает .env из текущей папки. Библиотека requests больше не нужна.">
+<div class="sl-body">
+  <div>
+    <div class="q-label">Подготовка</div>
+    <h2>Папка <span class="acc">lesson-11</span> и установка</h2>
+  </div>
+  <div class="grid-2">
+    <div>
+      <ol class="steps steps--tight">
+        <li><div>Работаем в уже созданной папке <span class="code-chip">lesson-11</span> — там же, где <span class="code-chip">warmup.py</span></div></li>
+        <li><div>Рядом создайте файл <span class="code-chip">writer.py</span></div></li>
+        <li><div>Библиотеки <span class="code-chip">openai</span> и <span class="code-chip">python-dotenv</span> уже стоят с разминки</div></li>
+        <li><div>Скопируйте <span class="code-chip">.env</span> с ключом <span class="code-chip">DEEPSEEK_KEY</span> в папку <span class="code-chip">lesson-11</span></div></li>
+      </ol>
+    </div>
+    <div>
+      <div class="term">
+        <div class="term-head"><span class="win-dots"><i></i><i></i><i></i></span><span class="lang-badge">ПАПКА</span></div>
+        <div class="term-body">vibe-coding/lesson-11/
+├── warmup.py
+├── writer.py
+└── .env</div>
+      </div>
+      <div class="ek-note" style="margin-top:14px"><span class="code-chip">load_dotenv()</span> читает <span class="code-chip">.env</span> из текущей папки — файл с ключом должен лежать рядом с <span class="code-chip">writer.py</span>, а не в папках прошлых уроков.</div>
+      <div class="ek-note" style="margin-top:12px">Библиотека <span class="code-chip">requests</span> больше не нужна — её работу берёт на себя <span class="code-chip">openai</span> SDK.</div>
+    </div>
+  </div>
+</div>
+</section>
+
+<section class="slide slide--content"
+  data-notes="Скопировать промпт целиком в новый чат DeepSeek. Каркас — минимальный рабочий SDK-вызов: клиент OpenAI с base_url DeepSeek, один пробный вопрос к deepseek-chat, печать ответа. Ключ из .env. Раньше такой запрос писали руками через requests — теперь его собирает SDK. Наполнять генератором будем правками.">
+<div class="sl-body">
+  <div>
+    <div class="q-label">Промпт #2 · стартовый</div>
+    <h2>Каркас <span class="acc">writer.py</span></h2>
+  </div>
+  <div class="prompt-card" style="margin-top:12px">
+    <span class="pc-tag">→ Новый чат DeepSeek</span>
+    <div class="pc-text">Ты — <span class="hl">опытный Python-разработчик</span> и наставник школьника.
+Собери каркас writer.py на openai SDK — минимальный рабочий вызов: клиент OpenAI с base_url DeepSeek, один пробный вопрос к модели deepseek-chat и печать ответа. Ключ из .env. Раньше такой запрос писали руками через requests — теперь его собирает SDK, короче код. Верни весь файл.
+
+Пиши так:
+- from openai import OpenAI, ключ через os.getenv("DEEPSEEK_KEY") и load_dotenv()
+- base_url="https://api.deepseek.com"
+- ответ доставай как response.choices[0].message.content
+
+Прокомментируй код для новичка. Ответь одним блоком кода.</div>
+  </div>
+</div>
+</section>
+
+<section class="slide slide--content"
+  data-notes="Запуск каркаса. Проверьте, что .env с ключом DEEPSEEK_KEY скопирован в папку lesson-11 (load_dotenv читает .env из текущей папки, а не из папок прошлых уроков) и переменная называется DEEPSEEK_KEY. Дождитесь, пока у всех в терминале появится ответ нейросети.">
+<div class="sl-body">
+  <div>
+    <div class="q-label">Запуск каркаса</div>
+    <h2>Проверяем <span class="acc">ключ</span> и запускаем</h2>
+  </div>
+  <ol class="steps steps--tight">
+    <li><div>Скопируйте код из ответа DeepSeek в <span class="code-chip">writer.py</span></div></li>
+    <li><div>Рядом положите файл <span class="code-chip">.env</span> со строкой <span class="code-chip">DEEPSEEK_KEY=ваш-ключ</span></div></li>
+    <li><div>Сохраните оба файла (<span class="code-chip">Ctrl+S</span>)</div></li>
+    <li><div>В терминале выполните <span class="code-chip">python writer.py</span></div></li>
+    <li><div>Дождитесь, пока нейросеть пришлёт ответ</div></li>
+  </ol>
+  <div class="ek-note ek-note--red">Ключ живёт в <span class="code-chip">.env</span>, а не в коде — так его не видно в <span class="code-chip">writer.py</span>. Ключ как пароль: на скриншотах для домашки скрываем.</div>
+</div>
+</section>
+
+<section class="slide slide--content"
+  data-notes="Момент: тот же результат, что раньше давал ручной requests, теперь получен коротким кодом на SDK. Каркас пустой по содержанию, но структура правильная — дальше наполняем правками.">
+<div class="sl-body">
+  <div>
+    <div class="q-label">Момент урока</div>
+    <h2>Первый ответ через <span class="acc">SDK</span></h2>
+  </div>
+  <p>В терминале — ответ нейросети, полученный <span class="hl">без единой строки</span> ручного <span class="code-chip">requests</span>. Тот же результат, но код короче и понятнее.</p>
+  <div class="ek-note ek-note--green">Весь запрос уместился в <span class="code-chip">client.chat.completions.create(...)</span>, а ответ достали строкой <span class="code-chip">response.choices[0].message.content</span>.</div>
+  <div class="ek-note">Каркас пока просто печатает ответ, но <b>инструмент уже правильный</b> — дальше правками превратим его в генератор статей.</div>
+</div>
+</section>
+
+<section class="slide slide--content"
+  data-notes="Пробегитесь по четырём ситуациям. Чаще всего — забыли pip install openai и ключ DEEPSEEK_KEY не подхватился из .env. AuthenticationError — неверный ключ. Пустой ответ обычно значит слишком маленький max_tokens. Помогите лично тем, у кого не запускается, остальные сверяются со слайдом.">
+<div class="sl-body">
+  <div>
+    <div class="q-label">Если writer.py не запустился</div>
+    <h2>Типичные ситуации <span class="acc">запуска</span></h2>
+  </div>
+  <div class="kv">
+    <div class="kv-row"><div class="k">ModuleNotFoundError</div><div class="v">Библиотека <span class="code-chip">openai</span> не установлена. В терминале: <span class="code-chip">pip install openai python-dotenv</span> — и запускайте снова.</div></div>
+    <div class="kv-row"><div class="k">ключ = None</div><div class="v">Файл <span class="code-chip">.env</span> лежит не в папке <span class="code-chip">lesson-11</span> или переменная названа не <span class="code-chip">DEEPSEEK_KEY</span>. Проверьте имя и место файла, вызов <span class="code-chip">load_dotenv()</span> должен быть до создания клиента.</div></div>
+    <div class="kv-row"><div class="k">AuthenticationError</div><div class="v">Ключ неверный или с пробелом. Скопируйте <span class="code-chip">DEEPSEEK_KEY</span> заново в <span class="code-chip">.env</span>, без кавычек и лишних пробелов.</div></div>
+    <div class="kv-row"><div class="k">Пустой ответ</div><div class="v">Ответ оборвался — маловат <span class="code-chip">max_tokens</span>. Увеличьте значение (например до <span class="code-chip">800</span>) и запустите снова.</div></div>
+  </div>
+</div>
+</section>
+
+<section class="slide slide--content"
+  data-notes="Первая правка идёт в тот же чат и превращает пробный вопрос каркаса в генератор статей: называешь тему — нейросеть пишет статью с заголовком и разделами. Это видимый результат. Дождитесь, пока у всех программа спрашивает тему и печатает готовую статью, потом идём дальше.">
+<div class="sl-body">
+  <div>
+    <div class="q-label">Правка 1 · генератор статей</div>
+    <h2>Назвал тему — получил <span class="acc">статью</span></h2>
+  </div>
+  <p>Главный шаг урока: программа спрашивает <span class="hl">тему</span>, а нейросеть в роли журналиста пишет статью с заголовком и разделами.</p>
+  <div class="prompt-card prompt-card--copy" style="margin-top:12px"><span class="pc-tag">→ В тот же чат</span><div class="pc-text">Спроси тему через input и попроси нейросеть написать статью с заголовком и 3–4 разделами (системная роль — журналист). Распечатай статью.
+
+Верни весь файл.</div></div>
+</div>
+</section>
+
+<section class="slide slide--content"
+  data-notes="Свяжите с уроками 8–10: роли system и user те же самые. system задаёт характер (журналист), user передаёт тему. Обратите внимание, что тему подставляем в текст через конкатенацию строк. Дайте ученикам написать пару статей на разные темы.">
+<div class="sl-body">
+  <div>
+    <div class="q-label">Разбор кода</div>
+    <h2>Две роли: <span class="acc">журналист</span> и тема</h2>
+  </div>
+  <div class="code-win">
+    <div class="code-head"><span class="win-dots"><i></i><i></i><i></i></span><span class="lang-badge">PYTHON</span></div>
+    <div class="code-body">topic = input(<span class="st">"Тема статьи: "</span>)
+
+response = client.chat.completions.create(
+    model=<span class="st">"deepseek-chat"</span>,
+    messages=[
+        {<span class="st">"role"</span>: <span class="st">"system"</span>, <span class="st">"content"</span>: <span class="st">"Ты журналист. Пиши статью с заголовком и разделами."</span>},
+        {<span class="st">"role"</span>: <span class="st">"user"</span>, <span class="st">"content"</span>: <span class="st">"Напиши статью на тему: "</span> + topic},
+    ],
+)
+article = response.choices[0].message.content</div>
+  </div>
+  <div class="ek-note ek-note--green">Роль <span class="code-chip">system</span> задаёт <b>характер</b> нейросети — журналист, который пишет с заголовком и разделами. Роль <span class="code-chip">user</span> передаёт <b>тему</b>. Тему подставляем в текст строкой: <span class="code-chip">"Напиши статью на тему: " + topic</span>. Те же две роли, что были на уроках 8–10.</div>
+</div>
+</section>
+
+<section class="slide slide--content"
+  data-notes="Зафиксируйте настройку temperature до правки 2. Низкая (около 0.2) — строгий и предсказуемый ответ, высокая (около 0.9) — более творческая подача. Свяжите с квизом про чай: для инструкции нужна низкая, для сказки — высокая.">
+<div class="sl-body">
+  <div>
+    <div class="q-label">Полезное знание</div>
+    <h2>temperature — <span class="acc">настройка</span> строгости и творчества</h2>
+  </div>
+  <div class="vs">
+    <div class="vs-col vs-col--plain">
+      <h4>temperature = 0.2</h4>
+      <p>Ответы строгие и предсказуемые.</p>
+      <p class="note">Для фактов: инструкции, справки, точные статьи.</p>
+    </div>
+    <div class="vs-col vs-col--win">
+      <h4>temperature = 0.9</h4>
+      <p>Ответы креативные и разные каждый раз.</p>
+      <p class="note">Для творчества: сказки, истории, необычные идеи.</p>
+    </div>
+  </div>
+  <div class="ek-note"><span class="code-chip">temperature</span> — это настройка: ближе к <b>0</b> нейросеть отвечает строже и предсказуемее, ближе к <b>1</b> — свободнее и образнее.</div>
+</div>
+</section>
+
+<section class="slide slide--content"
+  data-notes="Правка 2 показывает разницу на практике: одна и та же тема при temperature 0.2 и 0.9. Дайте ученикам сравнить строгую и творческую статью на своей теме — разница видна сразу. Дождитесь, пока у всех печатаются обе версии.">
+<div class="sl-body">
+  <div>
+    <div class="q-label">Правка 2 · temperature</div>
+    <h2>Одна тема — <span class="acc">два характера</span></h2>
+  </div>
+  <div class="prompt-card prompt-card--copy" style="margin-top:12px"><span class="pc-tag">→ В тот же чат</span><div class="pc-text">Добавь возможность задавать temperature. Сгенерируй одну и ту же тему при temperature 0.2 и 0.9 и покажи разницу (строгая статья против фантазийной).
+
+Верни весь файл.</div></div>
+</div>
+</section>
+
+<section class="slide slide--content"
+  data-notes="Покажите, что меняется только одно число — temperature, а тема и роли те же. При 0.2 статья строгая и по делу, при 0.9 — более образная и свободная. Дайте сфотографировать разницу выводов на экране.">
+<div class="sl-body">
+  <div>
+    <div class="q-label">Разбор кода</div>
+    <h2>Меняем одно число — меняется <span class="acc">характер</span></h2>
+  </div>
+  <div class="code-win">
+    <div class="code-head"><span class="win-dots"><i></i><i></i><i></i></span><span class="lang-badge">PYTHON</span></div>
+    <div class="code-body"><span class="kw">for</span> t <span class="kw">in</span> [0.2, 0.9]:
+    response = client.chat.completions.create(
+        model=<span class="st">"deepseek-chat"</span>,
+        messages=[...],       <span class="cm"># тема и роли те же</span>
+        temperature=t,        <span class="cm"># меняется только руль</span>
+    )
+    print(<span class="st">"temperature ="</span>, t)
+    print(response.choices[0].message.content)</div>
+  </div>
+  <div class="ek-note">Тема и роли одинаковые — меняется <b>только</b> <span class="code-chip">temperature</span>. При <span class="code-chip">0.2</span> статья строгая и по делу, при <span class="code-chip">0.9</span> — более образная и свободная. Одно число заметно меняет стиль ответа.</div>
+</div>
+</section>
+
+<section class="slide slide--content"
+  data-notes="Правка 3 — два запроса вместо одного: сначала нейросеть выдаёт план (список разделов), потом отдельными запросами пишет каждый раздел. max_tokens ограничивает длину, чтобы ответ не обрывался и не был слишком длинным. Это заметно сложнее — помогите отстающим.">
+<div class="sl-body">
+  <div>
+    <div class="q-label">Правка 3 · план и max_tokens</div>
+    <h2>Сначала <span class="acc">план</span>, потом текст по разделам</h2>
+  </div>
+  <div class="prompt-card prompt-card--copy" style="margin-top:12px"><span class="pc-tag">→ В тот же чат</span><div class="pc-text">Сначала пусть нейросеть выдаёт план статьи (список разделов), потом отдельным запросом пишет каждый раздел; ограничь длину через max_tokens.
+
+Верни весь файл.</div></div>
+</div>
+</section>
+
+<section class="slide slide--content"
+  data-notes="Главная мысль: сложную статью собираем в два шага — сначала план, потом каждый раздел отдельным запросом. max_tokens ограничивает длину каждого ответа: обрывается на полуслове — увеличьте, слишком длинно — уменьшите. Дайте сфотографировать.">
+<div class="sl-body">
+  <div>
+    <div class="q-label">Разбор кода</div>
+    <h2>Два запроса и <span class="acc">ограничение длины</span></h2>
+  </div>
+  <div class="code-win">
+    <div class="code-head"><span class="win-dots"><i></i><i></i><i></i></span><span class="lang-badge">PYTHON</span></div>
+    <div class="code-body">plan = ask(<span class="st">"Составь план статьи на тему: "</span> + topic)   <span class="cm"># запрос 1: список разделов</span>
+
+<span class="kw">for</span> section <span class="kw">in</span> plan:
+    text = client.chat.completions.create(
+        model=<span class="st">"deepseek-chat"</span>,
+        messages=[...],           <span class="cm"># запрос 2: пишем раздел</span>
+        max_tokens=400,           <span class="cm"># ограничение длины ответа</span>
+    )</div>
+  </div>
+  <div class="ek-note ek-note--green">Сложную статью собираем в <b>два шага</b>: сначала нейросеть выдаёт план разделов, потом пишет каждый раздел отдельным запросом. <span class="code-chip">max_tokens</span> ограничивает длину: обрывается на полуслове — увеличьте, слишком длинно — уменьшите.</div>
+</div>
+</section>
+
+<section class="slide slide--content"
+  data-notes="Правка 4 собирает генератор воедино: статья сохраняется в файл, работает бесконечный цикл, вывод раскрашен. Это заметный результат — writer.py выглядит как полноценная программа. Правка объёмная: цикл while, запись в файл и ANSI-цвета сразу. Если группа отстаёт — оставьте только сохранение, а цикл и раскраску отдайте в ДЗ. Имя файла складывается из темы: stat_История-видеоигр.md.">
+<div class="sl-body">
+  <div>
+    <div class="q-label">Правка 4 · сохранение и цикл</div>
+    <h2><span class="acc">Сохранение</span> и цикл</h2>
+  </div>
+  <div class="prompt-card prompt-card--copy" style="margin-top:12px"><span class="pc-tag">→ В тот же чат</span><div class="pc-text">Сохраняй готовую статью в файл вида <span class="hl">stat_тема.md</span> — чтобы её можно было открыть и показать.
+
+Дай генерировать статьи <span class="hl">по кругу</span>: после одной темы программа снова спрашивает следующую, а на слове «выход» останавливается.
+
+И раскрась вывод ANSI-кодами, <span class="hl">без сторонних библиотек</span>:
+- заголовок статьи — голубым
+- имя сохранённого файла — зелёным
+
+Верни весь файл.</div></div>
+</div>
+</section>
+
+<section class="slide slide--content"
+  data-notes="Ключевой слайд правки. Разберите три вещи: цикл while True с выходом по слову, запись статьи в .md через open, и ANSI-коды \033[...m. Имя файла складывается из темы: для «История видеоигр» получится stat_История-видеоигр.md. Подчеркните: цикл делает программу многоразовой — не нужно перезапускать writer.py ради каждой темы.">
+<div class="sl-body">
+  <div>
+    <div class="q-label">Разбор кода</div>
+    <h2>Цикл, файл и <span class="acc">цвета</span></h2>
+  </div>
+  <p>Три новинки правки — бесконечный цикл, запись статьи в файл и раскраска вывода:</p>
+  <div class="code-win">
+    <div class="code-head"><span class="win-dots"><i></i><i></i><i></i></span><span class="lang-badge">PYTHON</span></div>
+    <div class="code-body"><span class="kw">while</span> True:
+    topic = input(<span class="st">"Тема статьи (или «выход»): "</span>)
+    <span class="kw">if</span> topic == <span class="st">"выход"</span>:
+        <span class="kw">break</span>                              <span class="cm"># цикл прервётся, программа закончится</span>
+    article = generate(topic)              <span class="cm"># запрос к DeepSeek по SDK</span>
+    name = <span class="st">"stat_"</span> + topic.replace(<span class="st">" "</span>, <span class="st">"-"</span>) + <span class="st">".md"</span>
+    <span class="kw">with</span> open(name, <span class="st">"w"</span>, encoding=<span class="st">"utf-8"</span>) <span class="kw">as</span> f:
+        f.write(article)                   <span class="cm"># статья сохранена в .md</span>
+    print(<span class="st">"\033[92m"</span> + name + <span class="st">"\033[0m"</span>)   <span class="cm"># зелёным — имя файла</span></div>
+  </div>
+  <div class="ek-note">Имя файла собирается из темы: для «История видеоигр» получится <span class="code-chip">stat_История-видеоигр.md</span>. <span class="code-chip">while True</span> повторяет генерацию, пока не введёте «выход» — одна программа на много статей. А <span class="code-chip">\033[92m ... \033[0m</span> — это ANSI-цвет: <span class="code-chip">92m</span> включает зелёный, <span class="code-chip">0m</span> выключает.</div>
+</div>
+</section>
+
+<section class="slide slide--content"
+  data-notes="Финальная правка добавляет новую фичу: пользователь выбирает стиль статьи — новость, научпоп или пост для соцсети. Стиль меняет системную роль, тема остаётся той же. Свяжите с уроком: одна и та же тема звучит по-разному, как temperature меняет характер, так и стиль меняет подачу. Дождитесь, пока у всех программа спрашивает стиль и статья приходит в выбранном тоне.">
+<div class="sl-body">
+    <div>
+      <div class="q-label">Правка 5 · выбор стиля</div>
+      <h2>Одна тема — <span class="acc">разные стили</span></h2>
+    </div>
+    <p>Финальная фича: перед темой программа спрашивает <span class="hl">стиль</span>, и одна и та же тема раскрывается по-разному.</p>
+    <div class="prompt-card prompt-card--copy" style="margin-top:14px">
+      <span class="pc-tag">→ В тот же чат</span>
+      <div class="pc-text">Добавь выбор стиля статьи: спроси у пользователя, в каком стиле писать — «новость», «научпоп» или «пост для соцсети». Под выбранный стиль подставь свою системную роль журналиста, тему оставь прежней.
+
+Верни весь файл.</div>
+    </div>
+  </div>
+</section>
+
+<section class="slide slide--content"
+  data-notes="Ключевой слайд правки. Покажите, что стиль меняет только системную роль — по выбору пользователя подставляется своя строка system, а user с темой тот же. Свяжите с системной ролью журналиста из правки 1: та же техника, теперь роль зависит от выбора. Дайте ученикам сгенерировать статью на одну тему во всех трёх стилях и сравнить.">
+<div class="sl-body">
+    <div>
+      <div class="q-label">Разбор кода</div>
+      <h2>Стиль меняет <span class="acc">системную роль</span></h2>
+    </div>
+    <div class="code-win">
+      <div class="code-head"><span class="win-dots"><i></i><i></i><i></i></span><span class="lang-badge">PYTHON</span></div>
+      <div class="code-body">styles = {
+    <span class="st">"новость"</span>: <span class="st">"Ты журналист. Пиши сухую новость: факты, кратко."</span>,
+    <span class="st">"научпоп"</span>: <span class="st">"Ты журналист. Пиши научпоп: просто и с примерами."</span>,
+    <span class="st">"пост"</span>: <span class="st">"Ты журналист. Пиши лёгкий пост для соцсети с эмодзи."</span>,
+}
+choice = input(<span class="st">"Стиль (новость / научпоп / пост): "</span>)
+system = styles[choice]                    <span class="cm"># выбранная системная роль</span>
+
+response = client.chat.completions.create(
+    model=<span class="st">"deepseek-chat"</span>,
+    messages=[
+        {<span class="st">"role"</span>: <span class="st">"system"</span>, <span class="st">"content"</span>: system},
+        {<span class="st">"role"</span>: <span class="st">"user"</span>, <span class="st">"content"</span>: <span class="st">"Напиши статью на тему: "</span> + topic},
+    ],
+)</div>
+    </div>
+    <div class="ek-note">Меняется <b>только системная роль</b> — под выбор пользователя подставляем свою строку <span class="code-chip">system</span>, а тема в <span class="code-chip">user</span> остаётся прежней. Та же техника, что с ролью журналиста, только теперь роль зависит от выбора.</div>
+  </div>
+</section>
+
+<section class="slide slide--content"
+  data-notes="Квиз про temperature — прямое следствие правки 3 и разбора. Дайте 10–15 секунд, потом раскройте ответ. Свяжите с привычкой: temperature управляет строгостью и творческой свободой ответа.">
+<div class="sl-body">
+    <div>
+      <div class="q-label">Проверка · вопрос 1</div>
+      <h2>Изучите ситуацию и <span class="acc">ответьте</span></h2>
+    </div>
+    <div class="quiz-box" style="margin-top:10px">
+      <span class="q-num">Вопрос 1</span>
+      <p class="q-text">Для статьи-инструкции «как заварить чай» Лена поставила <span class="code-chip">temperature=0.9</span> и получила художественную историю вместо точной инструкции. Какое значение подошло бы и почему?</p>
+      <div class="quiz-answer">
+        <button class="quiz-btn" type="button">Показать ответ</button>
+        <div class="quiz-reveal">
+          <p>Для точных, фактических текстов нужна <b>низкая temperature</b> (около 0.2): ответы строгие и предсказуемые. Высокая (0.9) подходит для творческих задач — сказок, историй, необычных идей.</p>
+          <p><span class="code-chip">temperature</span> управляет переходом от <b>строгого</b> к <b>более творческому</b> ответу. Для инструкции нужна точность.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="slide slide--content"
+  data-notes="Квиз про base_url — главная мысль урока. Свяжите с привычкой: библиотеку openai можно направить к совместимому API DeepSeek через base_url.">
+<div class="sl-body">
+    <div>
+      <div class="q-label">Проверка · вопрос 2</div>
+      <h2>Изучите ситуацию и <span class="acc">ответьте</span></h2>
+    </div>
+    <div class="quiz-box" style="margin-top:10px">
+      <span class="q-num">Вопрос 2</span>
+      <p class="q-text">Зачем при создании клиента писать <span class="code-chip">base_url="https://api.deepseek.com"</span>, если библиотека называется <span class="code-chip">openai</span>?</p>
+      <div class="quiz-answer">
+        <button class="quiz-btn" type="button">Показать ответ</button>
+        <div class="quiz-reveal">
+          <p>SDK <span class="code-chip">openai</span> умеет общаться с любым совместимым API. <b>base_url</b> перенаправляет запросы на серверы DeepSeek вместо OpenAI.</p>
+          <p>Один и тот же код работает с разными провайдерами — меняется только <b>адрес и ключ</b>. Без <span class="code-chip">base_url</span> SDK пошёл бы на серверы OpenAI.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="slide slide--content"
+  data-notes="Научите читать traceback снизу вверх — пригодится на всех уроках Python. Напомните привычку: непонятную ошибку целиком копируем в DeepSeek. Три поломки справа — самые частые именно в writer.py на SDK.">
+<div class="sl-body">
+    <div>
+      <div class="q-label">Отладка</div>
+      <h2>Читаем <span class="acc">ошибки</span> SDK</h2>
+    </div>
+    <div class="grid-2">
+      <div class="col">
+        <div class="term">
+          <div class="term-head"><span class="win-dots"><i></i><i></i><i></i></span><span class="lang-badge">ТЕРМИНАЛ</span></div>
+          <div class="term-body"><span class="dim">Traceback (most recent call last):
+  File "writer.py", line 12, in &lt;module&gt;
+    response = client.chat.completions.create(...)</span>
+openai.AuthenticationError: Incorrect API key</div>
+        </div>
+        <p style="margin-top:14px;font-size:15.5px">Traceback читаем <span class="hl">снизу вверх</span>: последняя строка — <b>что</b> случилось, строкой выше — <b>где</b>. <span class="code-chip">AuthenticationError</span> значит: ключ неверный или не подхватился из <span class="code-chip">.env</span>.</p>
+      </div>
+      <div class="info-card">
+        <h3>Если застряли</h3>
+        <ul class="clean">
+          <li>Скопируйте <b>traceback целиком</b> в чат DeepSeek — попросите объяснить и починить</li>
+          <li><span class="code-chip">ModuleNotFoundError: openai</span> — забыли <span class="code-chip">pip install openai</span></li>
+          <li>Проверьте <span class="code-chip">DEEPSEEK_KEY</span> в <span class="code-chip">.env</span> и <span class="code-chip">base_url</span> DeepSeek</li>
+        </ul>
+        <p style="margin-top:12px;font-size:14px;color:var(--ek-gray)">Та же привычка, что <span class="code-chip">console.log</span> в «Змейке» и print-метки на уроке 5.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="slide slide--content"
+  data-notes="5 привычек урока. Дайте сфотографировать слайд. Особо подчеркните вторую: библиотеку openai можно направить к DeepSeek через base_url. Третья и четвёртая — про настройки temperature и max_tokens.">
+<div class="sl-body">
+    <div>
+      <div class="q-label">Запомните</div>
+      <h2>Привычки работы с <span class="acc">SDK</span></h2>
+    </div>
+    <div class="kv">
+      <div class="kv-row"><div class="k">01 · SDK короче ручного requests</div><div class="v">Одна строка <span class="code-chip">client.chat.completions.create(...)</span> вместо <span class="code-chip">requests.post</span> с URL, заголовками и разбором JSON.</div></div>
+      <div class="kv-row"><div class="k">02 · openai и base_url</div><div class="v"><span class="code-chip">base_url="https://api.deepseek.com"</span> перенаправляет запрос на DeepSeek. Один код — разные провайдеры.</div></div>
+      <div class="kv-row"><div class="k">03 · temperature — стиль</div><div class="v">Около 0.2 — строго и по фактам, около 0.9 — свободнее и образнее. Настраивайте под задачу.</div></div>
+      <div class="kv-row"><div class="k">04 · max_tokens — длина</div><div class="v">Ограничивает размер ответа. Обрывается на полуслове — увеличьте; хотите короче — уменьшите.</div></div>
+      <div class="kv-row"><div class="k">05 · Ключ — это пароль</div><div class="v">Берём из <span class="code-chip">.env</span> (переменная <span class="code-chip">DEEPSEEK_KEY</span>). Не публикуем, на скриншотах скрываем.</div></div>
+    </div>
+  </div>
+</section>
+
+<section class="slide slide--content"
+  data-notes="Чек-лист завершения генератора статей. Кто отметил всё — пусть сгенерирует две статьи с разной temperature и сравнит. Это показывает, что настройка работает.">
+<div class="sl-body">
+    <div>
+      <div class="q-label">Чек-лист</div>
+      <h2>Что должно быть к <span class="acc">55-й минуте</span></h2>
+    </div>
+    <div class="grid-2">
+      <div class="info-card">
+        <h3 style="color:var(--ek-green-deep)">Готово</h3>
+        <ul class="clean">
+          <li><span class="code-chip">writer.py</span> запускается командой <span class="code-chip">python writer.py</span></li>
+          <li>Запрос идёт через <span class="code-chip">openai</span> SDK с <span class="code-chip">base_url</span> DeepSeek</li>
+          <li>По теме приходит статья с заголовком и разделами</li>
+          <li>Ключ берётся из <span class="code-chip">.env</span></li>
+        </ul>
+      </div>
+      <div class="info-card">
+        <h3 style="color:var(--ek-violet-deep)">Работает</h3>
+        <ul class="clean">
+          <li>Меняется <span class="code-chip">temperature</span> — видна разница 0.2 и 0.9</li>
+          <li><span class="code-chip">max_tokens</span> ограничивает длину</li>
+          <li>Статья сохраняется в <span class="code-chip">stat_тема.md</span></li>
+          <li>Вывод цветной, генерация идёт по кругу</li>
+        </ul>
+      </div>
+    </div>
+    <div class="ek-note ek-note--green">Всё отмечено? Сгенерируйте статью на одну тему при <span class="code-chip">temperature=0.2</span> и <span class="code-chip">0.9</span> и сравните — генератор готов.</div>
+  </div>
+</section>
+
+<section class="slide slide--content"
+  data-notes="ДЗ — прокачать генератор, примерно 30 минут. Каждое улучшение — отдельный диалог с DeepSeek, не всё сразу. Напомните про ключ на скриншотах.">
+<div class="sl-body">
+    <div>
+      <div class="q-label">Домашнее задание · около 30 минут</div>
+      <h2>Прокачайте <span class="acc">генератор</span></h2>
+    </div>
+    <p>Три улучшения — каждое через отдельный диалог с DeepSeek:</p>
+    <div class="grid-3">
+      <div class="info-card">
+        <h3>Свой стиль</h3>
+        <p>Добавьте к готовым стилям (новость, научпоп, пост) <b>свой четвёртый</b> — например, «сказка» или «инструкция» — со своей системной ролью.</p>
+      </div>
+      <div class="info-card">
+        <h3>Заголовки</h3>
+        <p>Пусть программа выдаёт <b>5 вариантов заголовка</b> к теме, чтобы можно было выбрать самый удачный.</p>
+      </div>
+      <div class="info-card">
+        <h3>Своя тема</h3>
+        <p>Сгенерируйте готовую статью для школьного проекта и сохраните её в файл <span class="code-chip">stat_тема.md</span>.</p>
+      </div>
+    </div>
+    <div class="ek-note ek-note--red">Пришлите скриншот готовой статьи в терминале — <b>ключ скройте!</b> Ваш самый удачный промпт — отдельным сообщением.</div>
+  </div>
+</section>
+
+<section class="slide slide--green"
+  data-notes="Закройте урок. Сегодня перешли на openai SDK и научились управлять ответом через temperature и max_tokens. На уроке 12 сделаем вывод постепенным: текст печатается по фрагментам, как в ChatGPT (стриминг), а системные промпты зададут личности AI-собеседника.">
+<div class="sl-orbit">
+    <i class="sl-ring"></i>
+    <svg class="sl-ico" viewBox="0 0 100 100" style="left:75px;top:20px;width:150px;height:150px;transform:rotate(-10deg)"><use href="#ek-i-trophy"/></svg>
+    <i class="sl-letter" style="left:466px;top:13px;width:78px;height:78px;--fs:36px">A</i>
+    <svg class="sl-ico" viewBox="0 0 100 100" style="left:1040px;top:15px;width:130px;height:130px;transform:rotate(12deg)"><use href="#ek-i-heart"/></svg>
+    <i class="sl-letter" style="left:68px;top:268px;width:100px;height:100px;--fs:46px">P</i>
+    <i class="sl-letter" style="left:1137px;top:327px;width:95px;height:95px;--fs:44px">I</i>
+    <svg class="sl-ico" viewBox="0 0 100 100" style="left:102px;top:532px;width:125px;height:125px;transform:rotate(-15deg)"><use href="#ek-i-star"/></svg>
+    <i class="sl-letter" style="left:726px;top:613px;width:78px;height:78px;--fs:36px">S</i>
+    <svg class="sl-ico" viewBox="0 0 100 100" style="left:1045px;top:540px;width:110px;height:110px;transform:rotate(8deg)"><use href="#ek-i-gem"/></svg>
+  </div>
+  <div class="cover-center">
+    <div class="bubble">
+      <h1>До встречи<br>на уроке 12!</h1>
+      <p>Сегодня вы перешли на openai SDK и научились управлять ответом через temperature и max_tokens. На уроке 12 сделаем вывод постепенным: текст будет печататься по фрагментам, как в ChatGPT (стриминг), а системные промпты зададут личности AI-собеседника.</p>
+    </div>
+  </div>
+</section>
+</main>
+
+<div class="notes" id="notes">
+  <div class="notes__header">Заметки преподавателя &middot; N — скрыть</div>
+  <div class="notes__body" id="notesBody">—</div>
+</div>
+
+<div class="hint"><kbd>←</kbd><kbd>→</kbd> слайды &middot; <kbd>N</kbd> заметки &middot; <kbd>F</kbd> весь экран</div>
+
+<svg width="0" height="0" style="position:absolute" aria-hidden="true"><defs>
+<symbol id="ek-i-trophy" viewBox="0 0 100 100"><path fill="currentColor" d="M24 16h52v12h8c6 0 10 4 10 10 0 15-11 25-23 27-3 5-8 9-14 10v8h14c4 0 7 3 7 7v4H22v-4c0-4 3-7 7-7h14v-8c-6-1-11-5-14-10C17 63 6 53 6 38c0-6 4-10 10-10h8V16zM24 36h-7c-2 0-4 2-4 4 0 8 5 15 12 18-1-5-1-10-1-16v-6zM76 36v6c0 6 0 11-1 16 7-3 12-10 12-18 0-2-2-4-4-4h-7z"/></symbol>
+<symbol id="ek-i-heart" viewBox="0 0 100 100"><path fill="currentColor" d="M50 88C28 72 10 56 10 38 10 24 21 14 34 14c6 0 12 3 16 8 4-5 10-8 16-8 13 0 24 10 24 24 0 18-18 34-40 50z"/></symbol>
+<symbol id="ek-i-star" viewBox="0 0 100 100"><path fill="currentColor" d="M50 8l12 27 29 3-22 20 6 29-25-15-25 15 6-29L9 38l29-3z"/></symbol>
+<symbol id="ek-i-gem" viewBox="0 0 100 100"><path fill="currentColor" d="M30 12h40l18 24-38 52L12 36zM36 20l-12 16h20zM64 20l-8 16h20zM50 22l-9 14h18zM26 44l20 30-8-30zM62 44l-8 30 20-30zM46 44h8l-4 26z"/></symbol>
+</defs></svg>
+
+<script>
+/* ============ Автомасштаб сцены ============ */
+(function(){
+  'use strict';
+  var stage = document.getElementById('deck');
+  function fit(){
+    var w = window.innerWidth, h = window.innerHeight;
+    if (!w || !h) return;
+    var s = Math.min(w / 1320, h / 780);
+    if (document.fullscreenElement) s = Math.min(w / 1280, h / 720);
+    stage.style.transform = 'translate(-50%,-50%) scale(' + s + ')';
+    stage.style.borderRadius = document.fullscreenElement ? '0' : '18px';
+  }
+  window.addEventListener('resize', fit);
+  document.addEventListener('fullscreenchange', fit);
+  fit();
+})();
+
+/* ============ Навигация по слайдам ============ */
+(function(){
+  'use strict';
+  var slides = Array.prototype.slice.call(document.querySelectorAll('.slide'));
+  var total = slides.length;
+  var idx = 0;
+  document.getElementById('total').textContent = total;
+
+  var progressEl = document.getElementById('progress');
+  var currentEl = document.getElementById('current');
+  var notesPanel = document.getElementById('notes');
+  var notesBody = document.getElementById('notesBody');
+
+  slides.forEach(function(s, i){
+    if (s.classList.contains('slide--content')) s.setAttribute('data-page', i + 1);
+  });
+
+  function render(){
+    slides.forEach(function(s, i){
+      s.classList.remove('active', 'prev');
+      if (i === idx) s.classList.add('active');
+      else if (i < idx) s.classList.add('prev');
+    });
+    progressEl.style.width = ((idx + 1) / total * 100).toFixed(2) + '%';
+    currentEl.textContent = idx + 1;
+    notesBody.textContent = slides[idx].getAttribute('data-notes') || '—';
+  }
+
+  function go(n){ idx = Math.max(0, Math.min(total - 1, n)); render(); }
+  function next(){ go(idx + 1); }
+  function prev(){ go(idx - 1); }
+
+  document.addEventListener('keydown', function(e){
+    var active = document.activeElement;
+    if (active && (active.isContentEditable || active.tagName === 'TEXTAREA' || active.tagName === 'INPUT')) return;
+    switch (e.key){
+      case 'ArrowRight': case 'PageDown': case ' ':
+        e.preventDefault(); next(); break;
+      case 'ArrowLeft': case 'PageUp':
+        e.preventDefault(); prev(); break;
+      case 'Home': e.preventDefault(); go(0); break;
+      case 'End': e.preventDefault(); go(total - 1); break;
+      case 'f': case 'F': case 'а': case 'А':
+        e.preventDefault();
+        if (!document.fullscreenElement){ if (document.documentElement.requestFullscreen) document.documentElement.requestFullscreen(); }
+        else if (document.exitFullscreen) document.exitFullscreen();
+        break;
+      case 'n': case 'N': case 'т': case 'Т':
+        e.preventDefault(); notesPanel.classList.toggle('active'); break;
+      case 'Escape':
+        if (document.fullscreenElement && document.exitFullscreen) document.exitFullscreen();
+        notesPanel.classList.remove('active'); break;
+    }
+  });
+
+  var tx = 0, ty = 0;
+  document.addEventListener('touchstart', function(e){ tx = e.changedTouches[0].screenX; ty = e.changedTouches[0].screenY; }, { passive: true });
+  document.addEventListener('touchend', function(e){
+    var dx = e.changedTouches[0].screenX - tx, dy = e.changedTouches[0].screenY - ty;
+    if (Math.abs(dx) > 60 && Math.abs(dx) > Math.abs(dy)){ if (dx < 0) next(); else prev(); }
+  }, { passive: true });
+
+  document.addEventListener('click', function(e){
+    if (e.target.closest('a,button,input,textarea,code,pre,[contenteditable],.code-win,.term,.prompt-card,.quiz-box,.notes')) return;
+    var x = e.clientX, w = window.innerWidth;
+    if (x < w * 0.25) prev();
+    else if (x > w * 0.75) next();
+  });
+
+  render();
+})();
+
+/* ============ Квизы: показать ответ ============ */
+(function(){
+  'use strict';
+  Array.prototype.slice.call(document.querySelectorAll('.quiz-btn')).forEach(function(btn){
+    btn.addEventListener('click', function(e){
+      e.stopPropagation();
+      var box = btn.closest('.quiz-box');
+      var reveal = box && box.querySelector('.quiz-reveal');
+      if (!reveal) return;
+      var shown = reveal.classList.toggle('show');
+      btn.textContent = shown ? 'Скрыть ответ' : 'Показать ответ';
+    });
+  });
+})();
+</script>
+</body>
+</html>
