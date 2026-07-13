@@ -1,0 +1,650 @@
+===== SLIDE 1/38 [COVER] =====
+[NOTES] Поприветствуйте. Сегодня соберём настоящую ролевую игру, где сюжет придумывает нейросеть. Новые инструменты — циклы, функции и словари — мы возьмём ровно в том объёме, который нужен для игры. К концу урока у каждого — играбельное приключение в терминале.
+[HTML]
+<div class="eyebrow">Step 2 · Модуль 2 · Урок 06</div>
+<h1>Игра-приключение<br>с сюжетом от AI.</h1>
+<p class="subtitle">Соберём текстовую ролевую игру, где гейм-мастером работает нейросеть: она придумывает подземелье и сюжет, а вы делаете выборы. Циклы, функции и словари — внутри.</p>
+<div class="meta-row">
+  <span class="badge primary">60 минут</span>
+  <span class="badge cyan">13–15 лет</span>
+  <span class="badge good">Практика</span>
+</div>
+<div class="chip-row" style="margin-top:20px">
+  <span class="badge neutral">Python</span>
+  <span class="badge neutral">DeepSeek API</span>
+  <span class="badge neutral">циклы и функции</span>
+  <span class="badge neutral">list / dict</span>
+</div>
+
+===== SLIDE 2/38 =====
+[NOTES] План. Теории — минимум: уже на 12-й минуте каждый запускает функцию-разминку, к 30-й — каркас игры, где первую сцену подземелья генерирует нейросеть. Дальше — 5 правок, как на прошлых уроках.
+[HTML]
+<div class="eyebrow">Agenda · план занятия</div>
+<h2>Как пройдут 60 минут</h2>
+<div class="timeline">
+  <div class="timeline-row"><div class="time">0–5</div><div><div class="title">Разбор ДЗ</div><div class="desc">Смотрим прокачанные советчики: характеры, память, ASCII-лого.</div></div></div>
+  <div class="timeline-row"><div class="time">5–12</div><div><div class="title">Функции и циклы</div><div class="desc">Минимум теории — только чтобы собрать игру.</div></div></div>
+  <div class="timeline-row"><div class="time">12–20</div><div><div class="title">Промпт-разминка</div><div class="desc">Маленькая функция-кубик: промпт → код → запуск.</div></div></div>
+  <div class="timeline-row"><div class="time">20–32</div><div><div class="title">Каркас игры</div><div class="desc">Нейросеть генерирует первую сцену подземелья.</div></div></div>
+  <div class="timeline-row"><div class="time">32–48</div><div><div class="title">5 правок через диалог</div><div class="desc">Игровой цикл → функции → бросок кубика → HP и инвентарь → концовки и цвет.</div></div></div>
+  <div class="timeline-row"><div class="time">48–55</div><div><div class="title">Мини-вопросы и отладка</div><div class="desc">Читаем ошибки, проверяем понимание.</div></div></div>
+  <div class="timeline-row"><div class="time">55–60</div><div><div class="title">Демо в группе</div><div class="desc">Каждый играет в своё приключение.</div></div></div>
+</div>
+
+===== SLIDE 3/38 =====
+[NOTES] Откройте 2-3 прокачанных советчика. Разбирайте диалог с нейросетью, а не только результат. Главное — память через список messages: это первое знакомство со списками, сегодня они станут главным инструментом игры.
+[HTML]
+<div class="eyebrow">Разбор ДЗ урока 5</div>
+<h2>Смотрим прокачанные советчики</h2>
+<p class="lead">Открываем 2–3 присланных советчика и разбираем именно <em>диалог с нейросетью</em>: четвёртый характер, память разговора, ASCII-логотип.</p>
+<div class="grid cols-3" style="margin-top:24px">
+  <div class="card">
+    <h3>Что сработало</h3>
+    <p style="font-size:14.5px">Память через список <code class="inline">messages</code> — первое знакомство со списками. Сегодня списки и словари станут главным инструментом.</p>
+  </div>
+  <div class="card">
+    <h3>Что переделывали</h3>
+    <p style="font-size:14.5px">Где забыли отправлять <em>весь</em> список <code class="inline">messages</code> — советчик не помнил прошлые реплики.</p>
+  </div>
+  <div class="card">
+    <h3>Вывод</h3>
+    <p style="font-size:14.5px">Точная формулировка плюс проверка после каждой правки. Сегодня тот же подход.</p>
+  </div>
+</div>
+
+===== SLIDE 4/38 =====
+[NOTES] Главная мысль: у DeepSeek новая роль — гейм-мастер. Раньше он писал код и давал советы, теперь ведёт целую игру: придумывает локации, врагов, повороты сюжета. Мы пишем движок, нейросеть наполняет его сюжетом.
+[HTML]
+<div class="eyebrow">Идея урока</div>
+<h2>Нейросеть становится гейм-мастером</h2>
+<p class="lead">На уроке 5 нейросеть отвечала на вопросы. Сегодня она <em>ведёт целую игру</em> — придумывает подземелье, врагов и повороты сюжета, и каждый раз заново.</p>
+<div class="card accent" style="margin-top:20px">
+  <p style="font-size:16px; color:#E2E8F0">Вы пишете <strong>движок</strong> игры: циклы крутят ход за ходом, функции делят программу на кусочки, словарь помнит здоровье и инвентарь. А нейросеть наполняет движок <strong>живым сюжетом</strong>.</p>
+</div>
+<p style="font-size:14px; margin-top:14px; color:var(--muted)">Идея урока 6: большую программу <strong>делим на функции</strong>, <strong>повторяем циклами</strong>, <strong>помним через словари</strong>.</p>
+
+===== SLIDE 5/38 =====
+[NOTES] Функция — это команда, которую программист придумал сам. Объясните на greet: дали имя кусочку кода и зовём по имени сколько угодно раз. Параметры в скобках, return отдаёт результат наружу.
+[HTML]
+<div class="eyebrow">Новый инструмент</div>
+<h2>Что такое функция</h2>
+<p class="lead">Функция — <em>команда, которую вы придумали сами</em>: дали имя кусочку кода и зовёте его по имени, сколько нужно.</p>
+<pre style="margin-top:8px"><code class="language-python">def greet(name):          # создаём функцию greet
+    print(f"Привет, {name}!")
+
+greet("Артём")            # зовём её по имени</code></pre>
+<div style="margin-top:14px">
+  <div class="kv-row"><div class="k">def</div><div class="v">Создаёт функцию и даёт ей имя.</div></div>
+  <div class="kv-row"><div class="k">вызов</div><div class="v"><code class="inline">greet("Артём")</code> — запускает код функции.</div></div>
+  <div class="kv-row"><div class="k">return</div><div class="v">Возвращает результат наружу, чтобы его можно было сохранить в переменную.</div></div>
+</div>
+
+===== SLIDE 6/38 =====
+[NOTES] Сравнение без функций и с функциями. Главная мысль — декомпозиция: большую задачу делим на маленькие понятные кусочки. Так устроены все большие программы, включая нашу игру.
+[HTML]
+<div class="eyebrow">Зачем это нужно</div>
+<h2>Зачем делить программу на функции</h2>
+<div class="vs-grid">
+  <div class="vs-col minimal">
+    <h4>Без функций</h4>
+    <p>Одна гигантская простыня кода. Один и тот же кусок копируешь снова и снова, ошибку искать невозможно.</p>
+    <p class="note">Так писать игру нереально.</p>
+  </div>
+  <div class="vs-col detailed">
+    <h4>С функциями</h4>
+    <p>Программа из кубиков: <code class="inline">ask_master()</code>, <code class="inline">show()</code>, <code class="inline">main()</code>. Каждый кусок понятен и переиспользуется.</p>
+    <p class="note">Это декомпозиция — большую задачу делим на маленькие.</p>
+  </div>
+</div>
+<p style="font-size:14px; margin-top:14px; color:var(--muted)">Именно так устроены <strong>все большие программы</strong> — от игр до нейросетей.</p>
+
+===== SLIDE 7/38 =====
+[NOTES] Цикл повторяет блок кода. for — повторить N раз или пройти по списку, while — пока условие истинно. Подведите к мысли: игра — это while-цикл, который крутится ход за ходом, пока герой жив.
+[HTML]
+<div class="eyebrow">Новый инструмент</div>
+<h2>Что такое цикл</h2>
+<p class="lead">Цикл <em>повторяет блок кода</em>, чтобы не писать одно и то же руками.</p>
+<pre style="margin-top:8px"><code class="language-python">for i in range(3):        # повторить ровно 3 раза
+    print("Шаг", i)
+
+while hp &gt; 0:             # повторять, пока герой жив
+    hp = hp - 10           # каждый ход герой теряет силы</code></pre>
+<div class="card accent" style="margin-top:14px">
+  <p style="font-size:15px"><code class="inline">for</code> — повторить N раз или пройти по списку. <code class="inline">while</code> — повторять, пока условие истинно. <strong>Игра — это цикл</strong>: ход за ходом, пока герой не победит или не падёт.</p>
+</div>
+
+===== SLIDE 8/38 =====
+[NOTES] Никакой долгой подготовки: сразу просим у DeepSeek маленькую функцию и запускаем. Промпт с ролью и форматом — техники урока 2 работают и здесь. Дети копируют промпт целиком.
+[HTML]
+<div class="eyebrow">Промпт #1 · разминка</div>
+<h2>Кубик за две минуты</h2>
+<p class="lead">Не будем долго готовиться — попросим у DeepSeek маленькую функцию и сразу запустим её в терминале.</p>
+<div class="prompt-box"><span class="h">→ Новый чат DeepSeek</span>
+Ты — опытный Python-разработчик и наставник школьника.
+Напиши маленький скрипт warmup.py: функция roll_dice() бросает
+игральный кубик — случайное число от 1 до 6 — и возвращает его.
+Вызови её три раза в цикле for и каждый раз печатай результат.
+Только стандартная библиотека Python.
+Прокомментируй код для новичка и ответь одним блоком кода.</div>
+
+===== SLIDE 9/38 =====
+[NOTES] Фундамент урока: дождитесь, пока у всех три броска появятся в терминале. На живом коде показываем сразу три кита игры: функция, цикл, случайность. Не идите дальше, пока не запустилось у каждого.
+[HTML]
+<div class="eyebrow">Запуск и разбор</div>
+<h2>Запускаем первую функцию</h2>
+<div class="grid cols-2">
+  <div>
+    <ol class="num-list">
+      <li>В <code class="inline">vibe-coding</code> создайте папку <code class="inline">lesson-06</code></li>
+      <li>Создайте <code class="inline">warmup.py</code> и вставьте код из ответа</li>
+      <li>Сохраните: <code class="inline">Ctrl+S</code></li>
+      <li>Выполните <code class="inline">python warmup.py</code></li>
+    </ol>
+    <div class="card good" style="margin-top:14px">
+      <p style="font-size:14px">Видим три броска кубика? Функция, цикл и случайность за пять минут — фундамент игры готов.</p>
+    </div>
+  </div>
+  <div>
+    <div class="kv-row"><div class="k">def roll_dice()</div><div class="v">Наша первая функция.</div></div>
+    <div class="kv-row"><div class="k">for _ in range(3)</div><div class="v">Повторили бросок трижды.</div></div>
+    <div class="kv-row"><div class="k">random.randint(1, 6)</div><div class="v">Случайное число — кубик.</div></div>
+  </div>
+</div>
+
+===== SLIDE 10/38 =====
+[NOTES] Шпаргалка по трём типичным проблемам запуска. Почините у всех — эти же команды и папка нужны дальше для самой игры.
+[HTML]
+<div class="eyebrow">Типичные ситуации запуска</div>
+<h2>Если warmup.py не запустился</h2>
+<div class="grid cols-3" style="margin-top:20px">
+  <div class="card warn">
+    <h3>python is not recognized</h3>
+    <p style="font-size:14.5px">Python не добавлен в PATH. Переустановите с галочкой <strong>Add to PATH</strong> — или зовите преподавателя.</p>
+  </div>
+  <div class="card warn">
+    <h3>can't open file</h3>
+    <p style="font-size:14.5px">Терминал смотрит в другую папку. Откройте папку <code class="inline">lesson-06</code> в VS Code и терминал заново.</p>
+  </div>
+  <div class="card warn">
+    <h3>IndentationError</h3>
+    <p style="font-size:14.5px">Сбит отступ. Тело функции и цикла сдвинуто на 4 пробела — не ломайте отступы при копировании.</p>
+  </div>
+</div>
+
+===== SLIDE 11/38 =====
+[NOTES] Вводим две коллекции. Список — как рюкзак с вещами по порядку, словарь — как анкета с подписанными полями. Не углубляйтесь: главное, что игре нужно где-то хранить состояние.
+[HTML]
+<div class="eyebrow">Новый инструмент</div>
+<h2>Список и словарь</h2>
+<p class="lead">Чтобы игра помнила, что происходит с героем, ей нужно <em>хранилище</em>. В Python их два главных: список и словарь.</p>
+<pre style="margin-top:16px"><code class="language-python">inventory = ["факел", "ключ"]          # список (list) — набор по порядку
+state = {"hp": 100, "name": "Артём"}   # словарь (dict) — пары ключ-значение
+print(state["hp"])                      # 100 — берём значение по ключу</code></pre>
+<div class="grid cols-2" style="margin-top:16px">
+  <div class="card">
+    <h3>Список</h3>
+    <p style="font-size:14.5px">Набор значений по порядку, в квадратных скобках <code class="inline">[ ]</code> через запятую. Удобно для инвентаря.</p>
+  </div>
+  <div class="card">
+    <h3>Словарь</h3>
+    <p style="font-size:14.5px">Пары <em>«ключ»: значение</em> в фигурных скобках <code class="inline">{ }</code>. Значение достаём по ключу: <code class="inline">state["hp"]</code>.</p>
+  </div>
+</div>
+
+===== SLIDE 12/38 =====
+[NOTES] Покажите, что один словарь state хранит всю память героя. -= уменьшает число, .append добавляет в список. Это понадобится в правке 4.
+[HTML]
+<div class="eyebrow">Память героя</div>
+<h2>Один словарь — вся память игры</h2>
+<pre><code class="language-python">state = {"hp": 100, "inventory": []}
+
+state["hp"] -= 20                  # получили урон — стало 80
+state["inventory"].append("меч")   # нашли предмет — он в рюкзаке</code></pre>
+<div class="grid cols-2" style="margin-top:16px">
+  <div class="card">
+    <h3>Меняем число</h3>
+    <p style="font-size:14.5px"><code class="inline">-=</code> уменьшает значение. Так у героя убывает здоровье.</p>
+  </div>
+  <div class="card">
+    <h3>Добавляем в список</h3>
+    <p style="font-size:14.5px"><code class="inline">.append(...)</code> кладёт предмет в конец инвентаря.</p>
+  </div>
+</div>
+<div class="card accent" style="margin-top:16px">
+  <p style="font-size:15px">Весь прогресс героя — <strong>жив ли он и что у него есть</strong> — лежит в одном словаре <code class="inline">state</code>.</p>
+</div>
+
+===== SLIDE 13/38 =====
+[NOTES] Напомните урок 5: программа уже умеет вызывать DeepSeek через requests. Новое — системная роль делает из нейросети мастера игры. Подчеркните: меняешь роль — меняется мир.
+[HTML]
+<div class="eyebrow">Как это работает</div>
+<h2>Нейросеть в роли гейм-мастера</h2>
+<p class="lead">На уроке 5 наша программа уже разговаривала с DeepSeek через <code class="inline">requests</code>. Сегодня — то же самое, но <em>системная роль</em> превращает нейросеть в мастера игры.</p>
+<div class="card" style="margin-top:18px">
+  <h3>Системная роль</h3>
+  <p style="font-size:14.5px">«Ты — мастер ролевой игры. Веди игрока по подземелью, описывай сцену и заканчивай тремя вариантами действий».</p>
+</div>
+<div class="card accent" style="margin-top:14px">
+  <p style="font-size:15px">Меняешь системную роль — <strong>меняется весь мир игры</strong>: подземелье, космос или сказка. Промпт живёт внутри программы.</p>
+</div>
+
+===== SLIDE 14/38 =====
+[NOTES] Прочитайте цель вслух. Подчеркните: сцены генерирует нейросеть, поэтому приключение у каждого своё. Узнаёте слева — теория, делаете справа — практика.
+[HTML]
+<div class="eyebrow">Goal · что будет в конце</div>
+<h2>Цель урока</h2>
+<div class="card accent">
+  <p class="lead" style="color:#E2E8F0">К 55-й минуте у каждого — играбельное приключение в терминале: нейросеть генерирует сцены подземелья, вы выбираете действия, у героя есть HP и инвентарь, игра идёт до победы или гибели.</p>
+</div>
+<div class="grid cols-2" style="margin-top:28px">
+  <div>
+    <h3 style="color:var(--accent-2)">Узнаете</h3>
+    <ul class="check-list">
+      <li>Что такое функции <code class="inline">def</code> и зачем делить программу на части</li>
+      <li>Как работают циклы <code class="inline">while</code> и <code class="inline">for</code></li>
+      <li>Как списки и словари хранят состояние игры</li>
+    </ul>
+  </div>
+  <div>
+    <h3 style="color:var(--accent)">Сделаете</h3>
+    <ul class="check-list">
+      <li>Соберёте движок игры</li>
+      <li>Сделаете DeepSeek гейм-мастером игры</li>
+      <li>Сыграете в собственную игру</li>
+    </ul>
+  </div>
+</div>
+
+===== SLIDE 15/38 =====
+[NOTES] Покажите живой запуск игры — соберите заранее. Сделайте пару ходов, чтобы группа увидела, как мастер придумывает сцену под выбор игрока.
+[HTML]
+<div class="eyebrow">Демо результата</div>
+<h2>Что соберём сегодня</h2>
+<pre><code class="language-bash">⚔️ ПОДЗЕМЕЛЬЯ И ДРАКОНЫ
+Имя героя: Артём
+Артём, ты у входа в тёмную пещеру. С потолка капает вода, вдалеке рык.
+1 — войти внутрь   2 — осмотреться   3 — позвать на помощь
+&gt; 1
+Факел освещает кости на полу и блеск золота. Из мрака выходит
+гоблин с ржавым кинжалом.
+❤️ HP: 100   🎒 факел
+1 — атаковать   2 — отступить   3 — бросить золото
+&gt; ...</code></pre>
+<p style="font-size:14px; margin-top:14px; color:var(--muted)">Каждую сцену придумывает <em>нейросеть</em> — приключение у каждого в классе своё.</p>
+
+===== SLIDE 16/38 =====
+[NOTES] Подготовка: game.py рядом с warmup.py, затем pip install requests. Если ставили на уроке 5 — pip напишет already satisfied. Дождитесь, пока установка пройдёт у всех.
+[HTML]
+<div class="eyebrow">Подготовка</div>
+<h2>Папка lesson-06 и requests</h2>
+<div class="grid cols-2">
+  <div>
+    <ol class="num-list">
+      <li>Папка <code class="inline">lesson-06</code> уже есть — в ней лежит <code class="inline">warmup.py</code></li>
+      <li>Создайте файл <code class="inline">game.py</code></li>
+      <li>В терминале выполните <code class="inline">pip install requests</code> — библиотека для запросов в интернет</li>
+    </ol>
+  </div>
+  <div>
+<pre><code class="language-bash">D:/vibe-coding/lesson-06/
+├── warmup.py
+└── game.py</code></pre>
+    <div class="card warn" style="margin-top:14px">
+      <p style="font-size:14.5px">Если <code class="inline">requests</code> уже ставили на уроке 5 — <code class="inline">pip</code> напишет <code class="inline">Requirement already satisfied</code>. Это нормально.</p>
+    </div>
+  </div>
+</div>
+
+===== SLIDE 17/38 =====
+[NOTES] Скопировать промпт целиком в новый чат DeepSeek. url и модель уже в промпте — нейросеть соберёт рабочий запрос сама. Первая сцена приходит от мастера.
+[HTML]
+<div class="eyebrow">Промпт #2 · стартовый</div>
+<h2>Каркас игры</h2><div class="prompt-box"><span class="h">→ Новый чат DeepSeek</span>
+Ты — <em>опытный Python-разработчик</em>.
+Напиши game.py — текстовую ролевую игру с DeepSeek API в роли гейм-мастера.
+
+Что должен делать каркас:
+- печатает заголовок «⚔️ ПОДЗЕМЕЛЬЯ И ДРАКОНЫ»
+- спрашивает имя героя через input
+- отправляет запрос в DeepSeek API: url <em>https://api.deepseek.com/chat/completions</em>, модель <em>deepseek-chat</em>, библиотека requests
+- системная роль: «Ты — мастер текстовой ролевой игры. Веди игрока по мрачному фэнтези-подземелью, описывай сцену ярко в 2-3 предложениях и всегда заканчивай тремя вариантами действий»
+- первым сообщением user отправь «Начни приключение для героя по имени {имя}»
+- печатает сгенерированную стартовую сцену
+
+Ключ — в константе API_KEY в начале файла, я вставлю свой.
+Прокомментируй код для новичка. Ответь одним блоком кода.</div>
+
+===== SLIDE 18/38 =====
+[NOTES] Раздайте ключи заранее и проверьте интернет на машинах. Первый запрос к API — дождитесь, пока у каждого появится стартовая сцена.
+[HTML]
+<div class="eyebrow">Запуск каркаса</div>
+<h2>Вставляем ключ и запускаем</h2>
+<ol class="num-list">
+  <li>Скопируйте код из ответа DeepSeek в <code class="inline">game.py</code></li>
+  <li>Замените <code class="inline">sk-...</code> на ключ, который выдал преподаватель</li>
+  <li>Сохраните файл (<code class="inline">Ctrl+S</code>)</li>
+  <li>Выполните <code class="inline">python game.py</code></li>
+  <li>Введите имя героя</li>
+</ol>
+<div class="card warn" style="margin-top:18px">
+  <p style="font-size:14.5px">Ключ — <strong>в кавычках и без пробелов</strong>. На скриншотах для домашки ключ замазываем.</p>
+</div>
+
+===== SLIDE 19/38 =====
+[NOTES] Дайте момент прочувствовать: нейросеть только что придумала подземелье лично для их героя. Попросите перезапустить — начало будет другим. Дальше учим игру идти ходами.
+[HTML]
+<div class="eyebrow">Момент урока</div>
+<h2>Нейросеть придумала вам подземелье</h2>
+<p class="lead">Вы только что получили первую сцену, сгенерированную мастером <em>лично для вашего героя</em>. Никто в классе не увидит ровно такую же.</p>
+<div class="card good" style="margin-top:18px">
+  <p style="font-size:14.5px">Перезапустите игру — начало будет <strong>другим</strong>: мастер придумывает мир заново при каждом запуске.</p>
+</div>
+<div class="card accent" style="margin-top:14px">
+  <p style="font-size:14.5px">Пока это <strong>одна</strong> сцена. Сейчас научим игру идти ход за ходом — через цикл и функции.</p>
+</div>
+
+===== SLIDE 20/38 =====
+[NOTES] Пробегитесь по четырём ситуациям. Чаще всего — забыли pip install requests или ключ вставлен с лишним пробелом. Помогите лично тем, у кого мастер молчит, остальные сверяются со слайдом.
+[HTML]
+<div class="eyebrow">Если игра не ответила</div>
+<h2>Типичные ситуации запуска</h2>
+<div class="kv-row"><div class="k">ModuleNotFoundError</div><div class="v">Библиотека <code class="inline">requests</code> не установлена. В терминале: <code class="inline">pip install requests</code> — и запускайте снова.</div></div>
+<div class="kv-row"><div class="k">401 Unauthorized</div><div class="v">Ключ скопирован не целиком или с пробелом. Проверьте константу <code class="inline">API_KEY</code>: ключ начинается с <code class="inline">sk-</code> и стоит в кавычках.</div></div>
+<div class="kv-row"><div class="k">«Игра зависла»</div><div class="v">5–10 секунд тишины — это <strong>мастер придумывает сцену</strong>. Нормально. Дождитесь ответа.</div></div>
+<div class="kv-row"><div class="k">ConnectionError</div><div class="v">Программа не достучалась до интернета. Проверьте Wi-Fi и запустите ещё раз.</div></div>
+
+===== SLIDE 21/38 =====
+[NOTES] Первая правка идёт в тот же чат. После неё игра превращается в настоящее приключение. Дождитесь, пока у всех работает ход за ходом и слово «выход», потом идём дальше.
+[HTML]
+<div class="eyebrow">Правка 1 · игра идёт по кругу</div>
+<h2>Не одна сцена, а целое приключение</h2><div class="prompt-box"><span class="h">→ В тот же чат</span>
+Сейчас игра показывает одну сцену и закрывается. Сделай игровой цикл:
+- После каждой сцены спрашивай выбор игрока через <em>input</em>: «Твой ход (1/2/3 или опиши действие): »
+- Отправляй выбор мастеру следующим сообщением и печатай новую сцену
+- Цикл повторяется, пока игрок не введёт <em>«выход»</em>
+- Чтобы мастер помнил сюжет — храни все сообщения в списке <em>messages</em> и отправляй его целиком при каждом запросе
+
+Верни весь файл.</div>
+
+===== SLIDE 22/38 =====
+[NOTES] Минимум теории про цикл: while True крутит игру, break выходит. Главное — список messages растёт, поэтому мастер помнит прошлые ходы. Свяжите с памятью советчика из ДЗ урока 5.
+[HTML]
+<div class="eyebrow">Разбор кода</div>
+<h2>Цикл игры и память сюжета</h2>
+<pre><code class="language-python">messages = [{"role": "system", "content": "Ты — мастер игры…"}]
+
+while True:                              # игра идёт по кругу
+    choice = input("Твой ход: ")
+    if choice.lower() == "выход":
+        break                            # выйти из игры
+    messages.append({"role": "user", "content": choice})
+    scene = ask_master(messages)         # мастер придумывает сцену
+    messages.append({"role": "assistant", "content": scene})</code></pre>
+<p style="font-size:14px; margin-top:12px; color:var(--muted)"><code class="inline">while True</code> крутит игру ход за ходом, <code class="inline">break</code> — выход. Список <code class="inline">messages</code> растёт, поэтому мастер <strong>помнит прошлые ходы</strong> — как память советчика из ДЗ урока 5.</p>
+
+===== SLIDE 23/38 =====
+[NOTES] Ключевая правка урока: декомпозиция. Игра работает, но код длинный. Разложим на функции. Подчеркните: поведение не меняется, меняется только порядок.
+[HTML]
+<div class="eyebrow">Правка 2 · наводим порядок</div>
+<h2>Разбираем игру на функции</h2>
+<p class="lead">Игра работает, но код стал длинным и запутанным. Разложим его на <em>функции</em> — отдельные понятные кусочки.</p><div class="prompt-box"><span class="h">→ В тот же чат</span>
+Раздели game.py на функции, поведение не меняй:
+- <em>ask_master(messages)</em> — отправляет запрос в DeepSeek и возвращает текст сцены
+- <em>show(text)</em> — красиво печатает текст сцены
+- <em>main()</em> — собирает игру: спрашивает имя героя, крутит игровой цикл
+
+В самом конце файла вызови <em>main()</em>. Верни весь файл.</div>
+
+===== SLIDE 24/38 =====
+[NOTES] Покажите: каждая функция — отдельный кубик с понятным именем. return отдаёт результат наружу. main() собирает кубики вместе. Не углубляйтесь в каждый символ.
+[HTML]
+<div class="eyebrow">Разбор кода</div>
+<h2>Каждая функция — отдельный кубик</h2>
+<pre><code class="language-python">headers = {"Authorization": f"Bearer {API_KEY}"}   # пропуск с ключом
+
+def ask_master(messages):
+    response = requests.post(url, headers=headers,
+                             json={"model": "deepseek-chat", "messages": messages})
+    return response.json()["choices"][0]["message"]["content"]
+
+def show(text):
+    print(text)</code></pre>
+<div class="card good" style="margin-top:14px">
+  <p style="font-size:14.5px">Каждая функция — <strong>кубик с понятным именем</strong>: <code class="inline">ask_master</code> ходит к нейросети, <code class="inline">show</code> печатает, <code class="inline">main</code> собирает их вместе. <code class="inline">return</code> отдаёт результат наружу. Теперь чинить и улучшать игру легко — каждый кусок отдельно.</p>
+</div>
+
+===== SLIDE 25/38 =====
+[NOTES] Зафиксируйте идею «чёрного ящика»: дал данные на вход, получил результат на выход. Параметры — вход, return — выход. Это пригодится на всех уроках Python.
+[HTML]
+<div class="eyebrow">Полезное знание</div>
+<h2>Параметры и return</h2>
+<p>Функции общаются двумя способами: <em>параметры</em> — что передаём внутрь, <em>return</em> — что функция отдаёт наружу.</p>
+<pre style="margin-top:14px"><code class="language-python">def add(a, b):       # a и b — параметры (вход)
+    return a + b     # return — результат (выход)
+
+result = add(2, 3)   # result = 5</code></pre>
+<div class="card accent" style="margin-top:14px">
+  <p style="font-size:14.5px">Функция — это <strong>«чёрный ящик»</strong>: дал данные на вход, получил результат на выход. Игрок не знает, что внутри <code class="inline">ask_master</code> живёт нейросеть, — он просто получает готовую сцену.</p>
+</div>
+
+===== SLIDE 26/38 =====
+[NOTES] Правка 3 возвращает функцию roll_dice из разминки — функции переиспользуются. Дайте побросать кубик в игре и порадоваться, как удача и неудача меняют сюжет.
+[HTML]
+<div class="eyebrow">Правка 3 · бросок кубика</div>
+<h2>Удача решает, как повернётся сюжет</h2><div class="prompt-box"><span class="h">→ В тот же чат</span>
+Добавь случайность настоящей RPG. Перед отправкой хода мастеру брось кубик функцией <em>roll_dice()</em> (число 1–6, как в warmup.py):
+- Если выпало <em>1</em> — припиши к сообщению мастеру пометку «(герою не повезло — пусть случится осложнение)»
+- Если выпало <em>6</em> — припиши «(герою повезло — пусть случится удача)»
+
+Так нейросеть учтёт удачу в сюжете. Верни весь файл.</div>
+
+===== SLIDE 27/38 =====
+[NOTES] Покажите: одна функция (ход игры) зовёт другую (roll_dice) — функции складываются как кубики. Пометка в choice меняет сцену, которую придумает мастер.
+[HTML]
+<div class="eyebrow">Разбор кода</div>
+<h2>Функция зовёт функцию</h2>
+<pre><code class="language-python">luck = roll_dice()                  # бросаем кубик из warmup.py
+if luck == 1:
+    choice += " (герою не повезло — осложнение)"
+elif luck == 6:
+    choice += " (герою повезло — удача)"</code></pre>
+<div class="card good" style="margin-top:14px">
+  <p style="font-size:14.5px">Одна функция (ход игры) зовёт другую (<code class="inline">roll_dice</code>) — функции складываются как кубики. Пометка в <code class="inline">choice</code> меняет сцену, которую придумает мастер. Бросьте кубик несколько раз — увидите, как удача и неудача поворачивают сюжет.</p>
+</div>
+
+===== SLIDE 28/38 =====
+[NOTES] Правка 4 вводит словарь и список. После запуска покажите строку с HP и инвентарём под сценой. Предупредите: мастер не всегда дописывает маркер [HP-20] или [+меч] — иногда HP и инвентарь меняются, иногда нет; на демо это нормально, надёжную механику добьём на следующих уроках. Если группа отстаёт по времени — правки 4 и 5 можно перенести в домашнее задание.
+[HTML]
+<div class="eyebrow">Правка 4 · характеристики героя</div>
+<h2>HP и инвентарь</h2><div class="prompt-box"><span class="h">→ В тот же чат</span>
+Дай герою состояние через словарь <em>state = {"hp": 100, "inventory": []}</em>:
+- После каждой сцены печатай строку «❤️ HP: {hp}  🎒 {предметы}»
+- Попроси мастера в системной роли иногда дописывать в конце ответа служебную строчку вида <em>[HP-20]</em> или <em>[+меч]</em>
+- Программа находит эту строчку, уменьшает <em>state["hp"]</em> или добавляет предмет в список <em>inventory</em>
+
+Верни весь файл.</div>
+
+===== SLIDE 29/38 =====
+[NOTES] Покажите словарь и список в работе. Главная мысль: один словарь state — это вся память героя. Дайте сфотографировать.
+[HTML]
+<div class="eyebrow">Разбор кода</div>
+<h2>Словарь и список в деле</h2>
+<pre><code class="language-python">state = {"hp": 100, "inventory": []}   # память героя
+
+state["hp"] -= 20                       # получили урон
+state["inventory"].append("меч")        # нашли предмет
+
+print(f"❤️ HP: {state['hp']}   🎒 {', '.join(state['inventory'])}")</code></pre>
+<div class="card accent" style="margin-top:14px">
+  <p style="font-size:14.5px">Словарь <code class="inline">state</code> хранит характеристики по ключу, список <code class="inline">inventory</code> — найденные предметы. <code class="inline">.append</code> добавляет, <code class="inline">-=</code> снимает HP, <code class="inline">', '.join</code> склеивает список в строку. Один словарь <code class="inline">state</code> — <strong>вся память героя</strong>.</p>
+</div>
+
+===== SLIDE 30/38 =====
+[NOTES] Финальная правка собирает игру воедино: появляется проигрыш и атмосфера цвета. Дождитесь, пока у всех заработает, потом идём к разбору. Это самый зрелищный момент — игра выглядит как настоящая.
+[HTML]
+<div class="eyebrow">Правка 5 · победа, гибель и атмосфера</div>
+<h2>Концовки и цвет</h2><div class="prompt-box"><span class="h">→ В тот же чат</span>
+Добавь в игру концовки и цвет:
+- Если <em>state["hp"]</em> стал 0 или меньше — напечатай красным
+  «💀 Ты пал в подземелье. Игра окончена» и выйди из цикла
+- Если игрок ввёл «выход» — попрощайся
+
+Раскрась вывод ANSI-кодами, <em>без сторонних библиотек</em>:
+- заголовок — фиолетовым
+- сцены мастера — обычным цветом
+- строку HP — красным
+- найденные предметы — зелёным
+
+Заведи в начале файла константы вроде RED = '\033[31m'
+и RESET = '\033[0m'. Верни весь файл.</div>
+
+===== SLIDE 31/38 =====
+[NOTES] Разбор двух вещей сразу: как красить терминал и как заканчивать игру. Подчеркните: break нужен и для гибели героя, и для слова «выход». Если цвета не появились — пусть запускают во встроенном терминале VS Code.
+[HTML]
+<div class="eyebrow">Разбор кода</div>
+<h2>Цвет и конец игры</h2>
+<p>Терминал понимает <strong>специальные последовательности</strong>: <code class="inline">\033[..m</code> переключает цвет, <code class="inline">\033[0m</code> возвращает обычный. А проверка HP решает, когда игра окончена:</p>
+<pre style="margin-top:14px"><code class="language-python">VIOLET = '\033[35m'   # заголовок
+RED    = '\033[31m'   # урон и гибель
+GREEN  = '\033[92m'   # находки
+RESET  = '\033[0m'    # вернуть обычный вид
+
+if state["hp"] &lt;= 0:
+    print(f"{RED}💀 Ты пал в подземелье.{RESET}")
+    break          # выходим из игрового цикла</code></pre>
+<div class="card warn" style="margin-top:14px">
+  <p style="font-size:14.5px">Цвета видны во встроенном терминале VS Code. В старых системных консолях они могут не появиться — это <strong>не ошибка вашего кода</strong>.</p>
+</div>
+
+===== SLIDE 32/38 =====
+[NOTES] Вопрос про return — самая частая ошибка с функциями. Дайте 10-15 секунд, потом раскройте ответ. Свяжите с ask_master: без return сцена не дойдёт до main.
+[HTML]
+<div class="eyebrow">Проверка · вопрос 1</div>
+<h2>Изучите ситуацию и ответьте</h2>
+<div class="quiz-card">
+  <span class="q-num">Вопрос</span>
+  <p class="q-text">Тимур написал функцию <code class="inline">def ask_master(messages):</code>, внутри посчитал ответ в переменную <code class="inline">scene</code>, но забыл строку <code class="inline">return scene</code>. В main он пишет <code class="inline">text = ask_master(messages)</code> — и в <code class="inline">text</code> оказывается <code class="inline">None</code> (пусто). Почему?</p>
+</div>
+<details style="margin-top:18px">
+  <summary>Ответ</summary>
+  <div class="content">
+    <p>Без <strong>return</strong> функция ничего не отдаёт наружу, а переменная <code class="inline">scene</code> живёт только внутри функции и исчезает, когда функция заканчивается.</p>
+    <p>Нужно добавить <strong>return scene</strong> — тогда результат вернётся в <code class="inline">text</code>, и сцену будет видно.</p>
+  </div>
+</details>
+
+===== SLIDE 33/38 =====
+[NOTES] Вопрос про состояние и цикл. Очень частая ошибка новичка — создавать словарь внутри цикла. Свяжите с привычкой: состояние создаём один раз до цикла.
+[HTML]
+<div class="eyebrow">Проверка · вопрос 2</div>
+<h2>Изучите ситуацию и ответьте</h2>
+<div class="quiz-card">
+  <span class="q-num">Вопрос</span>
+  <p class="q-text">Лиза хочет, чтобы за каждый ход HP падал на 10: она написала <code class="inline">state["hp"] -= 10</code>. Но HP в игре всегда остаётся 100. Оказалось, строку <code class="inline">state = {"hp": 100}</code> она поставила <strong>внутри</strong> цикла <code class="inline">while</code>. Где ошибка?</p>
+</div>
+<details style="margin-top:18px">
+  <summary>Ответ</summary>
+  <div class="content">
+    <p>Словарь <code class="inline">state</code> создаётся заново на каждом ходу, поэтому память героя каждый раз <strong>обнуляется</strong> до 100.</p>
+    <p>Создавать <code class="inline">state</code> нужно <strong>один раз до цикла</strong>, а внутри цикла — только менять его значения.</p>
+  </div>
+</details>
+
+===== SLIDE 34/38 =====
+[NOTES] Научите читать traceback снизу вверх — пригодится на всех уроках Python. Напомните привычку: непонятную ошибку целиком копируем в DeepSeek. Три поломки справа — самые частые именно в этой игре.
+[HTML]
+<div class="eyebrow">Отладка</div>
+<h2>Читаем ошибки игры</h2>
+<div class="grid cols-2">
+  <div>
+    <h3>Traceback — снизу вверх</h3>
+<pre><code class="language-bash">Traceback (most recent call last):
+  File "game.py", line 21, in main
+    print(state["hp"])
+KeyError: 'hp'</code></pre>
+    <p style="font-size:14px; margin-top:10px; color:var(--muted)">Последняя строка — <strong>что</strong> случилось (KeyError, TypeError…), строкой выше — <strong>где</strong>.</p>
+  </div>
+  <div>
+    <h3>Частые поломки</h3>
+    <ul class="check-list">
+      <li><strong>KeyError 'hp'</strong> — опечатка в ключе словаря: проверьте кавычки и имя ключа</li>
+      <li><strong>В переменной None</strong> — забыли <code class="inline">return</code> в функции</li>
+      <li><strong>Мастер отвечает невпопад</strong> — проверьте, что <code class="inline">messages</code> растёт и отправляется целиком</li>
+    </ul>
+    <p style="font-size:14px; margin-top:10px; color:var(--muted)">Непонятную ошибку целиком копируем в чат DeepSeek — привычка из прошлых уроков.</p>
+  </div>
+</div>
+
+===== SLIDE 35/38 =====
+[NOTES] 5 привычек урока. Дайте сфотографировать слайд. Особо подчеркните первые две: функции-кубики и return — это главное, что уносят с урока.
+[HTML]
+<div class="eyebrow">Запомните</div>
+<h2>Привычки программиста</h2>
+<div class="kv-row"><div class="k">01 · Функции — кубики</div><div class="v">Большую задачу делим на маленькие <code class="inline">def</code> с понятными именами.</div></div>
+<div class="kv-row"><div class="k">02 · return отдаёт результат</div><div class="v">Без <code class="inline">return</code> функция молчит и возвращает <code class="inline">None</code>.</div></div>
+<div class="kv-row"><div class="k">03 · Состояние — до цикла</div><div class="v">Словарь <code class="inline">state</code> создаём один раз перед <code class="inline">while</code>, внутри только меняем.</div></div>
+<div class="kv-row"><div class="k">04 · Список и словарь</div><div class="v"><code class="inline">list</code> — упорядоченный набор, <code class="inline">dict</code> — пары ключ-значение.</div></div>
+<div class="kv-row"><div class="k">05 · Промпт — характер программы</div><div class="v">Системная роль решает, какой мир построит мастер.</div></div>
+
+===== SLIDE 36/38 =====
+[NOTES] Чек-лист завершения игры. Кто отметил всё — пусть даст соседу сыграть. У соседа получится другое приключение — это и есть магия AI-мастера.
+[HTML]
+<div class="eyebrow">Чек-лист</div>
+<h2>Что должно быть к 55-й минуте</h2>
+<div class="grid cols-2">
+  <div>
+    <h3 style="color:var(--accent-2)">Готово</h3>
+    <ul class="check-list">
+      <li><code class="inline">game.py</code> запускается командой <code class="inline">python game.py</code></li>
+      <li>Нейросеть генерирует стартовую сцену подземелья</li>
+      <li>Код разложен на функции <code class="inline">ask_master</code>, <code class="inline">show</code>, <code class="inline">main</code></li>
+    </ul>
+  </div>
+  <div>
+    <h3 style="color:var(--accent)">Работает</h3>
+    <ul class="check-list">
+      <li>Игра идёт по кругу — выборы рождают новые сцены</li>
+      <li>У героя есть HP и инвентарь через словарь и список</li>
+      <li>Есть концовка — гибель или выход — и цветной вывод</li>
+    </ul>
+  </div>
+</div>
+<div class="card good" style="margin-top:22px">
+  <p style="font-size:15px">Всё отмечено? Дайте соседу сыграть в вашу игру — у него получится своё приключение.</p>
+</div>
+
+===== SLIDE 37/38 =====
+[NOTES] ДЗ — прокачать игру, примерно 30 минут. Каждое улучшение — отдельный диалог с DeepSeek, не всё сразу. Напомните про ключ на скриншотах.
+[HTML]
+<div class="eyebrow">Домашнее задание · около 30 минут</div>
+<h2>Прокачайте свою игру</h2>
+<p class="lead">Три улучшения — каждое через отдельный диалог с DeepSeek:</p>
+<div class="grid cols-3" style="margin-top:18px">
+  <div class="card">
+    <h3>Свой жанр</h3>
+    <p style="font-size:14.5px">Поменяйте системную роль мастера — космос, киберпанк или сказка — и мир игры полностью изменится.</p>
+  </div>
+  <div class="card">
+    <h3>Сундук с сокровищами</h3>
+    <p style="font-size:14.5px">Добавьте функцию <code class="inline">open_chest()</code>: через <code class="inline">random.choice</code> она достаёт случайный предмет из списка и кладёт его в инвентарь.</p>
+  </div>
+  <div class="card">
+    <h3>Карта приключения</h3>
+    <p style="font-size:14.5px">Сохраняйте каждую сцену в файл <code class="inline">adventure.txt</code> — как историю советчика на уроке 5, режим <code class="inline">'a'</code>.</p>
+  </div>
+</div>
+<div class="card warn" style="margin-top:22px">
+  <p style="font-size:15px">Пришлите скриншот игры — <strong>ключ замажьте!</strong> Ваш самый удачный промпт — отдельным сообщением.</p>
+</div>
+
+===== SLIDE 38/38 [FINAL] =====
+[NOTES] Закройте урок. Сегодня вы написали движок игры и доверили нейросети роль гейм-мастера. На уроке 7 — файлы и JSON, личный дневник с AI-тегами.
+[HTML]
+<div class="eyebrow">Урок 6 завершён</div>
+<div class="outro-big">До встречи<br>на уроке 7.</div>
+<p class="lead">Сегодня вы собрали движок игры — функции, циклы и словари — и доверили нейросети роль гейм-мастера. На уроке 7 научим программу по-настоящему запоминать данные: файлы и формат JSON. Соберём личный дневник, которому AI сам подбирает теги.</p>
+<div class="chip-row" style="margin-top:30px">
+  <span class="badge primary">Урок 7 · Файлы и JSON</span>
+  <span class="badge cyan">Личный дневник</span>
+  <span class="badge good">AI-теги</span>
+</div>

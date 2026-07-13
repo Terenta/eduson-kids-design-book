@@ -49,7 +49,7 @@ SLIDES = [
     <div class="q-label">Разбор ДЗ урока 9</div>
     <h2>Смотрим <span class="acc">Telegram-ботов</span></h2>
   </div>
-  <p>Открываем 1–2 присланных бота и разбираем именно <span class="hl">диалог с нейросетью</span>: команда <span class="code-chip">/joke</span>, свой характер бота через системную роль, кнопки (inline-клавиатура).</p>
+  <p>Открываем 1–2 присланных бота и разбираем именно <span class="hl">диалог с нейросетью</span>: команда <span class="code-chip">/joke</span>, свой характер бота через системную роль, кнопки быстрых ответов (ReplyKeyboardMarkup).</p>
   <div class="grid-3" style="margin-top:8px">
     <div class="info-card">
       <h3>Что сработало</h3>

@@ -1,0 +1,541 @@
+===== SLIDE 1/22 [COVER] =====
+[NOTES] Поприветствуйте группу. Скажите, что сегодня вы вместе соберёте свой первый сайт через диалог с нейросетью. Покажите на экране готовый результат — страницу «Обо мне», к которой каждый придёт к концу урока.
+[HTML]
+<div class="eyebrow">Step 2 · Модуль 1 · Урок 01</div>
+    <h1>Знакомство со средой<br>и первый сайт.</h1>
+    <p class="subtitle">Соберём личную страницу через диалог с нейросетью. Установим инструменты, напишем первый промпт и запустим результат в браузере.</p>
+    <div class="meta-row">
+      <span class="badge primary">
+        <svg class="icon" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+        60 минут
+      </span>
+      <span class="badge cyan">13–15 лет</span>
+      <span class="badge good">Практика</span>
+    </div>
+    <div class="chip-row" style="margin-top:20px">
+      <span class="badge neutral">VS Code</span>
+      <span class="badge neutral">Python 3.12</span>
+      <span class="badge neutral">DeepSeek</span>
+      <span class="badge neutral">Live Server</span>
+      <span class="badge neutral">HTML</span>
+    </div>
+
+===== SLIDE 2/22 =====
+[NOTES] Объясните, что такое вайб-кодинг — без сравнений с другими подходами. Просто описание: вы общаетесь с нейросетью, она пишет код. Подчеркните: главный навык — формулировать задачу, и он пригодится в любой профессии.
+[HTML]
+<div class="eyebrow">Идея урока</div>
+    <h2>Что такое вайб-кодинг</h2>
+    <p class="lead">Вайб-кодинг — это создание программ через диалог с нейросетью. Вы описываете задачу обычными словами, нейросеть пишет код, вы запускаете его и проверяете результат.</p>
+    <div class="grid cols-3" style="margin-top:30px">
+      <div class="card">
+        <h3>Описываете</h3>
+        <p style="font-size:14.5px">Вы рассказываете нейросети, какую страницу хотите получить: какие блоки, какие цвета, что должно происходить при клике.</p>
+      </div>
+      <div class="card">
+        <h3>Нейросеть пишет</h3>
+        <p style="font-size:14.5px">DeepSeek генерирует готовый код, который можно скопировать в файл.</p>
+      </div>
+      <div class="card">
+        <h3>Вы запускаете</h3>
+        <p style="font-size:14.5px">Открываете страницу в браузере. Если что-то нужно поправить — пишете нейросети новое сообщение.</p>
+      </div>
+    </div>
+    <div class="card accent" style="margin-top:22px">
+      <p style="font-size:16.5px; color:#E2E8F0">Главный навык вайб-кодера — точно формулировать задачу. Этот навык ценят и в IT, и в дизайне, и в науке.</p>
+    </div>
+
+===== SLIDE 3/22 =====
+[NOTES] Покажите план занятия. Подчеркните: первый урок — это знакомство и установка, поэтому много инсталляций. Дальше будет проще.
+[HTML]
+<div class="eyebrow">Agenda · план занятия</div>
+    <h2>Как пройдут 60 минут</h2>
+    <div class="timeline">
+      <div class="timeline-row"><div class="time">0–5</div><div><div class="title">Демо результата</div><div class="desc">Покажем готовую страницу «Обо мне», которую вы соберёте к концу урока.</div></div></div>
+      <div class="timeline-row"><div class="time">5–10</div><div><div class="title">Что такое вайб-кодинг</div><div class="desc">Главная идея и роль нейросети как помощника, который знает синтаксис.</div></div></div>
+      <div class="timeline-row"><div class="time">10–25</div><div><div class="title">Установка инструментов</div><div class="desc">VS Code → Python → расширение Live Server → рабочая папка.</div></div></div>
+      <div class="timeline-row"><div class="time">25–30</div><div><div class="title">Знакомство с DeepSeek</div><div class="desc">Регистрация через Google, обзор интерфейса.</div></div></div>
+      <div class="timeline-row"><div class="time">30–45</div><div><div class="title">Первый промпт и первый сайт</div><div class="desc">Используем готовый промпт, получаем код, запускаем страницу в браузере.</div></div></div>
+      <div class="timeline-row"><div class="time">45–55</div><div><div class="title">Доработка через диалог</div><div class="desc">Меняем кнопку, добавляем аватарку, добавляем анимацию — всё через сообщения нейросети.</div></div></div>
+      <div class="timeline-row"><div class="time">55–60</div><div><div class="title">Демо в группе</div><div class="desc">Каждый присылает скриншот своей страницы в общий чат.</div></div></div>
+    </div>
+
+===== SLIDE 4/22 =====
+[NOTES] Прочитайте цели вслух. Подчеркните: к концу урока у каждого должен быть рабочий файл index.html в собственной папке курса.
+[HTML]
+<div class="eyebrow">Goal · что будет в конце</div>
+    <h2>Цель урока</h2>
+    <div class="card accent">
+      <p class="lead" style="color:#E2E8F0">Через диалог с DeepSeek собрать рабочую страницу «Обо мне». Файл <code class="inline">index.html</code> открывается в браузере и выглядит аккуратно.</p>
+    </div>
+    <div class="grid cols-2" style="margin-top:28px">
+      <div>
+        <h3 style="color:var(--accent-2)">Узнаете</h3>
+        <ul class="check-list">
+          <li>Что такое вайб-кодинг и из каких шагов он состоит</li>
+          <li>Как разговаривать с DeepSeek, чтобы получать точные ответы</li>
+          <li>Зачем разработчикам нужны VS Code, Python и Live Server</li>
+        </ul>
+      </div>
+      <div>
+        <h3 style="color:var(--accent)">Сделаете</h3>
+        <ul class="check-list">
+          <li>Установите инструменты курса</li>
+          <li>Напишете первый промпт и получите код</li>
+          <li>Запустите свой сайт в браузере</li>
+          <li>Сделаете 3 правки через диалог</li>
+        </ul>
+      </div>
+    </div>
+
+===== SLIDE 5/22 =====
+[NOTES] Расскажите про инструменты. У каждого своя роль. Все бесплатны, никаких подписок не нужно.
+[HTML]
+<div class="eyebrow">Инструменты урока</div>
+    <h2>Связка из четырёх инструментов</h2>
+    <div class="grid cols-4" style="margin-top:18px">
+      <div class="step-card">
+        <span class="num">1</span>
+        <h3 style="margin-top:6px">VS Code</h3>
+        <p style="font-size:14px"><code class="inline">code.visualstudio.com</code></p>
+        <p style="font-size:13.5px; margin-top:6px">Редактор, в котором вы будете работать с файлами проекта.</p>
+      </div>
+      <div class="step-card">
+        <span class="num">2</span>
+        <h3 style="margin-top:6px">Python 3.12</h3>
+        <p style="font-size:14px"><code class="inline">python.org</code></p>
+        <p style="font-size:13.5px; margin-top:6px">Понадобится со следующих уроков. Установим заранее.</p>
+      </div>
+      <div class="step-card">
+        <span class="num">3</span>
+        <h3 style="margin-top:6px">DeepSeek</h3>
+        <p style="font-size:14px"><code class="inline">chat.deepseek.com</code></p>
+        <p style="font-size:13.5px; margin-top:6px">Нейросеть, с которой вы будете общаться весь курс. Бесплатно.</p>
+      </div>
+      <div class="step-card">
+        <span class="num">4</span>
+        <h3 style="margin-top:6px">Live Server</h3>
+        <p style="font-size:14px">расширение VS Code</p>
+        <p style="font-size:13.5px; margin-top:6px">Запускает HTML-страницу в браузере одной кнопкой.</p>
+      </div>
+    </div>
+    <div class="card good" style="margin-top:24px">
+      <p style="font-size:16px">Все инструменты бесплатны. Подписки и ввод банковской карты не требуются.</p>
+    </div>
+
+===== SLIDE 6/22 =====
+[NOTES] Покажите установку VS Code пошагово на проекторе. Обратите внимание на 3 галочки в установщике — особенно «Add to PATH».
+[HTML]
+<div class="eyebrow">Установка · 1 из 4</div>
+    <h2>Установите VS Code</h2>
+    <ol class="num-list">
+      <li>Откройте <code class="inline">code.visualstudio.com</code></li>
+      <li>Нажмите большую синюю кнопку <strong>Download for Windows</strong> (или Mac)</li>
+      <li>Запустите скачанный установщик</li>
+      <li>Отметьте 3 галочки в установщике:
+        <ul class="check-list" style="margin-top:6px">
+          <li><code class="inline">Add 'Open with Code' to file context menu</code></li>
+          <li><code class="inline">Add 'Open with Code' to directory context menu</code></li>
+          <li><code class="inline">Add to PATH</code></li>
+        </ul>
+      </li>
+      <li>Нажмите Install → Finish → запустите редактор</li>
+    </ol>
+    <details style="margin-top:18px">
+      <summary>Зачем нужны эти галочки</summary>
+      <div class="content">Первые две позволят открывать файлы и папки в VS Code прямо из проводника по правому клику. Третья добавляет VS Code в системные пути — это пригодится в следующих уроках.</div>
+    </details>
+
+===== SLIDE 7/22 =====
+[NOTES] Самый важный шаг — галочка «Add python.exe to PATH». Без неё команда python в терминале работать не будет. Остановите класс и проверьте у каждого, что галочка отмечена.
+[HTML]
+<div class="eyebrow">Установка · 2 из 4</div>
+    <h2>Установите Python 3.12</h2>
+    <ol class="num-list">
+      <li>Откройте <code class="inline">python.org/downloads</code></li>
+      <li>Скачайте Python 3.12.x или новее</li>
+      <li>Запустите установщик</li>
+      <li>Отметьте галочку <code class="inline">Add python.exe to PATH</code> внизу окна</li>
+      <li>Нажмите «Install Now», дождитесь завершения, нажмите Close</li>
+    </ol>
+    <h3 style="margin-top:22px">Проверка установки</h3>
+    <div class="card warn">
+      <p style="font-size:15px; margin-bottom:8px">Откройте PowerShell или встроенный терминал в VS Code (<code class="inline">Ctrl+ё</code>) и выполните:</p>
+<pre><code class="language-bash">python --version</code></pre>
+      <p style="font-size:14px; margin-top:8px; color:#FCD34D">Программа ответит: <code class="inline">Python 3.12.x</code></p>
+    </div>
+    <details style="margin-top:14px">
+      <summary>Если ответ «python is not recognized»</summary>
+      <div class="content">Это значит, что галочка PATH была пропущена. Решение: переустановить Python и при установке отметить галочку «Add python.exe to PATH».</div>
+    </details>
+
+===== SLIDE 8/22 =====
+[NOTES] Расширения ставим прямо из VS Code. Покажите иконку Extensions слева. Live Server — главное на этот урок, Python — пригодится дальше.
+[HTML]
+<div class="eyebrow">Установка · 3 из 4</div>
+    <h2>Установите расширения VS Code</h2>
+    <ol class="num-list">
+      <li>В VS Code слева нажмите иконку <strong>Extensions</strong> (четыре квадратика)</li>
+      <li>В строку поиска введите <code class="inline">Live Server</code></li>
+      <li>Выберите расширение от автора <strong>Ritwick Dey</strong> и нажмите <strong>Install</strong></li>
+      <li>Тем же способом установите <code class="inline">Python</code> от <strong>Microsoft</strong></li>
+    </ol>
+    <div class="grid cols-2" style="margin-top:24px">
+      <div class="card">
+        <h3>Live Server</h3>
+        <p style="font-size:14.5px">Запускает HTML-файл в браузере одной кнопкой. При сохранении файла страница автоматически обновляется.</p>
+      </div>
+      <div class="card">
+        <h3>Python</h3>
+        <p style="font-size:14.5px">Подсветка синтаксиса, автодополнение, запуск .py-файлов одной кнопкой. Понадобится с урока 3.</p>
+      </div>
+    </div>
+
+===== SLIDE 9/22 =====
+[NOTES] Создаём папку курса. Все материалы за весь курс будут лежать в одном месте — это поможет потом собрать портфолио.
+[HTML]
+<div class="eyebrow">Установка · 4 из 4</div>
+    <h2>Создайте рабочую папку</h2>
+    <div class="grid cols-2">
+      <div>
+        <ol class="num-list">
+          <li>На диске <code class="inline">D:</code> создайте папку <code class="inline">vibe-coding</code></li>
+          <li>Внутри неё — папку <code class="inline">lesson-01</code></li>
+          <li>В VS Code: <code class="inline">File → Open Folder</code> → выберите <code class="inline">lesson-01</code></li>
+          <li>Создайте новый файл: <code class="inline">Ctrl+N</code></li>
+          <li>Сохраните как <code class="inline">index.html</code> (<code class="inline">Ctrl+S</code>)</li>
+        </ol>
+      </div>
+      <div>
+        <h3>Структура папки</h3>
+<pre><code class="language-bash">D:/
+└── vibe-coding/
+    └── lesson-01/
+        └── index.html  ← пока пустой</code></pre>
+        <div class="card warn" style="margin-top:14px">
+          <p style="font-size:14px">Папка курса соберёт все ваши проекты в одном месте. К концу курса в ней будет 24 проекта — готовое портфолио.</p>
+        </div>
+      </div>
+    </div>
+
+===== SLIDE 10/22 =====
+[NOTES] DeepSeek — нейросеть, с которой вы будете общаться весь курс. Регистрация через Google за минуту. Базовый режим бесплатный, без лимитов.
+[HTML]
+<div class="eyebrow">Главный собеседник курса</div>
+    <h2>Знакомство с DeepSeek</h2>
+    <div class="grid cols-2">
+      <div>
+        <ol class="num-list">
+          <li>Откройте <code class="inline">chat.deepseek.com</code></li>
+          <li>Нажмите <strong>Log in</strong></li>
+          <li>Выберите <strong>Continue with Google</strong></li>
+          <li>Выберите свой Google-аккаунт</li>
+          <li>Готово — у вас есть собственный чат</li>
+        </ol>
+        <div class="card good" style="margin-top:18px">
+          <p style="font-size:14.5px">Базовый режим работает без лимитов на сообщения. Карта и подписка не нужны.</p>
+        </div>
+      </div>
+      <div class="card">
+        <h3>Возможности интерфейса</h3>
+        <ul class="check-list">
+          <li>Обычный режим — быстрый, для большинства задач</li>
+          <li>Режим <code class="inline">DeepThink (R1)</code> — медленнее, для сложных вопросов</li>
+          <li>Можно прикрепить файл, картинку или PDF</li>
+          <li>Помнит весь диалог в текущем чате</li>
+          <li>Над каждым блоком кода есть кнопка <strong>Copy</strong></li>
+        </ul>
+      </div>
+    </div>
+
+===== SLIDE 11/22 =====
+[NOTES] Объясните, что такое промпт. 4 части — роль, задача, контекст, формат. На следующем слайде дадим готовый промпт, на этом — структура.
+[HTML]
+<div class="eyebrow">Анатомия хорошего промпта</div>
+    <h2>Что такое промпт</h2>
+    <p class="lead">Промпт — это сообщение, которое вы отправляете нейросети. Хороший промпт состоит из четырёх частей.</p>
+    <div class="grid cols-4" style="margin-top:22px">
+      <div class="step-card">
+        <span class="num">1</span>
+        <h3 style="margin-top:6px">Роль</h3>
+        <p style="font-size:14px">Кем должна быть нейросеть. Например: «Ты опытный веб-разработчик».</p>
+      </div>
+      <div class="step-card">
+        <span class="num">2</span>
+        <h3 style="margin-top:6px">Задача</h3>
+        <p style="font-size:14px">Что нужно сделать. Например: «Напиши HTML-страницу „Обо мне"».</p>
+      </div>
+      <div class="step-card">
+        <span class="num">3</span>
+        <h3 style="margin-top:6px">Контекст</h3>
+        <p style="font-size:14px">Детали: какие блоки, цвета, размеры, шрифты.</p>
+      </div>
+      <div class="step-card">
+        <span class="num">4</span>
+        <h3 style="margin-top:6px">Формат</h3>
+        <p style="font-size:14px">Как должен выглядеть ответ. Например: «Один файл, без библиотек».</p>
+      </div>
+    </div>
+    <div class="card accent" style="margin-top:24px">
+      <p style="font-size:16.5px; color:#E2E8F0">Чем точнее промпт, тем точнее ответ. Числа, имена цветов, конкретные ссылки — всё это помогает нейросети попасть в задачу.</p>
+    </div>
+
+===== SLIDE 12/22 =====
+[NOTES] Это слайд-шпаргалка. Каждый ученик копирует промпт целиком, заменяет {ИМЯ} на своё и отправляет в DeepSeek.
+[HTML]
+<div class="eyebrow">Промпт #1 · копируем целиком</div>
+    <h2>Готовый промпт для первого сайта</h2>
+    <div class="prompt-box">
+<span class="h">→ Скопируйте в DeepSeek</span>
+Ты опытный веб-разработчик. Напиши HTML-страницу «Обо мне».
+
+Условия:
+- Один файл index.html, всё внутри (HTML и CSS в теге &lt;style&gt;)
+- Сверху — большой заголовок с моим именем (вместо имени поставь {ИМЯ})
+- Под заголовком — короткий абзац: где учусь, чем увлекаюсь
+- Внизу — кнопка «Связаться», при наведении меняет цвет
+- Цвета — тёмная тема: фон #0F172A, акцент фиолетовый
+- Шрифт — Inter из Google Fonts
+- Без JavaScript, без внешних библиотек
+
+Ответь готовым кодом, который я могу скопировать в один файл и открыть в браузере.</div>
+    <p style="margin-top:14px; font-size:14px; color:var(--muted)">Замените <code class="inline">{ИМЯ}</code> на своё имя перед отправкой.</p>
+
+===== SLIDE 13/22 =====
+[NOTES] Покажите на проекторе: жмём Copy в DeepSeek, идём в VS Code, выделяем всё (Ctrl+A), вставляем (Ctrl+V), сохраняем (Ctrl+S).
+[HTML]
+<div class="eyebrow">Из чата → в файл</div>
+    <h2>Перенесите код в проект</h2>
+    <div class="grid cols-2">
+      <div>
+        <h3>Из DeepSeek в VS Code</h3>
+        <ol class="num-list">
+          <li>В ответе DeepSeek нажмите кнопку <strong>Copy</strong> над блоком кода</li>
+          <li>Вернитесь в VS Code, в файл <code class="inline">index.html</code></li>
+          <li>Выделите всё содержимое: <code class="inline">Ctrl+A</code></li>
+          <li>Удалите: <code class="inline">Delete</code></li>
+          <li>Вставьте код: <code class="inline">Ctrl+V</code></li>
+          <li>Сохраните: <code class="inline">Ctrl+S</code></li>
+        </ol>
+      </div>
+      <div>
+        <h3>Запуск в браузере</h3>
+        <ol class="num-list">
+          <li>В правом нижнем углу VS Code появится кнопка <strong>Go Live</strong></li>
+          <li>Нажмите её</li>
+          <li>Откроется браузер — там ваша страница</li>
+        </ol>
+        <div class="card warn" style="margin-top:14px">
+          <p style="font-size:14px">Если кнопки «Go Live» нет — нажмите правой кнопкой по <code class="inline">index.html</code> и выберите <strong>Open with Live Server</strong>.</p>
+        </div>
+      </div>
+    </div>
+
+===== SLIDE 14/22 =====
+[NOTES] Самые частые проблемы при первом запуске. Помните: 90% случаев решаются проверкой сохранения и пересмотром скопированного.
+[HTML]
+<div class="eyebrow">Если что-то пошло не так</div>
+    <h2>Первый запуск: типичные ситуации</h2>
+    <div class="grid cols-2">
+      <div class="card warn">
+        <h3>Страница белая</h3>
+        <ul style="list-style:none; margin-top:8px;">
+          <li style="padding:6px 0; font-size:14.5px">Проверьте, что файл сохранён (звёздочка рядом с именем означает «не сохранено»)</li>
+          <li style="padding:6px 0; font-size:14.5px">Проверьте, что в файле есть код, а не пустота</li>
+          <li style="padding:6px 0; font-size:14.5px">Если в коде попался лишний текст — оставьте только содержимое блока, между <code class="inline">```html</code> и <code class="inline">```</code></li>
+        </ul>
+      </div>
+      <div class="card warn">
+        <h3>Live Server не запускается</h3>
+        <ul style="list-style:none; margin-top:8px;">
+          <li style="padding:6px 0; font-size:14.5px">Проверьте, что расширение установлено и активно</li>
+          <li style="padding:6px 0; font-size:14.5px">Закройте лишние проекты, которые могли занять порт</li>
+          <li style="padding:6px 0; font-size:14.5px">Перезапустите VS Code</li>
+        </ul>
+      </div>
+    </div>
+    <div class="card accent" style="margin-top:18px">
+      <p style="font-size:16px; color:#E2E8F0">Если страница выдала ошибку — скопируйте текст ошибки и отправьте в DeepSeek с вопросом «как исправить?». В большинстве случаев нейросеть исправляет за один ответ.</p>
+    </div>
+
+===== SLIDE 15/22 =====
+[NOTES] Покажите на одном ученике 3 правки, остальные параллельно делают свои. Главная мысль: не редактируйте код руками — попросите нейросеть.
+[HTML]
+<div class="eyebrow">Доработка через диалог</div>
+    <h2>Три правки через сообщения</h2>
+    <div class="grid cols-3">
+      <div class="card">
+        <span class="badge primary">Правка 1</span>
+        <h3 style="margin-top:10px">Кнопка</h3>
+        <p style="font-size:14.5px; margin-top:6px;">«Сделай кнопку фиолетового цвета #7C3AED. При наведении пусть слегка увеличивается и появляется тень.»</p>
+      </div>
+      <div class="card">
+        <span class="badge cyan">Правка 2</span>
+        <h3 style="margin-top:10px">Аватарка</h3>
+        <p style="font-size:14.5px; margin-top:6px;">«Добавь круглую аватарку 120×120 пикселей сверху. Картинку возьми с api.dicebear.com/7.x/avataaars/svg?seed={имя}.»</p>
+      </div>
+      <div class="card">
+        <span class="badge good">Правка 3</span>
+        <h3 style="margin-top:10px">Анимация</h3>
+        <p style="font-size:14.5px; margin-top:6px;">«Добавь плавное появление элементов при загрузке: выезжают снизу с задержкой 0.2 сек. между блоками. Чистый CSS, без JavaScript.»</p>
+      </div>
+    </div>
+    <div class="card accent" style="margin-top:22px">
+      <p style="font-size:16px; color:#E2E8F0">Алгоритм каждой правки одинаковый: пишете правку → копируете новый код → заменяете содержимое <code class="inline">index.html</code> → сохраняете. Live Server обновит страницу сам.</p>
+    </div>
+
+===== SLIDE 16/22 =====
+[NOTES] Простой вопрос для проверки понимания. Подождите 10–15 секунд, потом разберите варианты ответов.
+[HTML]
+<div class="eyebrow">Проверка</div>
+    <h2>Изучите ситуацию и ответьте на вопрос</h2>
+    <div class="quiz-card">
+      <span class="q-num">Вопрос</span>
+      <p class="q-text">Вы скопировали код из DeepSeek в файл <code class="inline">index.html</code>, нажали Ctrl+S, открыли через Live Server — и видите белую страницу. Какие три причины самые вероятные?</p>
+    </div>
+    <details style="margin-top:18px">
+      <summary>Ответы</summary>
+      <div class="content">
+        <p>1. Файл сохранён под другим именем (например, <code>index.txt</code>) — Live Server не воспринимает его как HTML.</p>
+        <p>2. В файл попал лишний текст-подпись — браузер не распознал его как валидный HTML.</p>
+        <p>3. Файл сохранён, но был пуст — содержимое не было вставлено.</p>
+      </div>
+    </details>
+
+===== SLIDE 17/22 =====
+[NOTES] Это слайд для запоминания. Дайте ученикам сфоткать. 5 привычек, которые помогут на весь курс.
+[HTML]
+<div class="eyebrow">Запомните</div>
+    <h2>Полезные привычки вайб-кодера</h2>
+    <div class="kv-row">
+      <div class="k">01 · Точность</div>
+      <div class="v">Чем точнее формулируете задачу, тем точнее результат. Указывайте числа, имена цветов, конкретные URL.</div>
+    </div>
+    <div class="kv-row">
+      <div class="k">02 · Маленькие шаги</div>
+      <div class="v">Лучше пять последовательных правок, чем один промпт «сделай идеально». На небольших шагах проще сохранять контроль.</div>
+    </div>
+    <div class="kv-row">
+      <div class="k">03 · Ошибка → диалог</div>
+      <div class="v">Если что-то сломалось, скопируйте ошибку и отправьте в чат. Нейросеть подскажет, как починить.</div>
+    </div>
+    <div class="kv-row">
+      <div class="k">04 · Копилка промптов</div>
+      <div class="v">Удачные формулировки складывайте в файл <code class="inline">prompts.md</code> в папке курса. Это поможет на следующих уроках.</div>
+    </div>
+    <div class="kv-row">
+      <div class="k">05 · Запуск после правки</div>
+      <div class="v">После каждой правки открывайте страницу в браузере. Видеть результат важнее, чем читать код.</div>
+    </div>
+
+===== SLIDE 18/22 =====
+[NOTES] Чек-лист для проверки. Пройдите по каждому пункту, ученики поднимают руку, если готово.
+[HTML]
+<div class="eyebrow">Финальная проверка</div>
+    <h2>Что должно быть к 55-й минуте</h2>
+    <div class="grid cols-2">
+      <div>
+        <h3 style="color:var(--accent-2)">Установлено</h3>
+        <ul class="check-list">
+          <li>VS Code запускается</li>
+          <li><code class="inline">python --version</code> отвечает в терминале</li>
+          <li>Расширение Live Server активно</li>
+          <li>Аккаунт DeepSeek работает</li>
+        </ul>
+      </div>
+      <div>
+        <h3 style="color:var(--accent)">Сделано</h3>
+        <ul class="check-list">
+          <li>Папка <code class="inline">D:/vibe-coding/lesson-01/</code></li>
+          <li>В ней файл <code class="inline">index.html</code></li>
+          <li>Сайт открывается в браузере</li>
+          <li>Прошли минимум 3 правки через диалог</li>
+          <li>На странице есть аватарка, кнопка, анимация</li>
+        </ul>
+      </div>
+    </div>
+
+===== SLIDE 19/22 =====
+[NOTES] ДЗ — около 30 минут. Прислать скриншот сайта и скриншот диалога. По диалогу видно, как ученик формулирует.
+[HTML]
+<div class="eyebrow">Домашнее задание · около 30 минут</div>
+    <h2>Доделайте свою страницу</h2>
+    <p class="lead">Через диалог с DeepSeek добавьте к сайту 3 секции:</p>
+    <div class="grid cols-3" style="margin-top:18px">
+      <div class="card">
+        <h3>Мои хобби</h3>
+        <p style="font-size:14.5px">Горизонтальный ряд из 3 карточек: иконка, название, краткое описание.</p>
+      </div>
+      <div class="card">
+        <h3>Мои проекты</h3>
+        <p style="font-size:14.5px">Список из 2–3 пунктов: название и ссылка.</p>
+      </div>
+      <div class="card">
+        <h3>Контакты</h3>
+        <p style="font-size:14.5px">Telegram и email, оформленные как кликабельные ссылки.</p>
+      </div>
+    </div>
+    <div class="card warn" style="margin-top:22px">
+      <p style="font-size:15px">Пришлите в чат: скриншот итогового сайта + скриншот всего диалога с DeepSeek. Скриншот диалога важнее самого сайта — по нему видно, как вы формулируете промпты.</p>
+    </div>
+
+===== SLIDE 20/22 =====
+[NOTES] Этот слайд держите под рукой во время практики. Указывайте на него, когда у кого-то возникает проблема.
+[HTML]
+<div class="eyebrow">Шпаргалка по проблемам</div>
+    <h2>Если возникнет ситуация…</h2>
+    <div class="kv-row">
+      <div class="k">python не работает</div>
+      <div class="v">Пропущена галочка <code class="inline">Add to PATH</code>. Переустановите Python с этой галочкой.</div>
+    </div>
+    <div class="kv-row">
+      <div class="k">страница белая</div>
+      <div class="v">Файл не сохранён или пустой. Нажмите <code class="inline">Ctrl+S</code> и проверьте, что в нём есть код.</div>
+    </div>
+    <div class="kv-row">
+      <div class="k">DeepSeek по-английски</div>
+      <div class="v">В первом промпте напишите: «Отвечай на русском».</div>
+    </div>
+    <div class="kv-row">
+      <div class="k">Лишний текст в файле</div>
+      <div class="v">Берите только содержимое блока кода — между <code class="inline">```html</code> и <code class="inline">```</code>.</div>
+    </div>
+    <div class="kv-row">
+      <div class="k">Live Server не работает</div>
+      <div class="v">Перезапустите VS Code, проверьте во вкладке Extensions, что расширение Enabled.</div>
+    </div>
+
+===== SLIDE 21/22 =====
+[NOTES] Резюмируйте: за 60 минут — установка инструментов, первый сайт, 3 правки. Главное — у каждого появилась привычка вести диалог с нейросетью.
+[HTML]
+<div class="eyebrow">Итог урока</div>
+    <h2>Что у вас есть прямо сейчас</h2>
+    <div class="grid cols-2">
+      <div class="card good">
+        <h3 style="color:#6EE7B7">Среда разработчика</h3>
+        <p style="font-size:15px">VS Code, Python, Live Server, DeepSeek. Все инструменты установлены и готовы к использованию.</p>
+      </div>
+      <div class="card good">
+        <h3 style="color:#6EE7B7">Первый сайт</h3>
+        <p style="font-size:15px">Файл <code class="inline">index.html</code> открывается в браузере и выглядит аккуратно.</p>
+      </div>
+      <div class="card good">
+        <h3 style="color:#6EE7B7">Алгоритм работы</h3>
+        <p style="font-size:15px">Формулируете задачу → получаете код → запускаете → правите через диалог.</p>
+      </div>
+      <div class="card good">
+        <h3 style="color:#6EE7B7">Полезные привычки</h3>
+        <p style="font-size:15px">Точность, маленькие шаги, отправка ошибок в чат, копилка промптов, проверка в браузере.</p>
+      </div>
+    </div>
+
+===== SLIDE 22/22 [FINAL] =====
+[NOTES] Закройте урок. Расскажите коротко, что будет на следующем уроке: разделение на 3 файла и продвинутый промтинг.
+[HTML]
+<div class="eyebrow">Урок 1 завершён</div>
+    <div class="outro-big">До встречи<br>на уроке 2.</div>
+    <p class="lead">На следующем уроке: разделение проекта на 3 файла (HTML, CSS, JS), пять техник промтинга и сборка карточки любимого персонажа с интерактивными эффектами.</p>
+    <div class="chip-row" style="margin-top:30px">
+      <span class="badge primary">Урок 2 · Архитектура и промтинг</span>
+      <span class="badge cyan">5 техник</span>
+      <span class="badge good">Многофайловый проект</span>
+    </div>

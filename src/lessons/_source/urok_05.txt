@@ -1,0 +1,629 @@
+===== SLIDE 1/38 [COVER] =====
+[NOTES] Поприветствуйте. Сегодня большой день: первая программа на Python — и впервые нейросеть заработает внутри собственного кода. К концу урока у каждого — советчик, который отвечает на любой вопрос живым ответом DeepSeek.
+[HTML]
+<div class="eyebrow">Step 2 · Модуль 2 · Урок 05</div>
+<h1>Первая программа<br>на Python с AI.</h1>
+<p class="subtitle">Запустим Python в терминале и соберём советчика, внутри которого работает настоящая нейросеть: задаёте вопрос — DeepSeek отвечает прямо в вашей программе.</p>
+<div class="meta-row">
+  <span class="badge primary">60 минут</span>
+  <span class="badge cyan">13–15 лет</span>
+  <span class="badge good">Практика</span>
+</div>
+<div class="chip-row" style="margin-top:20px">
+  <span class="badge neutral">Python</span>
+  <span class="badge neutral">Терминал</span>
+  <span class="badge neutral">DeepSeek API</span>
+  <span class="badge neutral">input / print</span>
+</div>
+
+===== SLIDE 2/38 =====
+[NOTES] План. Теории — минимум: уже на 12-й минуте каждый запускает первый скрипт, к 30-й — советчик с живой нейросетью внутри. Дальше — 5 правок через диалог, как на прошлых уроках.
+[HTML]
+<div class="eyebrow">Agenda · план занятия</div>
+<h2>Как пройдут 60 минут</h2>
+<div class="timeline">
+  <div class="timeline-row"><div class="time">0–5</div><div><div class="title">Разбор ДЗ</div><div class="desc">Смотрим прокачанные «Змейки»: скорость, золотое яблоко, частицы.</div></div></div>
+  <div class="timeline-row"><div class="time">5–12</div><div><div class="title">Python и терминал</div><div class="desc">Новый язык — минимум теории, только чтобы запуститься.</div></div></div>
+  <div class="timeline-row"><div class="time">12–20</div><div><div class="title">Первый скрипт hello.py</div><div class="desc">Промпт → код → запуск в терминале.</div></div></div>
+  <div class="timeline-row"><div class="time">20–30</div><div><div class="title">Каркас советчика</div><div class="desc">Что такое API — и DeepSeek внутри вашей программы.</div></div></div>
+  <div class="timeline-row"><div class="time">30–48</div><div><div class="title">5 правок через диалог</div><div class="desc">Имя → характеры → цикл диалога → история → цвета.</div></div></div>
+  <div class="timeline-row"><div class="time">48–55</div><div><div class="title">Мини-вопросы и отладка</div><div class="desc">Читаем ошибки, проверяем понимание.</div></div></div>
+  <div class="timeline-row"><div class="time">55–60</div><div><div class="title">Демо в группе</div><div class="desc">Каждый задаёт советчику свой вопрос.</div></div></div>
+</div>
+
+===== SLIDE 3/38 =====
+[NOTES] Откройте 2-3 прокачанные «Змейки». Разбирайте диалог с нейросетью, а не только результат: какие промпты сработали с первого раза. Свяжите с сегодняшним уроком — те же приёмы работают в Python.
+[HTML]
+<div class="eyebrow">Разбор ДЗ урока 4</div>
+<h2>Смотрим прокачанные «Змейки»</h2>
+<p class="lead">Открываем 2–3 присланные игры и разбираем именно <em>диалог с нейросетью</em>, а не только рекорды.</p>
+<div class="grid cols-3" style="margin-top:24px">
+  <div class="card">
+    <h3>Что сработало</h3>
+    <p style="font-size:14.5px">Точечные промпты: одна фича — один запрос. Скорость, золотое яблоко и частицы добавляли по очереди.</p>
+  </div>
+  <div class="card">
+    <h3>Что переделывали</h3>
+    <p style="font-size:14.5px">Где забыли «не трогай остальной код» — нейросеть заодно сломала рестарт.</p>
+  </div>
+  <div class="card">
+    <h3>Вывод</h3>
+    <p style="font-size:14.5px">Точная формулировка плюс проверка после каждой правки. Сегодня это пригодится в Python.</p>
+  </div>
+</div>
+
+===== SLIDE 4/38 =====
+[NOTES] Главная мысль урока: у DeepSeek появляется вторая роль. Раньше он только писал код за нас в чате. Сегодня нейросеть впервые заработает внутри программы — advisor.py будет сам отправлять ей вопросы и печатать живые ответы.
+[HTML]
+<div class="eyebrow">Идея урока</div>
+<h2>Нейросеть — внутри вашей программы</h2>
+<p class="lead">Модуль 1 пройден: сайты, список задач и «Змейка» жили в браузере. Сегодня выходим в Python — и впервые <em>встраиваем нейросеть в собственный код</em>.</p>
+<div class="grid cols-2" style="margin-top:20px">
+  <div class="card">
+    <h3>Роль 1 · пишет код за нас</h3>
+    <p style="font-size:14.5px">Как раньше: формулируем задачу в чате DeepSeek — забираем готовый код. Это вайб-кодинг.</p>
+  </div>
+  <div class="card accent">
+    <h3>Роль 2 · работает внутри программы</h3>
+    <p style="font-size:14.5px"><strong>Новое:</strong> наш <code class="inline">advisor.py</code> сам отправляет вопросы нейросети через API и печатает живые ответы в терминале.</p>
+  </div>
+</div>
+
+===== SLIDE 5/38 =====
+[NOTES] Сравнение без «лучше/хуже»: JavaScript живёт в браузере, Python — в системе. Напомните: один язык им уже знаком — второй учится легче. Подход вайб-кодинга не меняется.
+[HTML]
+<div class="eyebrow">Сравнение</div>
+<h2>Python или JavaScript — в чём разница</h2>
+<div class="vs-grid">
+  <div class="vs-col minimal">
+    <h4>JavaScript</h4>
+    <p>Живёт в браузере. Ждёт события — клики и нажатия — и реагирует на них. Результат видим на странице.</p>
+    <p class="note">Им мы делали список задач и «Змейку».</p>
+  </div>
+  <div class="vs-col detailed">
+    <h4>Python</h4>
+    <p>Живёт в системе. Выполняется сверху вниз в терминале, управляет файлами, ботами и нейросетями.</p>
+    <p class="note">На нём написаны Telegram-боты и сам DeepSeek.</p>
+  </div>
+</div>
+<p style="font-size:14px; margin-top:14px; color:var(--muted)">Языки разные, а подход вайб-кодинга один: <strong>формулируем задачу — DeepSeek пишет код — мы запускаем</strong>.</p>
+
+===== SLIDE 6/38 =====
+[NOTES] Терминал — текстовое окно для команд, как чат с компьютером, только команды строгие. Все открывают терминал и проверяют python --version. Не идите дальше, пока у всех не показалась версия.
+[HTML]
+<div class="eyebrow">Новый инструмент</div>
+<h2>Терминал в VS Code</h2>
+<p class="lead">Терминал — <em>текстовое окно для команд компьютеру</em>: без кнопок и мыши. Ввели команду, нажали Enter — получили ответ.</p>
+<ol class="num-list" style="margin-top:8px">
+  <li>Откройте папку <code class="inline">vibe-coding</code> в VS Code</li>
+  <li>Нажмите <code class="inline">Ctrl+ё</code> (или меню <strong>Terminal → New Terminal</strong>)</li>
+  <li>Введите <code class="inline">python --version</code> — должно показать <code class="inline">Python 3.12</code></li>
+</ol>
+<div class="kv-row"><div class="k">Запуск</div><div class="v"><code class="inline">python имя_файла.py</code> — так запускается любой Python-скрипт.</div></div>
+<div class="card warn" style="margin-top:14px">
+  <p style="font-size:14.5px">Если видите «python is not recognized» — Python ставили на уроке 1. Позовите преподавателя: чинится за минуту.</p>
+</div>
+
+===== SLIDE 7/38 =====
+[NOTES] Никакой долгой подготовки: сразу просим код у DeepSeek. Промпт короткий, но с ролью и форматом — техники урока 2 работают и здесь. Дети копируют промпт целиком.
+[HTML]
+<div class="eyebrow">Промпт #1 · разминка</div>
+<h2>hello.py за две минуты</h2>
+<p class="lead">Не будем долго готовиться — попросим у DeepSeek первый скрипт и сразу запустим его в терминале.</p>
+<div class="prompt-box"><span class="h">→ Новый чат DeepSeek</span>
+Ты — опытный Python-разработчик и наставник школьника.
+Напиши маленький скрипт hello.py: он спрашивает имя через input,
+здоровается по имени и печатает одну приятную фразу дня.
+Только стандартная библиотека Python, без сторонних пакетов.
+Прокомментируй код для новичка и ответь одним блоком кода.</div>
+
+===== SLIDE 8/38 =====
+[NOTES] Фундамент урока: не идите дальше, пока у всех hello.py не запустился и не ответил. Это первый запуск Python у группы — у кого-то всплывут проблемы окружения, чините сразу.
+[HTML]
+<div class="eyebrow">Запуск</div>
+<h2>Первый Python-скрипт — 12-я минута</h2>
+<ol class="num-list">
+  <li>В <code class="inline">vibe-coding</code> создайте папку <code class="inline">lesson-05</code></li>
+  <li>Создайте файл <code class="inline">hello.py</code> и вставьте код из ответа DeepSeek</li>
+  <li>Сохраните: <code class="inline">Ctrl+S</code></li>
+  <li>В терминале выполните <code class="inline">python hello.py</code></li>
+</ol>
+<div class="card good" style="margin-top:16px">
+  <p style="font-size:14.5px">Программа спросила имя и ответила? Поздравляем — ваш <strong>первый Python-скрипт</strong> работает. Двенадцатая минута урока.</p>
+</div>
+
+===== SLIDE 9/38 =====
+[NOTES] Разбор на живом коде, который уже у всех запустился. Три кита сегодняшнего урока: print, input, f-строка. Подчеркните: input всегда возвращает строку — к этому вернёмся в мини-вопросе.
+[HTML]
+<div class="eyebrow">Разбор кода</div>
+<h2>Что внутри hello.py</h2>
+<pre><code class="language-python">name = input("Как тебя зовут? ")   # ждём ответ пользователя
+print(f"Привет, {name}!")          # подставляем имя в текст
+print("Фраза дня: маленькие шаги каждый день сильнее рывков.")</code></pre>
+<div style="margin-top:14px">
+  <div class="kv-row"><div class="k">print</div><div class="v">Выводит текст в терминал. Каждый print — новая строка.</div></div>
+  <div class="kv-row"><div class="k">input</div><div class="v">Останавливает программу и ждёт Enter. Возвращает <em>всегда строку</em> — даже если ввели число.</div></div>
+  <div class="kv-row"><div class="k">f-строка</div><div class="v"><code class="inline">f"Привет, {name}!"</code> — вставляет переменную прямо в текст через фигурные скобки.</div></div>
+</div>
+
+===== SLIDE 10/38 =====
+[NOTES] Шпаргалка по трём типичным проблемам первого запуска. Почините у всех — дальше эти же команды нужны для советчика.
+[HTML]
+<div class="eyebrow">Типичные ситуации запуска</div>
+<h2>Если hello.py не запустился</h2>
+<div class="grid cols-3" style="margin-top:20px">
+  <div class="card warn">
+    <h3>python is not recognized</h3>
+    <p style="font-size:14.5px">Python не добавлен в PATH. Переустановите с галочкой <strong>Add to PATH</strong> — или зовите преподавателя.</p>
+  </div>
+  <div class="card warn">
+    <h3>can't open file</h3>
+    <p style="font-size:14.5px">Терминал смотрит в другую папку. Закройте его и откройте заново из VS Code — он стартует в папке проекта.</p>
+  </div>
+  <div class="card warn">
+    <h3>SyntaxError</h3>
+    <p style="font-size:14.5px">Код скопирован не целиком. Вернитесь в чат DeepSeek и заберите весь блок кода заново.</p>
+  </div>
+</div>
+
+===== SLIDE 11/38 =====
+[NOTES] Ключевая новая идея урока. Объясните простыми словами: API — дверь, через которую программы обращаются к нейросети. Дети уже общались с DeepSeek в чате — теперь это будет делать их код.
+[HTML]
+<div class="eyebrow">Главная идея</div>
+<h2>Что такое API</h2>
+<p class="lead">Нейросеть можно вызывать не только из чата в браузере. У DeepSeek есть <em>API</em> — дверь для программ: ваш код отправляет вопрос, нейросеть возвращает ответ текстом.</p>
+<div class="card accent" style="margin-top:24px">
+  <p style="font-size:16px; color:#E2E8F0">API — это способ, которым <strong>программы разговаривают друг с другом</strong>. Сегодня ваша программа впервые заговорит с нейросетью напрямую — без браузера и без чата.</p>
+</div>
+
+===== SLIDE 12/38 =====
+[NOTES] Пройдите по трём шагам схемы. Подчеркните: внутри — тот же DeepSeek, что писал им код, меняется только способ обращения.
+[HTML]
+<div class="eyebrow">Как это работает</div>
+<h2>Как летит запрос</h2>
+<div class="grid cols-3" style="margin-top:18px">
+  <div class="step-card"><span class="num">1</span><h3 style="margin-top:6px">Запрос</h3><p style="font-size:14px"><code class="inline">advisor.py</code> собирает сообщение: модель, роль советчика и вопрос пользователя.</p></div>
+  <div class="step-card"><span class="num">2</span><h3 style="margin-top:6px">Нейросеть</h3><p style="font-size:14px">Сервер DeepSeek генерирует ответ — тот же «мозг», что отвечает вам в чате.</p></div>
+  <div class="step-card"><span class="num">3</span><h3 style="margin-top:6px">Ответ</h3><p style="font-size:14px">Программа получает текст и печатает его в терминале.</p></div>
+</div>
+<p style="font-size:14px; margin-top:16px; color:var(--muted)">Всё это — одна функция <code class="inline">requests.post</code> и пара строк кода. Их напишет DeepSeek.</p>
+
+===== SLIDE 13/38 =====
+[NOTES] Раздайте ключи (подготовьте заранее). Проговорите правило: ключ — как пароль, не публиковать и не показывать на скриншотах.
+[HTML]
+<div class="eyebrow">Пропуск к нейросети</div>
+<h2>API-ключ</h2>
+<p>Ключ — строка вида <code class="inline">sk-...</code> Это <em>пропуск</em>: по нему сервер понимает, кто стучится.</p>
+<div class="grid cols-2" style="margin-top:16px">
+  <div class="card">
+    <h3>Где взять</h3>
+    <p style="font-size:14.5px">Сегодня ключ выдаст преподаватель — просто вставите его в код.</p>
+  </div>
+  <div class="card">
+    <h3>Как хранить</h3>
+    <p style="font-size:14.5px">Ключ — как пароль: не публиковать, не показывать на скриншотах. Сегодня вставим в константу <code class="inline">API_KEY</code> прямо в код — для учёбы можно. Правильному хранению научимся на уроке 8.</p>
+  </div>
+</div>
+<div class="card warn" style="margin-top:16px">
+  <p style="font-size:14.5px">Если ключ «утёк» — его <strong>перевыпускают</strong>: старый перестаёт работать, выдаётся новый.</p>
+</div>
+
+===== SLIDE 14/38 =====
+[NOTES] Прочитайте цель вслух. Подчеркните: сегодня внутри программы — настоящая нейросеть, ответы у всех будут разными.
+[HTML]
+<div class="eyebrow">Goal · что будет в конце</div>
+<h2>Цель урока</h2>
+<div class="card accent">
+  <p class="lead" style="color:#E2E8F0">К 55-й минуте у каждого — советчик с настоящей нейросетью внутри: спрашивает имя и характер, ведёт диалог по кругу, отвечает живыми ответами DeepSeek, сохраняет историю в файл и печатает всё в цвете.</p>
+</div>
+<div class="grid cols-2" style="margin-top:28px">
+  <div>
+    <h3 style="color:var(--accent-2)">Узнаете</h3>
+    <ul class="check-list">
+      <li>Как Python-скрипт запускается в терминале</li>
+      <li>Что такое API и API-ключ</li>
+      <li>Как промпт живёт внутри кода — системная роль</li>
+    </ul>
+  </div>
+  <div>
+    <h3 style="color:var(--accent)">Сделаете</h3>
+    <ul class="check-list">
+      <li>Запустите первый скрипт</li>
+      <li>Подключите DeepSeek API к своей программе</li>
+      <li>Соберёте советчика через 5 правок</li>
+    </ul>
+  </div>
+</div>
+
+===== SLIDE 15/38 =====
+[NOTES] Покажите живой запуск советчика — соберите заранее. Спросите одно и то же дважды, чтобы группа увидела разные ответы нейросети.
+[HTML]
+<div class="eyebrow">Демо результата</div>
+<h2>Что соберём сегодня</h2>
+<pre><code class="language-bash">🔮 Советчик на связи!
+Как тебя зовут? Маша
+Выбери характер: 1 — добрый друг, 2 — строгий тренер, 3 — весёлый кот
+&gt; 1
+Маша, о чём поговорим? Завтра контрольная по алгебре, страшно
+Совет: Страх перед контрольной — это нормально. Разбери два-три
+типовых примера сегодня вечером — и завтра рука сама всё вспомнит.
+Маша, о чём поговорим? выход
+Записал наш разговор в history.txt. До встречи, Маша!</code></pre>
+<p style="font-size:14px; margin-top:14px; color:var(--muted)">Совет сгенерировала <em>нейросеть</em> — у каждого в классе ответы будут свои.</p>
+
+===== SLIDE 16/38 =====
+[NOTES] Подготовка: advisor.py рядом с hello.py, затем pip install requests. Дождитесь, пока установка пройдёт у всех — без requests дальше никак.
+[HTML]
+<div class="eyebrow">Подготовка</div>
+<h2>Папка lesson-05 и requests</h2>
+<div class="grid cols-2">
+  <div>
+    <ol class="num-list">
+      <li>Папка <code class="inline">lesson-05</code> уже есть — в ней живёт <code class="inline">hello.py</code></li>
+      <li>Создайте файл <code class="inline">advisor.py</code></li>
+      <li>В терминале выполните <code class="inline">pip install requests</code> — библиотека, через которую Python ходит в интернет</li>
+    </ol>
+  </div>
+  <div>
+<pre><code class="language-bash">D:/vibe-coding/lesson-05/
+├── hello.py
+└── advisor.py</code></pre>
+    <div class="card warn" style="margin-top:14px">
+      <p style="font-size:14.5px"><code class="inline">pip</code> ставит библиотеку один раз. При повторном запуске напишет <code class="inline">Requirement already satisfied</code> — это нормально.</p>
+    </div>
+  </div>
+</div>
+
+===== SLIDE 17/38 =====
+[NOTES] Скопировать промпт целиком в новый чат DeepSeek. Обратите внимание: url и модель уже в промпте — нейросеть соберёт рабочий запрос сама.
+[HTML]
+<div class="eyebrow">Промпт #2 · стартовый</div>
+<h2>Каркас советчика</h2><div class="prompt-box"><span class="h">→ Новый чат DeepSeek</span>
+Ты — <em>опытный Python-разработчик</em> и наставник школьника.
+Напиши advisor.py — советчика для подростка с DeepSeek API.
+
+Что должен делать каркас:
+- печатает приветствие «🔮 Советчик на связи!»
+- спрашивает вопрос через input
+- отправляет его в DeepSeek API: url <em>https://api.deepseek.com/chat/completions</em>, модель <em>deepseek-chat</em>, библиотека requests
+- системная роль: «Ты дружелюбный советчик для подростка. Отвечай кратко, 2–3 предложения, по-русски»
+- печатает ответ нейросети и прощается
+
+Ключ — в константе API_KEY в начале файла, я вставлю свой.
+Прокомментируй код для новичка. Ответь одним блоком кода.</div>
+
+===== SLIDE 18/38 =====
+[NOTES] Раздайте ключи заранее и проверьте интернет на машинах. Первый запуск с API — дождитесь, пока у каждого появится ответ нейросети.
+[HTML]
+<div class="eyebrow">Запуск каркаса</div>
+<h2>Вставляем ключ и запускаем</h2>
+<ol class="num-list">
+  <li>Скопируйте код из ответа DeepSeek в <code class="inline">advisor.py</code></li>
+  <li>Замените <code class="inline">sk-...</code> на ключ, который выдал преподаватель</li>
+  <li>Сохраните файл (<code class="inline">Ctrl+S</code>)</li>
+  <li>Выполните <code class="inline">python advisor.py</code></li>
+  <li>Задайте советчику настоящий вопрос</li>
+</ol>
+<div class="card warn" style="margin-top:18px">
+  <p style="font-size:14.5px">Ключ — <strong>в кавычках и без пробелов</strong>. На скриншотах для домашки ключ замазываем.</p>
+</div>
+
+===== SLIDE 19/38 =====
+[NOTES] Дайте момент прочувствовать: их код только что поговорил с нейросетью. Попросите задать один и тот же вопрос дважды и сравнить ответы.
+[HTML]
+<div class="eyebrow">Момент урока</div>
+<h2>Первый ответ нейросети</h2>
+<p class="lead">Вы только что соединили свой код с нейросетью: вопрос ушёл из вашей программы на сервер DeepSeek — ответ вернулся в ваш терминал.</p>
+<div class="card good" style="margin-top:18px">
+  <p style="font-size:14.5px">Спросите одно и то же дважды — ответы будут <strong>разными</strong>: нейросеть генерирует текст заново, а не достаёт из списка.</p>
+</div>
+<div class="card accent" style="margin-top:14px">
+  <p style="font-size:14.5px">Это та же нейросеть, что писала вам код в чате, — теперь она <strong>работает на вас</strong> внутри вашей программы.</p>
+</div>
+
+===== SLIDE 20/38 =====
+[NOTES] Пробегитесь по четырём ситуациям. Чаще всего — забыли pip install requests или ключ вставлен с лишним пробелом. Помогите лично тем, у кого не отвечает, остальные сверяются со слайдом.
+[HTML]
+<div class="eyebrow">Если советчик не ответил</div>
+<h2>Типичные ситуации запуска</h2>
+<div class="kv-row"><div class="k">ModuleNotFoundError</div><div class="v">Библиотека <code class="inline">requests</code> не установлена. В терминале: <code class="inline">pip install requests</code> — и запускайте снова.</div></div>
+<div class="kv-row"><div class="k">401 Unauthorized</div><div class="v">Ключ скопирован не целиком или с пробелом. Проверьте константу <code class="inline">API_KEY</code>: ключ начинается с <code class="inline">sk-</code> и стоит в кавычках.</div></div>
+<div class="kv-row"><div class="k">«Программа зависла»</div><div class="v">5–10 секунд тишины — это <strong>нейросеть думает</strong>. Нормально. Подождите ответ.</div></div>
+<div class="kv-row"><div class="k">ConnectionError</div><div class="v">Программа не достучалась до интернета. Проверьте Wi-Fi и запустите ещё раз.</div></div>
+
+===== SLIDE 21/38 =====
+[NOTES] Разбор ядра. Не углубляйтесь в каждый символ: четыре смысловых блока — адрес, пропуск, посылка, ответ. Остальное дети уже видели в работе.
+[HTML]
+<div class="eyebrow">Разбор кода</div>
+<h2>Четыре строки, которые ходят к нейросети</h2>
+<pre><code class="language-python">url = "https://api.deepseek.com/chat/completions"   # адрес DeepSeek
+headers = {"Authorization": f"Bearer {API_KEY}"}     # пропуск: ваш ключ
+
+data = {
+    "model": "deepseek-chat",                        # какая модель отвечает
+    "messages": [
+        {"role": "system", "content": "Ты дружелюбный советчик…"},
+        {"role": "user", "content": question},       # вопрос из input
+    ],
+}
+
+response = requests.post(url, headers=headers, json=data)   # отправили
+answer = response.json()["choices"][0]["message"]["content"] # достали текст</code></pre>
+<p style="font-size:14px; margin-top:12px; color:var(--muted)"><code class="inline">headers</code> — пропуск с ключом, <code class="inline">data</code> — что отправляем, <code class="inline">response</code> — что вернулось. Всё остальное — обёртка.</p>
+
+===== SLIDE 22/38 =====
+[NOTES] Ключевая идея урока: в messages два сообщения с разными ролями. Системную роль пишем мы — это промпт внутри программы. Свяжите с уроком 2: те же техники промптинга.
+[HTML]
+<div class="eyebrow">Разбор кода</div>
+<h2>Два сообщения — две роли</h2>
+<div class="kv-row"><div class="k">role: system</div><div class="v">Характер и правила советчика. Пишем <strong>мы, один раз</strong>: «Ты дружелюбный советчик для подростка. Отвечай кратко, 2–3 предложения».</div></div>
+<div class="kv-row"><div class="k">role: user</div><div class="v">Живой вопрос пользователя — то, что пришло из <code class="inline">input</code>. Меняется при каждом запуске.</div></div>
+<div class="card accent" style="margin-top:16px">
+  <p style="font-size:15px">Системная роль — это <strong>промпт, который живёт внутри программы</strong>. Роль, контекст, формат, ограничения — те же 5 техник из урока 2, только теперь в вашем коде.</p>
+</div>
+
+===== SLIDE 23/38 =====
+[NOTES] Первая правка идёт в тот же чат. Дождитесь, пока у всех советчик зовёт по имени, потом идём дальше.
+[HTML]
+<div class="eyebrow">Правка 1 · знакомство</div>
+<h2>Советчик зовёт по имени</h2><div class="prompt-box"><span class="h">→ В тот же чат</span>
+Доработай advisor.py, остальное не меняй:
+- Перед вопросом программа знакомится: спрашивает имя через <em>input</em>
+- Дальше обращается по имени: <em>«{имя}, о чём поговорим?»</em>
+- Имя добавь и в системную роль: <em>«Пользователя зовут {имя}, обращайся к нему по имени»</em>
+
+Верни весь обновлённый advisor.py целиком.</div>
+
+===== SLIDE 24/38 =====
+[NOTES] Самый весёлый момент урока. После запуска дайте 2–3 минуты поиграть с характерами: один и тот же вопрос — три разных советчика.
+[HTML]
+<div class="eyebrow">Правка 2 · выбор характера</div>
+<h2>Меняем системную роль — меняем советчика</h2>
+<p class="lead">Код останется тем же. Поменяем только <em>текст системной роли</em> — и советчик станет другим «человеком».</p><div class="prompt-box"><span class="h">→ В тот же чат</span>
+Добавь выбор характера при запуске:
+- 1 — <em>добрый друг</em>: поддерживает, мягкий тон
+- 2 — <em>строгий тренер</em>: краткие чёткие шаги, без сюсюканья
+- 3 — <em>весёлый кот</em>: шутит и мурлычет, но советы дельные
+- Пользователь вводит цифру, и в системную роль подставляется соответствующее описание
+- Если ввели не 1/2/3 — используй характер 1
+
+Верни весь файл.</div>
+
+===== SLIDE 25/38 =====
+[NOTES] Зафиксируйте вывод: качество программы с нейросетью равно качеству промпта внутри неё. Пусть каждый задаст один вопрос всем трём характерам.
+[HTML]
+<div class="eyebrow">Полезное знание</div>
+<h2>Промпт — часть программы</h2>
+<pre><code class="language-python">characters = {
+    "1": "Ты добрый друг: поддерживай и подбадривай.",
+    "2": "Ты строгий тренер: давай чёткие шаги, без воды.",
+    "3": "Ты весёлый кот: шути и мурлычь, но советуй дельно.",
+}
+role = characters.get(choice, characters["1"])
+
+messages = [{"role": "system", "content": role}, ...]</code></pre>
+<div class="card good" style="margin-top:14px">
+  <p style="font-size:14.5px">Код один и тот же — звучит советчик совершенно иначе. <strong>Качество вашей программы с нейросетью = качество промпта внутри неё.</strong> Попробуйте все три характера на одном вопросе.</p>
+</div>
+
+===== SLIDE 26/38 =====
+[NOTES] Правка 3. После неё советчик превращается в настоящий чат. Дождитесь, пока у всех работает «выход», потом идём дальше.
+[HTML]
+<div class="eyebrow">Правка 3 · разговор по кругу</div>
+<h2>Диалог, а не один ответ</h2><div class="prompt-box"><span class="h">→ В тот же чат</span>
+Сейчас советчик отвечает один раз и выключается. Сделай диалог:
+- Программа спрашивает <em>«{имя}, о чём поговорим?»</em> по кругу
+- На каждый вопрос — новый ответ нейросети
+- Цикл крутится, пока пользователь не введёт <em>«выход»</em>
+- После «выход» — попрощайся по имени
+
+Верни весь файл.</div>
+
+===== SLIDE 27/38 =====
+[NOTES] Минимум теории про цикл: повторяет блок, break выходит. Подчеркните, почему проверка «выход» стоит до запроса — не тратим обращение к нейросети впустую. Подробно циклы — на уроке 6.
+[HTML]
+<div class="eyebrow">Разбор кода</div>
+<h2>Как работает вечный цикл</h2>
+<pre><code class="language-python">while True:                          # повторять бесконечно
+    question = input(f"{name}, о чём поговорим? ")
+    if question.lower() == "выход":
+        break                        # выйти из цикла
+    # ...запрос к нейросети и печать ответа...</code></pre>
+<p style="font-size:14.5px; margin-top:12px"><code class="inline">while True</code> повторяет блок снова и снова, <code class="inline">break</code> — выход. Проверка «выход» стоит <strong>до</strong> запроса, чтобы не тратить обращение к нейросети впустую.</p>
+<div class="card accent" style="margin-top:12px">
+  <p style="font-size:14.5px">Циклы — главная тема <strong>урока 6</strong>. Сегодня берём необходимый минимум.</p>
+</div>
+
+===== SLIDE 28/38 =====
+[NOTES] Правка 4. После запуска покажите: в папке появился history.txt — откройте его прямо в VS Code, там весь разговор с датами. Если группа отстаёт по времени — правки 4 и 5 можно перенести в домашнее задание.
+[HTML]
+<div class="eyebrow">Правка 4 · история диалога</div>
+<h2>Советчик ведёт дневник</h2><div class="prompt-box"><span class="h">→ В тот же чат</span>
+Пусть советчик ведёт дневник:
+- После каждого ответа дозаписывай в файл <em>history.txt</em> строку вида «[2026-06-12 18:30] Маша: вопрос → ответ нейросети»
+- Дату и время бери из <em>datetime.now()</em>
+- Файл открывай через <em>with open('history.txt', 'a', encoding='utf-8')</em>
+- Если файла нет — он должен создаться сам
+
+Верни весь файл.</div>
+
+===== SLIDE 29/38 =====
+[NOTES] Главная ловушка — режим w стирает файл. Дайте сфотографировать таблицу режимов.
+[HTML]
+<div class="eyebrow">Разбор кода</div>
+<h2>with open и режимы файла</h2>
+<pre><code class="language-python">from datetime import datetime
+
+now = datetime.now().strftime('%Y-%m-%d %H:%M')
+with open('history.txt', 'a', encoding='utf-8') as f:
+    f.write(f"[{now}] {name}: {question} → {answer}\n")</code></pre>
+<div class="kv-row" style="margin-top:12px"><div class="k">'r' — читать</div><div class="v">Только смотрим содержимое, менять нельзя.</div></div>
+<div class="kv-row"><div class="k">'w' — переписать</div><div class="v">Создаёт файл заново и <strong>стирает всё старое</strong>. Осторожно!</div></div>
+<div class="kv-row"><div class="k">'a' — дописать</div><div class="v">Добавляет строки в конец. История копится — нам сюда.</div></div>
+<p style="font-size:14px; margin-top:12px; color:var(--muted)"><code class="inline">with</code> закрывает файл сам, а <code class="inline">encoding='utf-8'</code> бережёт русские буквы от кракозябр.</p>
+
+===== SLIDE 30/38 =====
+[NOTES] Последняя правка — косметика. Цвета сразу видны: советчик начинает выглядеть как настоящий продукт. Дождитесь, пока все запустят, потом идём к разбору.
+[HTML]
+<div class="eyebrow">Правка 5 · цвет в терминале</div>
+<h2>Раскрашиваем советчика</h2><div class="prompt-box"><span class="h">→ В тот же чат</span>
+Раскрась вывод советчика ANSI-кодами, <em>без сторонних библиотек</em>:
+- Приветствие — фиолетовым
+- Вопросы пользователю — голубым
+- Ответ нейросети — <em>зелёным и жирным</em>
+- Прощание — обычным цветом
+
+Заведи в начале файла константы вроде VIOLET = '\033[35m'
+и RESET = '\033[0m' и подставляй их в print через f-строки.
+
+Верни весь обновлённый advisor.py.</div>
+
+===== SLIDE 31/38 =====
+[NOTES] Разбор цветов. Покажите: пять констант в начале файла, дальше обычные f-строки. Если у кого-то цвета не появились — пусть проверит, что запускает программу во встроенном терминале VS Code.
+[HTML]
+<div class="eyebrow">Разбор кода</div>
+<h2>Как терминал понимает цвет</h2>
+<p>Терминал следит за <strong>специальными последовательностями</strong> в тексте: <code class="inline">\033[35m</code> переключает цвет, <code class="inline">\033[0m</code> возвращает обычный. Удобно завести константы в начале файла:</p>
+<pre style="margin-top:14px"><code class="language-python">VIOLET = '\033[35m'   # фиолетовый
+CYAN   = '\033[96m'   # ярко-голубой
+GREEN  = '\033[92m'   # ярко-зелёный
+BOLD   = '\033[1m'    # жирный
+RESET  = '\033[0m'    # вернуть обычный вид
+
+print(f"{GREEN}{BOLD}Совет:{RESET}")</code></pre>
+<div class="card warn" style="margin-top:14px">
+  <p style="font-size:14.5px">Работает во встроенном терминале VS Code. В старых системных консолях цвета могут не появиться — это <strong>не ошибка вашего кода</strong>.</p>
+</div>
+
+===== SLIDE 32/38 =====
+[NOTES] Вопрос про природу нейросети. Дайте 10–15 секунд подумать, потом раскройте ответ. Это ключевое отличие от программ с заготовками — нейросеть генерирует текст заново.
+[HTML]
+<div class="eyebrow">Проверка · вопрос 1</div>
+<h2>Изучите ситуацию и ответьте</h2>
+<div class="quiz-card">
+  <span class="q-num">Вопрос</span>
+  <p class="q-text">Маша задала советчику один и тот же вопрос два раза подряд — и получила два разных ответа. Серёжа говорит: «У тебя программа сломалась». Прав ли он?</p>
+</div>
+<details style="margin-top:18px">
+  <summary>Ответ</summary>
+  <div class="content">
+    <p>Нет. Нейросеть <strong>не достаёт ответ из готового списка</strong> — она генерирует текст заново при каждом запросе, поэтому формулировки отличаются.</p>
+    <p>Так работает и чат DeepSeek: задайте одинаковый вопрос дважды — получите разные ответы. Это не баг, а природа нейросети.</p>
+  </div>
+</details>
+
+===== SLIDE 33/38 =====
+[NOTES] Вопрос про режимы открытия файла. Частая ошибка — w вместо a. Свяжите с дневником: дневник не переписывают с нуля каждый день.
+[HTML]
+<div class="eyebrow">Проверка · вопрос 2</div>
+<h2>Изучите ситуацию и ответьте</h2>
+<div class="quiz-card">
+  <span class="q-num">Вопрос</span>
+  <p class="q-text">Алина решила «улучшить» сохранение истории и поменяла режим открытия файла с <code class="inline">'a'</code> на <code class="inline">'w'</code>. Ошибок нет, но после каждого запуска в history.txt остаётся только последняя запись. Почему?</p>
+</div>
+<details style="margin-top:18px">
+  <summary>Ответ</summary>
+  <div class="content">
+    <p>Режим <strong>'w'</strong> каждый раз создаёт файл заново и <strong>стирает старое содержимое</strong>. Для дневника нужен режим <strong>'a'</strong> — append, дозапись в конец файла.</p>
+  </div>
+</details>
+
+===== SLIDE 34/38 =====
+[NOTES] Научите читать traceback снизу вверх — это пригодится на всех уроках Python. Напомните привычку из «Змейки»: непонятная ошибка целиком уходит в DeepSeek. И новое: странные ответы нейросети чинятся в системной роли.
+[HTML]
+<div class="eyebrow">Отладка</div>
+<h2>Читаем ошибки Python</h2>
+<div class="grid cols-2">
+  <div>
+    <h3>Traceback — снизу вверх</h3>
+<pre><code class="language-bash">Traceback (most recent call last):
+  File "advisor.py", line 12, in &lt;module&gt;
+    print(advise)
+NameError: name 'advise' is not defined</code></pre>
+    <p style="font-size:14px; margin-top:10px; color:var(--muted)">Последняя строка — <strong>что</strong> случилось (NameError, IndentationError…), строкой выше — <strong>где</strong>.</p>
+  </div>
+  <div>
+    <h3>Если застряли</h3>
+    <ul class="check-list">
+      <li><strong>Ошибка непонятна</strong> — скопируйте traceback целиком в чат DeepSeek и попросите объяснить и починить</li>
+      <li><strong>Программа молчит</strong> — добавьте print-метки, чтобы увидеть, докуда дошло выполнение</li>
+      <li><strong>Ответ нейросети странный</strong> — проблема почти всегда в системной роли: перечитайте её текст</li>
+    </ul>
+    <p style="font-size:14px; margin-top:10px; color:var(--muted)">Это та же привычка, что <code class="inline">console.log</code> в «Змейке».</p>
+  </div>
+</div>
+
+===== SLIDE 35/38 =====
+[NOTES] 5 привычек разработчика с нейросетью. Дайте сфотографировать слайд. Особо подчеркните первую: ключ — это пароль.
+[HTML]
+<div class="eyebrow">Запомните</div>
+<h2>Привычки разработчика с нейросетью</h2>
+<div class="kv-row"><div class="k">01 · Ключ — это пароль</div><div class="v">Не публикуем, не показываем на скриншотах. Утёк — перевыпускаем.</div></div>
+<div class="kv-row"><div class="k">02 · Промпт живёт в коде</div><div class="v">Системная роль решает, каким будет ответ. Меняешь её — меняется программа.</div></div>
+<div class="kv-row"><div class="k">03 · Терминал — друг</div><div class="v">Любой скрипт: <code class="inline">python имя_файла.py</code>. Библиотеки: <code class="inline">pip install</code>.</div></div>
+<div class="kv-row"><div class="k">04 · input → строка</div><div class="v">Всё из input приходит текстом. Число достаём через <code class="inline">int(...)</code>.</div></div>
+<div class="kv-row"><div class="k">05 · with open</div><div class="v">Файлы открываем только так — закроется сам. Режим <code class="inline">'a'</code> — дозапись.</div></div>
+
+===== SLIDE 36/38 =====
+[NOTES] Чек-лист завершения советчика. Кто отметил всё — пусть даст соседу задать вопрос своему советчику и сравнит характеры.
+[HTML]
+<div class="eyebrow">Чек-лист</div>
+<h2>Что должно быть к 55-й минуте</h2>
+<div class="grid cols-2">
+  <div>
+    <h3 style="color:var(--accent-2)">Готово</h3>
+    <ul class="check-list">
+      <li><code class="inline">advisor.py</code> запускается командой <code class="inline">python advisor.py</code></li>
+      <li>Советчик здоровается по имени</li>
+      <li>Характер выбирается при запуске и реально меняет тон ответов</li>
+    </ul>
+  </div>
+  <div>
+    <h3 style="color:var(--accent)">Работает</h3>
+    <ul class="check-list">
+      <li>Диалог идёт по кругу, пока не введёте «выход»</li>
+      <li>Ответы генерирует нейросеть DeepSeek — не заготовки</li>
+      <li>История дописывается в <code class="inline">history.txt</code> с датой</li>
+      <li>Вывод цветной</li>
+    </ul>
+  </div>
+</div>
+<div class="card good" style="margin-top:22px">
+  <p style="font-size:15px">Всё отмечено? Дайте соседу задать вашему советчику вопрос — и сравните характеры.</p>
+</div>
+
+===== SLIDE 37/38 =====
+[NOTES] ДЗ — прокачать советчика, примерно 30 минут. Каждое улучшение — отдельный диалог с DeepSeek, не всё сразу. Напомните про ключ на скриншотах.
+[HTML]
+<div class="eyebrow">Домашнее задание · около 30 минут</div>
+<h2>Прокачайте советчика</h2>
+<p class="lead">Три улучшения — каждое через отдельный диалог с DeepSeek:</p>
+<div class="grid cols-3" style="margin-top:18px">
+  <div class="card">
+    <h3>Свой характер</h3>
+    <p style="font-size:14.5px">Придумайте четвёртый характер — например, мудрый дедушка или капитан космического корабля — и добавьте в меню. Проверьте, как меняются ответы.</p>
+  </div>
+  <div class="card">
+    <h3>Память разговора</h3>
+    <p style="font-size:14.5px">Сейчас советчик забывает каждый вопрос. Попросите DeepSeek хранить прошлые сообщения диалога в списке <code class="inline">messages</code> и отправлять их вместе с новым вопросом — советчик начнёт помнить, о чём вы говорили.</p>
+  </div>
+  <div class="card">
+    <h3>ASCII-логотип</h3>
+    <p style="font-size:14.5px">При старте советчик рисует надпись СОВЕТЧИК псевдографикой — попросите DeepSeek сгенерировать.</p>
+  </div>
+</div>
+<div class="card warn" style="margin-top:22px">
+  <p style="font-size:15px">Пришлите скриншот терминала с диалогом — <strong>ключ замажьте!</strong> Ваш самый удачный промпт — отдельным сообщением.</p>
+</div>
+
+===== SLIDE 38/38 [FINAL] =====
+[NOTES] Закройте урок. Сегодня двойной прорыв: первый Python-скрипт и первая программа с нейросетью внутри. На уроке 6 — циклы и функции, текстовая игра-приключение с сюжетом от нейросети.
+[HTML]
+<div class="eyebrow">Урок 5 завершён</div>
+<div class="outro-big">До встречи<br>на уроке 6.</div>
+<p class="lead">Сегодня вы запустили первый Python-скрипт и подключили нейросеть к собственной программе: input, API, системная роль, цикл, файлы, цвета. На уроке 6 — циклы и функции по-настоящему: соберём текстовую игру-приключение, где сюжет на лету генерирует нейросеть.</p>
+<div class="chip-row" style="margin-top:30px">
+  <span class="badge primary">Урок 6 · Циклы и функции</span>
+  <span class="badge cyan">while и def</span>
+  <span class="badge good">Текстовая игра с AI</span>
+</div>

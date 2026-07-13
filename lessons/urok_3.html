@@ -1,0 +1,1197 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Урок 3 — Интерактивность: события и DOM | Eduson Kids</title>
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter+Tight:wght@600;700;800;900&family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;700&display=swap">
+
+<style>
+/* ============ Дизайн-токены Eduson Kids ============ */
+:root{
+  --ek-violet:#8C7FF6; --ek-violet-soft:#A79EF9; --ek-violet-deep:#6F61E8; --ek-violet-bg:#F0EEFE;
+  --ek-green:#3DF79D; --ek-green-soft:#7BF9BD; --ek-green-mint:#C9F7E3; --ek-green-pale:#E7FDF2; --ek-green-deep:#0FBF6E;
+  --ek-ink:#17171C; --ek-gray:#8F8F98; --ek-gray-light:#EFEFF2; --ek-line:#E3E3EA;
+  --ek-red:#FF6B6B; --ek-red-soft:#FF8A8A; --ek-red-deep:#E04848; --ek-red-pale:#FFECEC;
+  --f-head:'Inter Tight','Inter','Segoe UI',system-ui,sans-serif;
+  --f-body:'Inter','Segoe UI',system-ui,sans-serif;
+  --f-mono:'JetBrains Mono','Cascadia Mono','Consolas',monospace;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{height:100%;overflow:hidden}
+body{font-family:var(--f-body);background:#E9E9F1;color:var(--ek-ink);-webkit-font-smoothing:antialiased}
+
+/* ============ Хром: прогресс, счётчик, подсказка ============ */
+.progress{position:fixed;top:0;left:0;right:0;height:4px;background:rgba(23,23,28,.08);z-index:100}
+.progress__fill{height:100%;width:0%;background:var(--ek-violet);transition:width 300ms ease}
+.counter{position:fixed;top:14px;right:18px;z-index:90;font:600 13px var(--f-body);color:var(--ek-gray);background:#fff;border:1px solid var(--ek-line);padding:6px 14px;border-radius:999px;font-variant-numeric:tabular-nums}
+.counter b{color:var(--ek-ink)}
+.hint{position:fixed;bottom:12px;left:50%;transform:translateX(-50%);z-index:90;font:500 11px var(--f-body);color:var(--ek-gray);background:#fff;border:1px solid var(--ek-line);padding:6px 14px;border-radius:999px;letter-spacing:.03em}
+.hint kbd{font-family:var(--f-mono);background:var(--ek-gray-light);padding:1px 6px;border-radius:4px;font-size:10px;margin:0 2px;color:var(--ek-ink)}
+
+/* ============ Сцена 1280×720 ============ */
+.stage{position:absolute;left:50%;top:50%;width:1280px;height:720px;transform:translate(-50%,-50%);border-radius:18px;overflow:hidden;box-shadow:0 30px 90px rgba(23,23,28,.18);background:#fff}
+.slide{position:absolute;inset:0;background:#fff;opacity:0;transform:translateY(26px);transition:opacity 280ms ease,transform 280ms ease;pointer-events:none;font-family:var(--f-head)}
+.slide.active{opacity:1;transform:none;pointer-events:auto}
+.slide.prev{transform:translateY(-26px)}
+.slide--violet{background:var(--ek-violet)}
+.slide--green{background:var(--ek-green)}
+
+/* Номер страницы на контентных слайдах */
+.slide--content::after{content:attr(data-page);position:absolute;right:54px;bottom:30px;font:800 30px/1 var(--f-head);color:var(--ek-ink);opacity:.5}
+
+/* ============ Декор «Орбита» ============ */
+.sl-orbit{position:absolute;inset:0;pointer-events:none}
+.slide--violet .sl-orbit{--decor:#A79EF9;--letter:#C4BEFA}
+.slide--green .sl-orbit{--decor:#7BF9BD;--letter:#C4FCE0}
+.sl-ring{position:absolute;left:50%;top:50%;width:1040px;height:660px;transform:translate(-50%,-50%);border:3px solid var(--decor);border-radius:50%;opacity:.9}
+.sl-ico{position:absolute;color:var(--decor)}
+.sl-letter{position:absolute;border-radius:50%;background:var(--decor);color:var(--letter);display:flex;align-items:center;justify-content:center;font:800 var(--fs,40px)/1 var(--f-head);font-style:normal}
+
+/* ============ Каверы: карточка-окно и спич-бабл ============ */
+.cover-center{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);z-index:2}
+.cover-card{position:relative;width:860px;background:#fff;border-radius:28px;box-shadow:0 30px 80px rgba(23,23,28,.18)}
+.card-top{display:flex;justify-content:space-between;align-items:center;padding:24px 30px 0}
+.win-dots{display:flex;gap:9px}
+.win-dots i{width:13px;height:13px;border-radius:50%;background:var(--ek-violet)}
+.win-close{position:relative;width:22px;height:22px}
+.win-close::before,.win-close::after{content:"";position:absolute;left:-1px;top:9px;width:24px;height:4px;border-radius:2px;background:var(--ek-violet)}
+.win-close::before{transform:rotate(45deg)}
+.win-close::after{transform:rotate(-45deg)}
+.cover-card .badge{position:absolute;left:50%;top:-30px;transform:translateX(-50%) rotate(-4deg)}
+.cover-card h1{padding:26px 64px 30px;text-align:center;font:800 50px/1.14 var(--f-head);letter-spacing:-.015em;color:var(--ek-ink)}
+.cover-card .cover-sub{padding:0 80px 34px;text-align:center;font:500 19px/1.5 var(--f-body);color:#3C3C45}
+.cover-card .cover-chips{display:flex;justify-content:center;gap:10px;flex-wrap:wrap;padding:0 40px 40px}
+.bubble{position:relative;width:660px;background:#EFEFF1;border-radius:30px;padding:56px 70px;text-align:center}
+.bubble::after{content:"";position:absolute;right:56px;bottom:-24px;width:0;height:0;border-left:38px solid transparent;border-top:28px solid #EFEFF1}
+.bubble h1{font:800 42px/1.25 var(--f-head);letter-spacing:-.01em;color:var(--ek-ink)}
+.bubble p{margin-top:16px;font:500 18px/1.5 var(--f-body);color:#3C3C45}
+
+/* ============ Стикер-бейдж и чипы ============ */
+.badge{display:inline-block;background:var(--ek-green);color:var(--ek-ink);font:800 24px/1 var(--f-head);padding:13px 22px;border-radius:13px;transform:rotate(-3deg);box-shadow:0 10px 24px rgba(23,23,28,.10)}
+.badge--violet{background:var(--ek-violet);color:#fff}
+.badge--sm{font-size:16px;padding:9px 16px;border-radius:10px}
+.chip{display:inline-block;font:700 14px/1 var(--f-body);padding:8px 14px;border-radius:999px;background:var(--ek-violet-bg);color:var(--ek-violet-deep)}
+.chip--green{background:var(--ek-green-pale);color:var(--ek-green-deep)}
+.chip--gray{background:var(--ek-gray-light);color:#3C3C45}
+
+/* ============ Контентные слайды ============ */
+.sl-body{position:absolute;inset:0;padding:56px 80px 62px;display:flex;flex-direction:column;gap:16px;overflow:hidden}
+h2{font:800 38px/1.16 var(--f-head);letter-spacing:-.01em;color:var(--ek-ink)}
+.acc{color:var(--ek-violet-deep)}
+.sl-body>p, .col p{font:500 18px/1.5 var(--f-body);color:#3C3C45}
+.code-chip{font-family:var(--f-mono);font-weight:700;font-size:.88em;background:var(--ek-violet-bg);color:var(--ek-violet-deep);padding:2px 8px;border-radius:8px;white-space:nowrap}
+.hl{color:var(--ek-violet-deep);font-weight:700}
+.out-chip{font-family:var(--f-mono);font-weight:700;font-size:.88em;background:var(--ek-green-pale);color:#0B7A48;padding:2px 8px;border-radius:8px;white-space:nowrap}
+
+.grid-2{display:grid;grid-template-columns:1fr 1fr;gap:22px;align-items:start}
+.grid-3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:18px;align-items:stretch}
+
+.info-card{background:#F5F5F9;border-radius:18px;padding:18px 22px;font:500 16px/1.55 var(--f-body);color:#3C3C45}
+.info-card h3{font:800 19px/1.3 var(--f-head);color:var(--ek-ink);margin-bottom:8px}
+.ek-note{background:var(--ek-violet-bg);border-left:4px solid var(--ek-violet);border-radius:0 14px 14px 0;padding:14px 20px;font:600 17px/1.5 var(--f-body);color:#3C3560}
+.ek-note--green{background:var(--ek-green-pale);border-left-color:var(--ek-green-deep);color:#0B5B39}
+.ek-note--red{background:var(--ek-red-pale);border-left-color:var(--ek-red);color:#7A2E2E}
+
+ul.clean{list-style:none;display:flex;flex-direction:column;gap:10px}
+ul.clean li{display:flex;gap:14px;align-items:flex-start;font:500 17.5px/1.5 var(--f-body);color:#3C3C45}
+ul.clean li::before{content:'—';flex:0 0 auto;color:var(--ek-violet-deep);font-weight:800}
+
+ol.steps{list-style:none;counter-reset:step;display:flex;flex-direction:column;gap:12px}
+ol.steps li{counter-increment:step;display:flex;gap:16px;align-items:center;padding:14px 20px;background:#F5F5F9;border-radius:16px;font:500 17.5px/1.45 var(--f-body);color:#2E2E36}
+ol.steps li::before{content:counter(step);flex:0 0 40px;height:40px;display:flex;align-items:center;justify-content:center;border-radius:50%;background:var(--ek-violet);font:800 18px var(--f-head);color:#fff}
+ol.steps li:last-child::before{background:var(--ek-green);color:var(--ek-ink)}
+ol.steps.steps--tight{gap:8px}
+ol.steps.steps--tight li{padding:9px 16px;font-size:15.5px;gap:12px}
+ol.steps.steps--tight li::before{flex-basis:32px;height:32px;font-size:14px}
+
+.q-label{font:700 13px/1 var(--f-head);letter-spacing:.08em;text-transform:uppercase;color:var(--ek-gray)}
+
+/* ============ План занятия (agenda) ============ */
+.agenda{display:flex;flex-direction:column;gap:8px}
+.agenda-row{display:flex;gap:16px;align-items:center;padding:10px 18px;background:#F5F5F9;border-radius:14px}
+.agenda-row .t{flex:0 0 84px;text-align:center;font:800 14px/1 var(--f-mono);color:var(--ek-ink);background:var(--ek-green);border-radius:999px;padding:8px 0}
+.agenda-row .tt{font:700 16.5px/1.3 var(--f-head);color:var(--ek-ink)}
+.agenda-row .dd{font:500 14px/1.4 var(--f-body);color:var(--ek-gray)}
+
+/* ============ Ключ-значение (привычки, шпаргалки) ============ */
+.kv{display:flex;flex-direction:column}
+.kv-row{display:grid;grid-template-columns:250px 1fr;gap:18px;align-items:start;padding:11px 4px;border-bottom:1.5px solid var(--ek-line)}
+.kv-row:last-child{border-bottom:none}
+.kv-row .k{font:800 14px/1.35 var(--f-head);letter-spacing:.05em;text-transform:uppercase;color:var(--ek-violet-deep);padding-top:2px}
+.kv-row .v{font:500 16.5px/1.5 var(--f-body);color:#3C3C45}
+
+/* ============ Окно кода (статичное) ============ */
+.code-win{background:#fff;border:2.5px solid var(--ek-ink);border-radius:16px;overflow:hidden;font-family:var(--f-mono);box-shadow:10px 10px 0 rgba(140,127,246,.14)}
+.code-head{display:flex;align-items:center;justify-content:space-between;padding:9px 16px;border-bottom:2px solid var(--ek-ink)}
+.code-head .win-dots i{width:11px;height:11px}
+.lang-badge{font:700 11px var(--f-mono);letter-spacing:.14em;color:var(--ek-gray)}
+.code-body{padding:14px 20px;font:500 14.5px/1.6 var(--f-mono);color:var(--ek-ink);white-space:pre;overflow:auto;max-height:400px;tab-size:4}
+.code-body .cm{color:var(--ek-gray)}
+.code-body .st{color:var(--ek-green-deep)}
+.code-body .kw{color:var(--ek-violet-deep);font-weight:700}
+
+/* ============ Терминал (тёмное окно) ============ */
+.term{background:var(--ek-ink);border-radius:16px;overflow:hidden;font-family:var(--f-mono);box-shadow:10px 10px 0 rgba(23,23,28,.12)}
+.term-head{display:flex;align-items:center;justify-content:space-between;padding:9px 16px;border-bottom:1px solid rgba(255,255,255,.14)}
+.term-head .win-dots i{width:11px;height:11px;background:var(--ek-green)}
+.term-head .lang-badge{color:rgba(255,255,255,.5)}
+.term-body{padding:14px 20px;font:500 14.5px/1.62 var(--f-mono);color:var(--ek-green);white-space:pre-wrap;word-break:break-word;overflow:auto;max-height:420px}
+.term-body .usr{color:#fff}
+.term-body .dim{color:rgba(255,255,255,.55)}
+
+/* ============ Промпт-карточка (диалог с DeepSeek) ============ */
+.prompt-card{position:relative;background:var(--ek-violet-bg);border:2.5px solid var(--ek-violet);border-radius:18px;padding:20px 26px 18px;box-shadow:10px 10px 0 rgba(140,127,246,.18)}
+.prompt-card .pc-tag{position:absolute;top:-16px;left:22px;background:var(--ek-violet);color:#fff;font:800 14px/1 var(--f-head);padding:9px 16px;border-radius:10px;transform:rotate(-2deg);box-shadow:0 8px 18px rgba(23,23,28,.12)}
+.prompt-card .pc-text{margin-top:6px;font:500 15px/1.62 var(--f-mono);color:#2E2A52;white-space:pre-wrap}
+.prompt-card .pc-text .hl{color:var(--ek-violet-deep)}
+.prompt-card--copy .pc-tag{background:var(--ek-green);color:var(--ek-ink)}
+
+/* ============ Сравнение (vs) ============ */
+.vs{display:grid;grid-template-columns:1fr 1fr;gap:20px;align-items:stretch}
+.vs-col{border-radius:18px;padding:20px 24px}
+.vs-col h4{font:800 15px/1 var(--f-head);letter-spacing:.08em;text-transform:uppercase;margin-bottom:12px}
+.vs-col p{font:500 16px/1.55 var(--f-body)}
+.vs-col .note{margin-top:12px;font:500 13.5px/1.4 var(--f-body);opacity:.75}
+.vs-col--plain{background:var(--ek-gray-light);color:#3C3C45}
+.vs-col--plain h4{color:var(--ek-gray)}
+.vs-col--win{background:var(--ek-green-pale);color:#124F35;border:2px solid var(--ek-green-soft)}
+.vs-col--win h4{color:var(--ek-green-deep)}
+
+/* ============ Квиз с раскрытием ответа ============ */
+.quiz-box{background:#F5F5F9;border:2.5px solid var(--ek-ink);border-radius:18px;padding:22px 26px;box-shadow:10px 10px 0 rgba(61,247,157,.25)}
+.quiz-box .q-num{display:inline-block;background:var(--ek-green);color:var(--ek-ink);font:800 13px/1 var(--f-head);letter-spacing:.08em;text-transform:uppercase;padding:8px 14px;border-radius:999px;margin-bottom:14px}
+.quiz-box .q-text{font:700 21px/1.42 var(--f-head);color:var(--ek-ink)}
+.quiz-answer{margin-top:16px}
+.quiz-btn{border:0;border-radius:12px;padding:12px 22px;font:800 15px/1 var(--f-head);cursor:pointer;background:var(--ek-violet);color:#fff;transition:background .15s}
+.quiz-btn:hover{background:var(--ek-violet-deep)}
+.quiz-reveal{display:none;margin-top:14px;background:var(--ek-green-pale);border-left:4px solid var(--ek-green-deep);border-radius:0 14px 14px 0;padding:14px 20px;font:500 16.5px/1.55 var(--f-body);color:#0B5B39}
+.quiz-reveal.show{display:block}
+.quiz-reveal p+p{margin-top:8px}
+
+/* Появление контента */
+.slide.active .info-card,.slide.active ul.clean li,.slide.active ol.steps li,.slide.active .grid-2>*,.slide.active .grid-3>*,.slide.active .agenda-row,.slide.active .kv-row{animation:reveal 450ms ease backwards}
+.slide.active .info-card:nth-child(2),.slide.active ul.clean li:nth-child(2),.slide.active ol.steps li:nth-child(2),.slide.active .grid-2>*:nth-child(2),.slide.active .grid-3>*:nth-child(2),.slide.active .agenda-row:nth-child(2),.slide.active .kv-row:nth-child(2){animation-delay:80ms}
+.slide.active ul.clean li:nth-child(3),.slide.active ol.steps li:nth-child(3),.slide.active .grid-3>*:nth-child(3),.slide.active .agenda-row:nth-child(3),.slide.active .kv-row:nth-child(3){animation-delay:160ms}
+.slide.active ol.steps li:nth-child(4),.slide.active .agenda-row:nth-child(4),.slide.active .kv-row:nth-child(4){animation-delay:240ms}
+.slide.active ol.steps li:nth-child(5),.slide.active .agenda-row:nth-child(5),.slide.active .kv-row:nth-child(5){animation-delay:320ms}
+.slide.active .agenda-row:nth-child(6),.slide.active ol.steps li:nth-child(6),.slide.active .kv-row:nth-child(6){animation-delay:400ms}
+.slide.active .agenda-row:nth-child(7),.slide.active ol.steps li:nth-child(7),.slide.active .kv-row:nth-child(7){animation-delay:480ms}
+@keyframes reveal{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:translateY(0)}}
+@media (prefers-reduced-motion:reduce){.slide.active .info-card,.slide.active ul.clean li,.slide.active ol.steps li,.slide.active .grid-2>*,.slide.active .grid-3>*,.slide.active .agenda-row,.slide.active .kv-row{animation:none}}
+
+/* ============ Заметки преподавателя ============ */
+.notes{position:fixed;bottom:0;left:0;right:0;background:#fff;border-top:1px solid var(--ek-line);box-shadow:0 -16px 40px rgba(23,23,28,.10);padding:20px 40px;z-index:95;max-height:40vh;overflow-y:auto;transform:translateY(100%);transition:transform 300ms ease}
+.notes.active{transform:translateY(0)}
+.notes__header{font:800 11px var(--f-head);letter-spacing:.2em;text-transform:uppercase;color:var(--ek-violet-deep);margin-bottom:8px}
+.notes__body{font:500 15px/1.55 var(--f-body);color:#3C3C45}
+
+:focus-visible{outline:3px solid var(--ek-violet-soft);outline-offset:2px;border-radius:6px}
+::-webkit-scrollbar{width:8px;height:8px}
+::-webkit-scrollbar-track{background:transparent}
+::-webkit-scrollbar-thumb{background:rgba(23,23,28,.15);border-radius:4px}
+</style>
+</head>
+<body>
+
+<div class="progress"><div class="progress__fill" id="progress"></div></div>
+<div class="counter"><b id="current">1</b> / <span id="total">38</span></div>
+
+<main class="stage" id="deck">
+<section class="slide slide--violet active"
+  data-notes="Поздоровайтесь. Сегодня страницы научатся реагировать на действия пользователя — клики, ввод, отметки. К концу урока — рабочий список задач, который сохраняет данные между перезагрузками.">
+<div class="sl-orbit">
+    <i class="sl-ring"></i>
+    <svg class="sl-ico" viewBox="0 0 100 100" style="left:75px;top:20px;width:150px;height:150px;transform:rotate(-10deg)"><use href="#ek-i-trophy"/></svg>
+    <i class="sl-letter" style="left:466px;top:13px;width:78px;height:78px;--fs:36px">D</i>
+    <svg class="sl-ico" viewBox="0 0 100 100" style="left:1040px;top:15px;width:130px;height:130px;transform:rotate(12deg)"><use href="#ek-i-heart"/></svg>
+    <i class="sl-letter" style="left:68px;top:268px;width:100px;height:100px;--fs:46px">O</i>
+    <i class="sl-letter" style="left:1137px;top:327px;width:95px;height:95px;--fs:44px">M</i>
+    <svg class="sl-ico" viewBox="0 0 100 100" style="left:102px;top:532px;width:125px;height:125px;transform:rotate(-15deg)"><use href="#ek-i-star"/></svg>
+    <i class="sl-letter" style="left:726px;top:613px;width:78px;height:78px;--fs:36px">JS</i>
+    <svg class="sl-ico" viewBox="0 0 100 100" style="left:1045px;top:540px;width:110px;height:110px;transform:rotate(8deg)"><use href="#ek-i-gem"/></svg>
+  </div>
+  <div class="cover-center">
+    <div class="cover-card">
+      <div class="badge">Урок №3</div>
+      <div class="card-top"><span class="win-dots"><i></i><i></i><i></i></span><span class="win-close"></span></div>
+      <h1>Интерактивность:<br>события и&nbsp;DOM</h1>
+      <p class="cover-sub">Научимся слушать действия пользователя, менять страницу из JavaScript и сохранять данные локально. Соберём список задач, который не теряется при перезагрузке.</p>
+      <div class="cover-chips"><span class="chip">JavaScript</span><span class="chip chip--green">DOM events</span><span class="chip chip--gray">localStorage</span><span class="chip chip--gray">DeepSeek</span></div>
+    </div>
+  </div>
+</section>
+
+<section class="slide slide--content"
+  data-notes="План на 60 минут. Подчеркните: основное время — на сборку списка задач. Это первый проект, который сохраняет данные.">
+<div class="sl-body">
+  <div>
+    <div class="q-label">Agenda · план занятия</div>
+    <h2>Как пройдут <span class="acc">60 минут</span></h2>
+  </div>
+  <div class="agenda">
+    <div class="agenda-row"><span class="t">0–5</span><div><div class="tt">Разбор домашнего задания</div><div class="dd">Смотрим 2–3 присланные галереи персонажей, разбираем удачные промпты.</div></div></div>
+    <div class="agenda-row"><span class="t">5–15</span><div><div class="tt">DOM и события</div><div class="dd">Карта страницы и сигналы пользователя.</div></div></div>
+    <div class="agenda-row"><span class="t">15–25</span><div><div class="tt">Стартовый промпт</div><div class="dd">Соберём каркас списка задач из 3 файлов.</div></div></div>
+    <div class="agenda-row"><span class="t">25–45</span><div><div class="tt">5 правок через диалог</div><div class="dd">Добавление, удаление, чекбокс, localStorage, анимация.</div></div></div>
+    <div class="agenda-row"><span class="t">45–55</span><div><div class="tt">Отладка и проверка</div><div class="dd">Console, мини-вопросы для группы.</div></div></div>
+    <div class="agenda-row"><span class="t">55–60</span><div><div class="tt">Демо в группе</div><div class="dd">Скриншоты результата и разбор удачных промптов.</div></div></div>
+  </div>
+</div>
+</section>
+
+<section class="slide slide--content"
+  data-notes="Откройте 2–3 присланные галереи персонажей. Разбираем: какой промпт собрал галерею с первого раза, где фильтр «Все / Спорт / Кино / Игры» пришлось переформулировать. Главная мысль — точные формулировки экономят время.">
+<div class="sl-body">
+  <div>
+    <div class="q-label">Разбор ДЗ урока 2</div>
+    <h2>Смотрим <span class="acc">галереи персонажей</span></h2>
+  </div>
+  <p>Открываем 2–3 присланные работы — галерею из 3 карточек с фильтром «Все / Спорт / Кино / Игры» — и разбираем именно <span class="hl">диалог с нейросетью</span>, а не только результат.</p>
+  <div class="grid-3" style="margin-top:8px">
+    <div class="info-card">
+      <h3>Что сработало</h3>
+      <p>Промпты с ролью («ты senior-разработчик») и форматом («три карточки в ряд, над ними — кнопки фильтра»).</p>
+    </div>
+    <div class="info-card">
+      <h3>Что переделывали</h3>
+      <p>Фильтр показывал всех сразу или прятал не те карточки — забыли задать каждому персонажу его категорию.</p>
+    </div>
+    <div class="info-card">
+      <h3>Вывод</h3>
+      <p>Точная формулировка экономит время. Сегодня применяем эти же техники к списку задач.</p>
+    </div>
+  </div>
+</div>
+</section>
+
+<section class="slide slide--content"
+  data-notes="Объясните спокойно: до этого страница была статичной. Сегодня делаем настоящую реакцию — пользователь что-то делает, страница меняется в ответ.">
+<div class="sl-body">
+  <div>
+    <div class="q-label">Идея урока</div>
+    <h2>Что значит <span class="acc">«страница интерактивна»</span></h2>
+  </div>
+  <p>Интерактивная страница умеет <span class="hl">отвечать на действия пользователя</span>: клик по кнопке, ввод текста, отметку чекбокса, прокрутку, наведение мыши.</p>
+  <div class="ek-note" style="margin-top:6px">Кнопка с hover-эффектом из урока 2 — это ещё не интерактивность. Настоящая интерактивность — когда после действия пользователя <b>меняется содержимое страницы</b>: появляется новый элемент, обновляется текст, сохраняются данные.</div>
+</div>
+</section>
+
+<section class="slide slide--content"
+  data-notes="Приведите примеры из жизни подростка. Любое приложение, которым он пользуется — это набор реакций на события.">
+<div class="sl-body">
+  <div>
+    <div class="q-label">Примеры</div>
+    <h2>Интерактивность <span class="acc">вокруг нас</span></h2>
+  </div>
+  <div class="grid-2" style="margin-top:6px">
+    <div class="info-card">
+      <h3>Telegram</h3>
+      <p>Нажал на сообщение — появилось меню. Напечатал текст — кнопка «отправить» стала активной.</p>
+    </div>
+    <div class="info-card">
+      <h3>Игры в браузере</h3>
+      <p>Нажал стрелку — персонаж пошёл. Кликнул по врагу — у него убавилось здоровье.</p>
+    </div>
+    <div class="info-card">
+      <h3>Формы и анкеты</h3>
+      <p>Ввёл короткий пароль — появилась подсказка «слишком короткий».</p>
+    </div>
+    <div class="info-card">
+      <h3>Списки и чек-листы</h3>
+      <p>Отметил задачу — она зачеркнулась. Перезагрузил — она осталась на месте.</p>
+    </div>
+  </div>
+  <p style="margin-top:10px">Сегодня соберём последнее — <span class="hl">список задач</span>.</p>
+</div>
+</section>
+
+<section class="slide slide--content"
+  data-notes="Главная схема урока: действие → событие → реакция. Запомнить.">
+<div class="sl-body">
+  <div>
+    <div class="q-label">Как это устроено</div>
+    <h2>Три шага <span class="acc">интерактивности</span></h2>
+  </div>
+  <div class="grid-3" style="margin-top:6px">
+    <div class="info-card">
+      <h3>1 · Действие</h3>
+      <p>Пользователь нажимает кнопку, печатает текст, отмечает чекбокс.</p>
+    </div>
+    <div class="info-card">
+      <h3>2 · Событие</h3>
+      <p>Браузер замечает действие и отправляет «событие» (event) в JavaScript.</p>
+    </div>
+    <div class="info-card">
+      <h3>3 · Реакция</h3>
+      <p>Скрипт получает событие и меняет страницу: добавляет элемент, обновляет текст, сохраняет данные.</p>
+    </div>
+  </div>
+  <div class="ek-note" style="margin-top:12px">Сегодня учимся ловить эти события и менять страницу в ответ — через диалог с DeepSeek.</div>
+</div>
+</section>
+
+<section class="slide slide--content"
+  data-notes="DOM — Document Object Model. Объясните как карту: страница в памяти браузера представлена деревом. JS может ходить по нему и менять любую веточку.">
+<div class="sl-body">
+  <div>
+    <div class="q-label">Карта страницы</div>
+    <h2>Что такое <span class="acc">DOM</span></h2>
+  </div>
+  <p>DOM (Document Object Model) — это <span class="hl">модель страницы в памяти браузера</span>. Каждый тег HTML превращается в узел, к которому можно обратиться из JavaScript.</p>
+  <div class="vs" style="margin-top:6px">
+    <div class="vs-col vs-col--plain">
+      <h4>HTML — это текст</h4>
+      <p>То, что вы пишете в файле <span class="code-chip">index.html</span>.</p>
+    </div>
+    <div class="vs-col vs-col--win">
+      <h4>DOM — это объекты</h4>
+      <p>То, во что браузер превращает HTML, чтобы JS мог это менять «на лету».</p>
+    </div>
+  </div>
+</div>
+</section>
+
+<section class="slide slide--content"
+  data-notes="Покажите дерево. Каждый вложенный тег — ветка. Из любого узла можно дойти до любого другого.">
+<div class="sl-body">
+  <div>
+    <div class="q-label">DOM — это дерево</div>
+    <h2>Страница как <span class="acc">дерево элементов</span></h2>
+  </div>
+  <div class="grid-2" style="margin-top:6px">
+    <div class="code-win">
+      <div class="code-head"><span class="win-dots"><i></i><i></i><i></i></span><span class="lang-badge">HTML</span></div>
+      <div class="code-body">&lt;body&gt;
+  &lt;h1&gt;Мои задачи&lt;/h1&gt;
+  &lt;input id=<span class="st">"field"</span>&gt;
+  &lt;button id=<span class="st">"add"</span>&gt;Добавить&lt;/button&gt;
+  &lt;ul id=<span class="st">"list"</span>&gt;
+    &lt;li&gt;Купить хлеб&lt;/li&gt;
+  &lt;/ul&gt;
+&lt;/body&gt;</div>
+    </div>
+    <div class="code-win">
+      <div class="code-head"><span class="win-dots"><i></i><i></i><i></i></span><span class="lang-badge">ДЕРЕВО DOM</span></div>
+      <div class="code-body">body
+├── h1            <span class="st">"Мои задачи"</span>
+├── input#field
+├── button#add    <span class="st">"Добавить"</span>
+└── ul#list
+    └── li        <span class="st">"Купить хлеб"</span></div>
+    </div>
+  </div>
+  <p style="margin-top:10px">JS умеет дойти до любого узла и изменить его.</p>
+</div>
+</section>
+
+<section class="slide slide--content"
+  data-notes="Два главных способа: getElementById и querySelector. Покажите оба.">
+<div class="sl-body">
+  <div>
+    <div class="q-label">Шаг 1 работы с DOM</div>
+    <h2>Как JavaScript <span class="acc">находит элемент</span></h2>
+  </div>
+  <div class="grid-2" style="margin-top:6px">
+    <div class="code-win">
+      <div class="code-head"><span class="win-dots"><i></i><i></i><i></i></span><span class="lang-badge">ПО ID</span></div>
+      <div class="code-body"><span class="cm">// HTML: &lt;button id="add"&gt;</span>
+<span class="kw">const</span> btn = document.getElementById(<span class="st">'add'</span>);
+
+<span class="cm">// Современный универсальный способ</span>
+<span class="kw">const</span> btn2 = document.querySelector(<span class="st">'#add'</span>);</div>
+    </div>
+    <div class="code-win">
+      <div class="code-head"><span class="win-dots"><i></i><i></i><i></i></span><span class="lang-badge">ПО КЛАССУ / ТЕГУ</span></div>
+      <div class="code-body"><span class="cm">// Первый элемент с классом .task</span>
+<span class="kw">const</span> t = document.querySelector(<span class="st">'.task'</span>);
+
+<span class="cm">// ВСЕ элементы &lt;li&gt; — список</span>
+<span class="kw">const</span> all = document.querySelectorAll(<span class="st">'li'</span>);</div>
+    </div>
+  </div>
+  <div class="ek-note ek-note--red" style="margin-top:12px"><b>Правило:</b> <span class="code-chip">querySelector</span> возвращает <span class="hl">один</span> элемент (первый совпавший). <span class="code-chip">querySelectorAll</span> — <span class="hl">список</span> всех совпавших.</div>
+</div>
+</section>
+
+<section class="slide slide--content"
+  data-notes="Три главных операции: поменять текст, добавить/убрать класс, создать новый элемент.">
+<div class="sl-body">
+  <div>
+    <div class="q-label">Шаг 2 работы с DOM</div>
+    <h2>Как JavaScript <span class="acc">меняет элемент</span></h2>
+  </div>
+  <div class="code-win" style="margin-top:6px">
+    <div class="code-head"><span class="win-dots"><i></i><i></i><i></i></span><span class="lang-badge">JAVASCRIPT</span></div>
+    <div class="code-body"><span class="cm">// 1. Поменять текст</span>
+document.querySelector(<span class="st">'h1'</span>).textContent = <span class="st">'Привет!'</span>;
+
+<span class="cm">// 2. Добавить / убрать CSS-класс</span>
+element.classList.add(<span class="st">'done'</span>);
+element.classList.remove(<span class="st">'done'</span>);
+element.classList.toggle(<span class="st">'done'</span>);   <span class="cm">// есть → убрать, нет → добавить</span>
+
+<span class="cm">// 3. Создать новый элемент и вставить</span>
+<span class="kw">const</span> li = document.createElement(<span class="st">'li'</span>);
+li.textContent = <span class="st">'Новая задача'</span>;
+document.querySelector(<span class="st">'ul'</span>).appendChild(li);
+
+<span class="cm">// 4. Удалить элемент</span>
+li.remove();</div>
+  </div>
+  <p style="margin-top:10px">Этих 4 операций хватит, чтобы собрать список задач целиком.</p>
+</div>
+</section>
+
+<section class="slide slide--content"
+  data-notes="Событие — это «сигнал», который браузер отправляет, когда что-то произошло. JavaScript не следит постоянно — он подписывается на нужные события и ждёт.">
+<div class="sl-body">
+  <div>
+    <div class="q-label">Сигналы от пользователя</div>
+    <h2>Что такое <span class="acc">событие</span></h2>
+  </div>
+  <p>Событие (event) — это <span class="hl">сигнал от браузера</span>: что-то произошло. Клик, ввод символа, отметка чекбокса, нажатие клавиши. JavaScript не «следит» постоянно — он <b>подписывается</b> на нужные события и ждёт.</p>
+  <div class="ek-note" style="margin-top:6px">Аналогия: вы не стоите весь день у двери. Вы вешаете <b>звонок</b>. Когда придёт гость — звонок сработает. <span class="code-chip">addEventListener</span> — это и есть «повесить звонок».</div>
+</div>
+</section>
+
+<section class="slide slide--content"
+  data-notes="Таблица главных событий. Сегодня используем click, input, change.">
+<div class="sl-body">
+  <div>
+    <div class="q-label">Справочник</div>
+    <h2>Главные виды <span class="acc">событий</span></h2>
+  </div>
+  <div class="kv" style="margin-top:6px">
+    <div class="kv-row"><div class="k">click</div><div class="v">Клик мышью по элементу. Кнопки, ссылки, любые блоки.</div></div>
+    <div class="kv-row"><div class="k">input</div><div class="v">Пользователь печатает в поле ввода. Срабатывает на каждый символ.</div></div>
+    <div class="kv-row"><div class="k">change</div><div class="v">Значение изменилось и поле потеряло фокус. Чекбоксы, выпадающие списки.</div></div>
+    <div class="kv-row"><div class="k">submit</div><div class="v">Отправка формы — нажатие Enter или кнопки внутри формы.</div></div>
+    <div class="kv-row"><div class="k">keydown</div><div class="v">Нажата клавиша на клавиатуре. Пригодится на уроке 4 для игры.</div></div>
+    <div class="kv-row"><div class="k">mouseover</div><div class="v">Курсор навёлся на элемент. Часто заменяют CSS-эффектом <span class="code-chip">:hover</span>.</div></div>
+  </div>
+</div>
+</section>
+
+<section class="slide slide--content"
+  data-notes="Синтаксис подписки на событие. Это сердце всей интерактивности.">
+<div class="sl-body">
+  <div>
+    <div class="q-label">Главная команда урока</div>
+    <h2><span class="acc">addEventListener</span> — как подписаться</h2>
+  </div>
+  <div class="code-win">
+    <div class="code-head"><span class="win-dots"><i></i><i></i><i></i></span><span class="lang-badge">JAVASCRIPT</span></div>
+    <div class="code-body"><span class="kw">const</span> btn = document.getElementById(<span class="st">'add'</span>);
+
+btn.addEventListener(<span class="st">'click'</span>, () =&gt; {
+  console.log(<span class="st">'Кнопку нажали!'</span>);
+  <span class="cm">// здесь — реакция: добавить задачу</span>
+});</div>
+  </div>
+  <div class="grid-3" style="margin-top:14px">
+    <div class="info-card"><h3>btn</h3><p>На каком элементе слушаем.</p></div>
+    <div class="info-card"><h3>'click'</h3><p>Какое событие ждём.</p></div>
+    <div class="info-card"><h3>() =&gt; { ... }</h3><p>Что делать, когда событие случилось.</p></div>
+  </div>
+</div>
+</section>
+
+<section class="slide slide--content"
+  data-notes="Прочитайте цель вслух. Подчеркните: результат — рабочий список задач, которым можно пользоваться каждый день.">
+<div class="sl-body">
+  <div>
+    <div class="q-label">Goal · что будет в конце</div>
+    <h2>Цель <span class="acc">урока</span></h2>
+  </div>
+  <div class="ek-note ek-note--green" style="font-size:16px">Собрать рабочий <b>список задач</b> через диалог с DeepSeek. Задачи добавляются, удаляются, отмечаются выполненными и сохраняются между перезагрузками страницы.</div>
+  <div class="grid-2" style="margin-top:8px">
+    <div class="info-card">
+      <h3>Узнаете</h3>
+      <ul class="clean">
+        <li>Что такое DOM и события в браузере</li>
+        <li>Как JavaScript изменяет страницу</li>
+        <li>Зачем нужен localStorage и как он работает</li>
+      </ul>
+    </div>
+    <div class="info-card">
+      <h3>Сделаете</h3>
+      <ul class="clean">
+        <li>Каркас списка задач из 3 файлов</li>
+        <li>Добавление и удаление задач</li>
+        <li>Чекбоксы «выполнено»</li>
+        <li>Сохранение между перезагрузками</li>
+      </ul>
+    </div>
+  </div>
+</div>
+</section>
+
+<section class="slide slide--content"
+  data-notes="Покажите готовый список (можно собрать заранее). Скажите: вот что будет у каждого к 55-й минуте.">
+<div class="sl-body">
+  <div>
+    <div class="q-label">Демо результата</div>
+    <h2>Что соберём <span class="acc">сегодня</span></h2>
+  </div>
+  <p>К концу урока у каждого — такой список:</p>
+  <div class="info-card" style="max-width:560px;margin-top:6px">
+    <h3 style="margin-bottom:14px">Мои задачи</h3>
+    <div style="display:flex;gap:8px;margin-bottom:14px">
+      <div style="flex:1;background:var(--ek-gray-light);border-radius:10px;padding:10px 14px;font:500 15px/1 var(--f-body);color:var(--ek-gray)">Что нужно сделать…</div>
+      <div style="background:var(--ek-violet);color:#fff;border-radius:10px;padding:10px 18px;font:800 15px/1 var(--f-head)">Добавить</div>
+    </div>
+    <div style="display:flex;align-items:center;gap:10px;padding:10px 0;border-bottom:1px solid var(--ek-line)"><span class="hl">☑</span><span style="text-decoration:line-through;color:var(--ek-gray);flex:1">Сделать ДЗ по уроку 2</span><span style="color:var(--ek-red-deep)">×</span></div>
+    <div style="display:flex;align-items:center;gap:10px;padding:10px 0;border-bottom:1px solid var(--ek-line)"><span>☐</span><span style="flex:1">Доделать список задач</span><span style="color:var(--ek-red-deep)">×</span></div>
+    <div style="display:flex;align-items:center;gap:10px;padding:10px 0"><span>☐</span><span style="flex:1">Показать другу</span><span style="color:var(--ek-red-deep)">×</span></div>
+  </div>
+</div>
+</section>
+
+<section class="slide slide--content"
+  data-notes="Структура та же, что на уроке 2 — продолжаем привычку 3 файлов.">
+<div class="sl-body">
+  <div>
+    <div class="q-label">Структура проекта</div>
+    <h2>Папка <span class="acc">lesson-03</span></h2>
+  </div>
+  <div class="grid-2" style="margin-top:6px">
+    <div>
+      <ol class="steps steps--tight">
+        <li>На диске <span class="code-chip">D:</span> в папке <span class="code-chip">vibe-coding</span> создайте <span class="code-chip">lesson-03</span></li>
+        <li>В VS Code: <span class="code-chip">File → Open Folder → lesson-03</span></li>
+        <li>Создайте 3 файла: <span class="code-chip">index.html</span>, <span class="code-chip">style.css</span>, <span class="code-chip">script.js</span></li>
+      </ol>
+    </div>
+    <div>
+      <div class="term">
+        <div class="term-head"><span class="win-dots"><i></i><i></i><i></i></span><span class="lang-badge">ТЕРМИНАЛ</span></div>
+        <div class="term-body">D:/vibe-coding/lesson-03/
+├── index.html
+├── style.css
+└── script.js</div>
+      </div>
+      <div class="ek-note ek-note--red" style="margin-top:12px">Те же 3 файла, что на уроке 2. Привычка раскладывать проект на структуру / оформление / поведение остаётся весь курс.</div>
+    </div>
+  </div>
+</div>
+</section>
+
+<section class="slide slide--content"
+  data-notes="Используем все техники промтинга с урока 2: роль, контекст, формат, ограничения. Дайте скопировать.">
+<div class="sl-body">
+  <div>
+    <div class="q-label">Промпт #1 · стартовый</div>
+    <h2>Каркас <span class="acc">списка задач</span></h2>
+  </div>
+  <div class="prompt-card">
+    <span class="pc-tag">→ Новый чат DeepSeek</span>
+    <div class="pc-text">Ты <span class="hl">senior фронтенд-разработчик в стиле Linear/Notion</span>.
+Я делаю <span class="hl">список задач</span> — будем пользоваться им каждый день.
+
+Требования:
+- <span class="hl">Три файла</span>: index.html, style.css, script.js
+- В index.html — заголовок «Мои задачи», поле ввода + кнопка «Добавить», ниже пустой <span class="hl">&lt;ul id="list"&gt;</span>
+- В style.css — тёмная тема, акцент <span class="hl">фиолетовый #7C3AED</span>, мягкие отступы, скруглённые углы, лёгкая тень у карточки списка
+- В script.js — пока ничего, просто пустой файл (логику добавим в правках)
+- <span class="hl">Без библиотек</span>, чистый код
+
+Ответь <span class="hl">тремя блоками</span>, по одному на каждый файл, с подписью имени файла сверху.</div>
+  </div>
+</div>
+</section>
+
+<section class="slide slide--content"
+  data-notes="Создаём 3 файла, копируем 3 блока, запускаем Live Server. Кнопка пока не работает — это нормально.">
+<div class="sl-body">
+  <div>
+    <div class="q-label">Из чата в проект</div>
+    <h2>Забираем код и <span class="acc">запускаем</span></h2>
+  </div>
+  <ol class="steps steps--tight" style="margin-top:6px">
+    <li>В ответе DeepSeek нажмите <b>Copy</b> над первым блоком (HTML)</li>
+    <li>Вставьте в <span class="code-chip">index.html</span>, сохраните (<span class="code-chip">Ctrl+S</span>)</li>
+    <li>Так же со вторым (CSS) и третьим (JS) блоком</li>
+    <li>Правый клик по <span class="code-chip">index.html</span> → <b>Open with Live Server</b></li>
+  </ol>
+  <div class="ek-note" style="margin-top:8px">Сейчас вы видите заголовок, поле ввода и кнопку «Добавить». <b>Кнопка пока не работает</b> — логику добавим в следующих правках. Это нормально.</div>
+</div>
+</section>
+
+<section class="slide slide--content"
+  data-notes="Шпаргалка по первому запуску. Указывайте на этот слайд во время практики.">
+<div class="sl-body">
+  <div>
+    <div class="q-label">Если каркас не открылся</div>
+    <h2>Типичные ситуации <span class="acc">запуска</span></h2>
+  </div>
+  <div class="kv" style="margin-top:6px">
+    <div class="kv-row"><div class="k">страница белая</div><div class="v">Файл не сохранён (★ в имени) или скопирован не весь блок. Нажмите <span class="code-chip">Ctrl+S</span>, проверьте код.</div></div>
+    <div class="kv-row"><div class="k">нет «Go Live»</div><div class="v">Расширение Live Server не активно. Перезапустите VS Code, проверьте вкладку Extensions.</div></div>
+    <div class="kv-row"><div class="k">стили не применились</div><div class="v">В <span class="code-chip">index.html</span> нет тега <span class="code-chip">&lt;link rel="stylesheet" href="style.css"&gt;</span>. Проверьте.</div></div>
+    <div class="kv-row"><div class="k">любая ошибка</div><div class="v">Скопируйте текст ошибки из консоли (F12) и отправьте в DeepSeek с вопросом «как исправить?».</div></div>
+  </div>
+</div>
+</section>
+
+<section class="slide slide--content"
+  data-notes="Первая логика. Учим JS слушать клик и добавлять новый <li>.">
+<div class="sl-body">
+  <div>
+    <div class="q-label">Правка 1 · добавление задач</div>
+    <h2>Учим кнопку реагировать на <span class="acc">клик</span></h2>
+  </div>
+  <div class="prompt-card prompt-card--copy" style="margin-top:6px">
+    <span class="pc-tag">&rarr; В тот же чат</span>
+    <div class="pc-text">В script.js напиши логику:
+&bull; При клике на кнопку «Добавить» <span class="hl">прочитай текст из поля ввода</span>
+&bull; Если поле <span class="hl">не пустое</span> — добавь новый &lt;li&gt; с этим текстом в &lt;ul id="list"&gt;
+&bull; После добавления <span class="hl">очисти поле ввода</span>
+&bull; Используй <span class="hl">addEventListener</span>
+
+Изменения только в script.js. Не трогай index.html и style.css. Верни только содержимое script.js.</div>
+  </div>
+</div>
+</section>
+
+<section class="slide slide--content"
+  data-notes="Откройте сгенерированный script.js. Покажите построчно, как он работает: так ученики понимают, что именно дала нейросеть.">
+<div class="sl-body">
+  <div>
+    <div class="q-label">Разбор кода</div>
+    <h2>Что сгенерировала <span class="acc">нейросеть</span></h2>
+  </div>
+  <div class="code-win">
+    <div class="code-head"><span class="win-dots"><i></i><i></i><i></i></span><span class="lang-badge">JAVASCRIPT</span></div>
+    <div class="code-body"><span class="kw">const</span> field = document.getElementById(<span class="st">'field'</span>);   <span class="cm">// поле ввода</span>
+<span class="kw">const</span> addBtn = document.getElementById(<span class="st">'add'</span>);     <span class="cm">// кнопка</span>
+<span class="kw">const</span> list = document.getElementById(<span class="st">'list'</span>);      <span class="cm">// &lt;ul&gt;</span>
+
+addBtn.addEventListener(<span class="st">'click'</span>, () =&gt; {           <span class="cm">// подписка на клик</span>
+  <span class="kw">const</span> text = field.value.trim();                 <span class="cm">// что ввели</span>
+  <span class="kw">if</span> (text === <span class="st">''</span>) <span class="kw">return</span>;                          <span class="cm">// пусто — выходим</span>
+
+  <span class="kw">const</span> li = document.createElement(<span class="st">'li'</span>);          <span class="cm">// новый &lt;li&gt;</span>
+  li.textContent = text;                            <span class="cm">// вставили текст</span>
+  list.appendChild(li);                             <span class="cm">// добавили в список</span>
+
+  field.value = <span class="st">''</span>;                                 <span class="cm">// очистили поле</span>
+});</div>
+  </div>
+  <div class="ek-note">Прочитайте вслух каждую строку. Это ровно те 4 операции DOM со слайда 10.</div>
+</div>
+</section>
+
+<section class="slide slide--content"
+  data-notes="Удаление по клику. На каждой задаче — кнопка крестик.">
+<div class="sl-body">
+  <div>
+    <div class="q-label">Правка 2 · удаление</div>
+    <h2>Каждая задача с кнопкой <span class="acc">«&times;»</span></h2>
+  </div>
+  <div class="prompt-card prompt-card--copy" style="margin-top:6px">
+    <span class="pc-tag">&rarr; В тот же чат</span>
+    <div class="pc-text">Доработай script.js:
+&bull; При создании каждого &lt;li&gt; <span class="hl">добавляй внутрь него кнопку «&times;»</span> справа от текста
+&bull; При клике на эту кнопку <span class="hl">удаляй именно её &lt;li&gt;</span>
+&bull; В style.css добавь оформление кнопки: круглая, серая, при наведении — красная
+
+Изменения в script.js и style.css. Верни только изменённые блоки.</div>
+  </div>
+</div>
+</section>
+
+<section class="slide slide--content"
+  data-notes="Важная концепция. Объясните, почему обработчик вешается на саму кнопку «×», а не на весь список.">
+<div class="sl-body">
+  <div>
+    <div class="q-label">Важная тонкость</div>
+    <h2>Почему обработчик — на <span class="acc">самой кнопке</span></h2>
+  </div>
+  <div class="vs" style="margin-top:6px">
+    <div class="vs-col vs-col--plain">
+      <h4>&times; Частая ошибка</h4>
+      <p>Повесить один обработчик на весь <span class="code-chip">&lt;ul&gt;</span> — клик по любому месту удаляет всё подряд.</p>
+    </div>
+    <div class="vs-col vs-col--win">
+      <h4>&check; Правильно</h4>
+      <p>Для каждой кнопки «&times;» — свой обработчик, который знает свой <span class="code-chip">&lt;li&gt;</span> и удаляет только его.</p>
+    </div>
+  </div>
+  <div class="code-win" style="margin-top:12px">
+    <div class="code-head"><span class="win-dots"><i></i><i></i><i></i></span><span class="lang-badge">JAVASCRIPT</span></div>
+    <div class="code-body"><span class="kw">const</span> del = document.createElement(<span class="st">'button'</span>);
+del.textContent = <span class="st">'&times;'</span>;
+del.addEventListener(<span class="st">'click'</span>, () =&gt; {
+  li.remove();                 <span class="cm">// удаляем именно ЭТОТ li</span>
+});
+li.appendChild(del);</div>
+  </div>
+</div>
+</section>
+
+<section class="slide slide--content"
+  data-notes="Чекбокс выполнено. Добавляем визуальный индикатор + класс .done.">
+<div class="sl-body">
+  <div>
+    <div class="q-label">Правка 3 · отметка «выполнено»</div>
+    <h2>Чекбокс на каждой <span class="acc">задаче</span></h2>
+  </div>
+  <div class="prompt-card prompt-card--copy" style="margin-top:6px">
+    <span class="pc-tag">&rarr; В тот же чат</span>
+    <div class="pc-text">Доработай:
+&bull; В каждом &lt;li&gt; <span class="hl">слева от текста</span> добавь <span class="hl">чекбокс</span> (input type="checkbox")
+&bull; При отметке чекбокса задаче добавляется класс <span class="hl">done</span>
+&bull; В style.css для класса <span class="hl">.done</span>: серый цвет текста, зачёркнутый текст (text-decoration: line-through)
+
+Изменения в script.js и style.css. Верни только изменённые блоки.</div>
+  </div>
+</div>
+</section>
+
+<section class="slide slide--content"
+  data-notes="Сохранение в localStorage. Это магия — задачи остаются после перезагрузки.">
+<div class="sl-body">
+  <div>
+    <div class="q-label">Правка 4 · сохранение</div>
+    <h2>Задачи не теряются при <span class="acc">перезагрузке</span></h2>
+  </div>
+  <div class="prompt-card prompt-card--copy" style="margin-top:6px">
+    <span class="pc-tag">&rarr; В тот же чат</span>
+    <div class="pc-text">Добавь сохранение в <span class="hl">localStorage</span>:
+&bull; При любом изменении (добавление, удаление, отметка) <span class="hl">сохраняй массив задач</span> в localStorage
+&bull; При загрузке страницы — <span class="hl">прочитай задачи из localStorage</span> и отрисуй их
+
+Каждая задача — объект с двумя полями: <span class="hl">{ text: string, done: boolean }</span>.
+
+Изменения только в script.js. Верни целиком обновлённый script.js.</div>
+  </div>
+</div>
+</section>
+
+<section class="slide slide--content"
+  data-notes="Краткое объяснение, как работает localStorage. Привязан к домену сайта.">
+<div class="sl-body">
+  <div>
+    <div class="q-label">Полезное знание</div>
+    <h2>Что такое <span class="acc">localStorage</span></h2>
+  </div>
+  <div class="grid-2" style="margin-top:6px">
+    <div>
+      <p>localStorage — это <b>маленькое хранилище в браузере</b>. Данные не исчезают при перезагрузке и закрытии вкладки.</p>
+      <ul class="clean" style="margin-top:10px">
+        <li>До ~5 МБ на один сайт</li>
+        <li>Хранит только <span class="hl">строки</span> (ключ &rarr; значение)</li>
+        <li>Привязан к домену: другой сайт не увидит ваши данные</li>
+      </ul>
+    </div>
+    <div class="code-win">
+      <div class="code-head"><span class="win-dots"><i></i><i></i><i></i></span><span class="lang-badge">JAVASCRIPT</span></div>
+      <div class="code-body"><span class="cm">// Сохранить</span>
+localStorage.setItem(<span class="st">'tasks'</span>, <span class="st">'...'</span>);
+
+<span class="cm">// Прочитать</span>
+<span class="kw">const</span> saved = localStorage.getItem(<span class="st">'tasks'</span>);
+
+<span class="cm">// Удалить</span>
+localStorage.removeItem(<span class="st">'tasks'</span>);</div>
+    </div>
+  </div>
+</div>
+</section>
+
+<section class="slide slide--content"
+  data-notes="localStorage хранит строки. Массив объектов — через JSON.stringify туда и JSON.parse обратно.">
+<div class="sl-body">
+  <div>
+    <div class="q-label">Ключевой приём</div>
+    <h2>Массив &rarr; строка &rarr; <span class="acc">массив</span></h2>
+  </div>
+  <p>localStorage хранит только <b>строки</b>. Массив задач превращаем в строку и обратно:</p>
+  <div class="code-win" style="margin-top:6px">
+    <div class="code-head"><span class="win-dots"><i></i><i></i><i></i></span><span class="lang-badge">JAVASCRIPT</span></div>
+    <div class="code-body"><span class="kw">const</span> tasks = [
+  { text: <span class="st">'Купить хлеб'</span>, done: <span class="kw">false</span> },
+  { text: <span class="st">'Сделать ДЗ'</span>,  done: <span class="kw">true</span>  },
+];
+
+<span class="cm">// Сохранить: массив &rarr; строка JSON</span>
+localStorage.setItem(<span class="st">'tasks'</span>, JSON.stringify(tasks));
+
+<span class="cm">// Прочитать: строка JSON &rarr; массив</span>
+<span class="kw">const</span> saved = localStorage.getItem(<span class="st">'tasks'</span>);
+<span class="kw">const</span> restored = saved ? JSON.parse(saved) : [];</div>
+  </div>
+  <div class="ek-note ek-note--red"><b>stringify</b> — «упаковать» в строку. <b>parse</b> — «распаковать» обратно. Без них в localStorage попадёт <span class="code-chip">[object Object]</span>.</div>
+</div>
+</section>
+
+<section class="slide slide--content"
+  data-notes="Финальная косметическая правка. Плавное появление и исчезновение задач.">
+<div class="sl-body">
+  <div>
+    <div class="q-label">Правка 5 · анимация</div>
+    <h2>Плавное появление и <span class="acc">удаление</span></h2>
+  </div>
+  <div class="prompt-card prompt-card--copy" style="margin-top:6px">
+    <span class="pc-tag">&rarr; В тот же чат</span>
+    <div class="pc-text">Сделай анимации:
+&bull; Новая задача <span class="hl">плавно появляется</span> (opacity 0 &rarr; 1, выезжает на 8px снизу) за 200мс
+&bull; При удалении задача <span class="hl">плавно исчезает</span> (opacity 1 &rarr; 0, scale 1 &rarr; 0.95) за 200мс, и только потом удаляется из DOM
+
+Используй CSS-переходы. Не трогай логику добавления/удаления — только добавь классы и переходы.
+
+Изменения в style.css и небольшие правки в script.js. Верни изменённые блоки.</div>
+  </div>
+</div>
+</section>
+
+<section class="slide slide--content"
+  data-notes="Объясните, как работает transition. Это анимация «между двумя состояниями».">
+<div class="sl-body">
+  <div>
+    <div class="q-label">Полезное знание</div>
+    <h2>Как работают <span class="acc">CSS-переходы</span></h2>
+  </div>
+  <p><span class="code-chip">transition</span> плавно анимирует изменение свойства между двумя состояниями.</p>
+  <div class="code-win" style="margin-top:6px">
+    <div class="code-head"><span class="win-dots"><i></i><i></i><i></i></span><span class="lang-badge">CSS</span></div>
+    <div class="code-body">.task {
+  opacity: 1;
+  transform: translateY(0);
+  transition: opacity 200ms, transform 200ms;  <span class="cm">/* что и за сколько */</span>
+}
+
+<span class="cm">/* класс, который добавляет JS при удалении */</span>
+.task.removing {
+  opacity: 0;
+  transform: scale(0.95);
+}</div>
+  </div>
+  <div class="ek-note">JS только добавляет/убирает класс — всю плавность делает CSS. Это быстро и не нагружает страницу.</div>
+</div>
+</section>
+
+<section class="slide slide--content"
+  data-notes="Простой вопрос. Подождите 10–15 секунд, потом раскройте ответ.">
+<div class="sl-body">
+  <div>
+    <div class="q-label">Проверка · вопрос 1</div>
+    <h2>Изучите ситуацию и <span class="acc">ответьте</span></h2>
+  </div>
+  <div class="quiz-box">
+    <span class="q-num">Вопрос 1</span>
+    <p class="q-text">Вы добавили в localStorage 5 задач. Открыли тот же сайт в режиме «инкогнито» — задач там нет. Почему?</p>
+    <div class="quiz-answer">
+      <button class="quiz-btn" type="button">Показать ответ</button>
+      <div class="quiz-reveal">
+        <p>Режим «инкогнито» использует <b>отдельное</b> хранилище. Когда вы закрываете окно инкогнито, всё содержимое localStorage очищается. Так браузер защищает приватность.</p>
+        <p>В обычной вкладке localStorage сохраняется, пока пользователь сам его не очистит.</p>
+      </div>
+    </div>
+  </div>
+</div>
+</section>
+
+<section class="slide slide--content"
+  data-notes="Второй вопрос — про скрипт в head. Частая ошибка.">
+<div class="sl-body">
+  <div>
+    <div class="q-label">Проверка · вопрос 2</div>
+    <h2>Изучите ситуацию и <span class="acc">ответьте</span></h2>
+  </div>
+  <div class="quiz-box">
+    <span class="q-num">Вопрос 2</span>
+    <p class="q-text">Кнопка «Добавить» не реагирует на клик. В консоли — ошибка <span class="code-chip">Cannot read properties of null</span> на строке <span class="code-chip">addBtn.addEventListener(...)</span>. В чём причина?</p>
+    <div class="quiz-answer">
+      <button class="quiz-btn" type="button">Показать ответ</button>
+      <div class="quiz-reveal">
+        <p>Скрипт подключён в <span class="code-chip">&lt;head&gt;</span> и выполняется <b>до</b> того, как браузер построил кнопку. <span class="code-chip">getElementById('add')</span> вернул <span class="out-chip">null</span> — кнопки ещё нет.</p>
+        <p>Решение: перенести <span class="code-chip">&lt;script src="script.js"&gt;&lt;/script&gt;</span> в самый конец <span class="code-chip">&lt;body&gt;</span>.</p>
+      </div>
+    </div>
+  </div>
+</div>
+</section>
+
+<section class="slide slide--content"
+  data-notes="Научите открывать DevTools. F12 → Console. Это главный инструмент отладки.">
+<div class="sl-body">
+  <div>
+    <div class="q-label">Инструмент отладки</div>
+    <h2>Console — главный <span class="acc">друг</span></h2>
+  </div>
+  <div class="grid-2" style="margin-top:6px">
+    <div class="info-card">
+      <h3>Как открыть</h3>
+      <ol class="steps steps--tight">
+        <li>В браузере нажмите <span class="code-chip">F12</span></li>
+        <li>Перейдите на вкладку <b>Console</b></li>
+        <li>Красные строки — ошибки в коде</li>
+      </ol>
+    </div>
+    <div>
+      <div class="code-win">
+        <div class="code-head"><span class="win-dots"><i></i><i></i><i></i></span><span class="lang-badge">JAVASCRIPT</span></div>
+        <div class="code-body">console.log(<span class="st">'Кнопка нажата'</span>);
+console.log(<span class="st">'Сейчас задач:'</span>, tasks.length);
+console.log(tasks);   <span class="cm">// покажет весь массив</span></div>
+      </div>
+      <div class="ek-note" style="margin-top:12px">Если непонятно, что происходит — печатайте состояние.</div>
+    </div>
+  </div>
+</div>
+</section>
+
+<section class="slide slide--content"
+  data-notes="Шпаргалка по проблемам с событиями.">
+<div class="sl-body">
+  <div>
+    <div class="q-label">Если событие не срабатывает</div>
+    <h2>Типичные <span class="acc">ситуации</span></h2>
+  </div>
+  <div class="kv">
+    <div class="kv-row"><div class="k">кнопка не реагирует</div><div class="v">Скрипт в <span class="code-chip">&lt;head&gt;</span> и выполняется до DOM. Перенесите <span class="code-chip">&lt;script&gt;</span> в конец <span class="code-chip">&lt;body&gt;</span>.</div></div>
+    <div class="kv-row"><div class="k">Cannot read of null</div><div class="v">id в HTML и в JS не совпадают. Проверьте написание.</div></div>
+    <div class="kv-row"><div class="k">localStorage пустой</div><div class="v">Сохраняли через Live Server, открыли через <span class="code-chip">file://</span>. Это разные хранилища — используйте Live Server везде.</div></div>
+    <div class="kv-row"><div class="k">удаляется всё сразу</div><div class="v">Обработчик на родителе вместо самой кнопки. Скопируйте код в DeepSeek с вопросом «почему все элементы удаляются?».</div></div>
+  </div>
+</div>
+</section>
+
+<section class="slide slide--content"
+  data-notes="5 привычек урока. Дайте сфотографировать.">
+<div class="sl-body">
+  <div>
+    <div class="q-label">Запомните</div>
+    <h2>Полезные <span class="acc">привычки</span> на сегодня</h2>
+  </div>
+  <div class="kv">
+    <div class="kv-row"><div class="k">01 · DOM = карта</div><div class="v">Каждый видимый элемент доступен из JS через id или querySelector.</div></div>
+    <div class="kv-row"><div class="k">02 · События — сигналы</div><div class="v">click, input, change. Браузер сам отправляет, JS подписывается через addEventListener.</div></div>
+    <div class="kv-row"><div class="k">03 · Скрипт — в конце body</div><div class="v">Так JS запускается после построения страницы, элементы уже доступны.</div></div>
+    <div class="kv-row"><div class="k">04 · localStorage хранит строки</div><div class="v">Объекты и массивы — через <span class="code-chip">JSON.stringify</span> / <span class="code-chip">JSON.parse</span>.</div></div>
+    <div class="kv-row"><div class="k">05 · Console — друг</div><div class="v">F12 → Console показывает ошибки и сообщения <span class="code-chip">console.log</span>.</div></div>
+  </div>
+</div>
+</section>
+
+<section class="slide slide--content"
+  data-notes="Чек-лист завершения. Пройдите по пунктам, ученики поднимают руку, если готово.">
+<div class="sl-body">
+  <div>
+    <div class="q-label">Финальная проверка</div>
+    <h2>Готовность <span class="acc">к 55-й минуте</span></h2>
+  </div>
+  <div class="grid-2" style="margin-top:6px">
+    <div class="info-card">
+      <h3>Готово</h3>
+      <ul class="clean">
+        <li>Папка <span class="code-chip">lesson-03</span> с 3 файлами</li>
+        <li>Список открывается через Live Server</li>
+        <li>Задачи добавляются по кнопке</li>
+        <li>Каждая задача удаляется по «×»</li>
+      </ul>
+    </div>
+    <div class="info-card">
+      <h3>Работает</h3>
+      <ul class="clean">
+        <li>Чекбокс зачёркивает задачу</li>
+        <li>После перезагрузки задачи на месте</li>
+        <li>Появление и удаление плавное</li>
+        <li>Прошло минимум 4 правки через диалог</li>
+      </ul>
+    </div>
+  </div>
+</div>
+</section>
+
+<section class="slide slide--content"
+  data-notes="ДЗ — расширения списка. Каждое — отдельная правка через диалог.">
+<div class="sl-body">
+  <div>
+    <div class="q-label">Домашнее задание · около 30 минут</div>
+    <h2>Расширьте свой <span class="acc">список</span></h2>
+  </div>
+  <p>Через диалог с DeepSeek добавьте три функции:</p>
+  <div class="grid-3" style="margin-top:8px">
+    <div class="info-card">
+      <h3>Приоритеты</h3>
+      <p>У каждой задачи — выпадающий список «Низкий / Средний / Высокий». Высокий — красная метка слева.</p>
+    </div>
+    <div class="info-card">
+      <h3>Фильтр</h3>
+      <p>Кнопки сверху: «Все / Активные / Выполненные». При клике показываются только нужные задачи.</p>
+    </div>
+    <div class="info-card">
+      <h3>Счётчик</h3>
+      <p>Внизу: «Осталось задач: N». Цифра обновляется при отметке выполненных.</p>
+    </div>
+  </div>
+  <div class="ek-note ek-note--green" style="margin-top:14px">Пришлите скриншот списка с задачами и ваш самый удачный промпт за это задание.</div>
+</div>
+</section>
+
+<section class="slide slide--content"
+  data-notes="Расширенная шпаргалка по проблемам. Держите под рукой на следующих уроках.">
+<div class="sl-body">
+  <div>
+    <div class="q-label">Шпаргалка</div>
+    <h2>Что делать, <span class="acc">если…</span></h2>
+  </div>
+  <div class="kv">
+    <div class="kv-row"><div class="k">страница белая</div><div class="v">Файл не сохранён или пустой. <span class="code-chip">Ctrl+S</span> и проверьте код.</div></div>
+    <div class="kv-row"><div class="k">кнопка молчит</div><div class="v">Скрипт в head или id не совпадает. Скрипт — в конец body.</div></div>
+    <div class="kv-row"><div class="k">задачи пропали</div><div class="v">Открыли через file:// вместо Live Server. Запускайте через Live Server.</div></div>
+    <div class="kv-row"><div class="k">в хранилище мусор</div><div class="v">Забыли <span class="code-chip">JSON.stringify</span> / <span class="code-chip">parse</span>. Отдайте код в DeepSeek.</div></div>
+    <div class="kv-row"><div class="k">нейросеть переписала всё</div><div class="v">Промпт без «оставь всё как есть». Переформулируйте на точечную правку.</div></div>
+  </div>
+</div>
+</section>
+
+<section class="slide slide--green"
+  data-notes="Закройте урок. Следующий — собственная игра в браузере на Canvas.">
+<div class="sl-orbit">
+    <i class="sl-ring"></i>
+    <svg class="sl-ico" viewBox="0 0 100 100" style="left:75px;top:20px;width:150px;height:150px;transform:rotate(-10deg)"><use href="#ek-i-trophy"/></svg>
+    <i class="sl-letter" style="left:466px;top:13px;width:78px;height:78px;--fs:36px">G</i>
+    <svg class="sl-ico" viewBox="0 0 100 100" style="left:1040px;top:15px;width:130px;height:130px;transform:rotate(12deg)"><use href="#ek-i-heart"/></svg>
+    <i class="sl-letter" style="left:68px;top:268px;width:100px;height:100px;--fs:46px">A</i>
+    <i class="sl-letter" style="left:1137px;top:327px;width:95px;height:95px;--fs:44px">M</i>
+    <svg class="sl-ico" viewBox="0 0 100 100" style="left:102px;top:532px;width:125px;height:125px;transform:rotate(-15deg)"><use href="#ek-i-star"/></svg>
+    <i class="sl-letter" style="left:726px;top:613px;width:78px;height:78px;--fs:36px">E</i>
+    <svg class="sl-ico" viewBox="0 0 100 100" style="left:1045px;top:540px;width:110px;height:110px;transform:rotate(8deg)"><use href="#ek-i-gem"/></svg>
+  </div>
+  <div class="cover-center">
+    <div class="bubble">
+      <h1>До встречи<br>на уроке 4!</h1>
+      <p>Сегодня страница научилась отвечать на действия: список задач добавляет, удаляет, отмечает выполненное и не теряется при перезагрузке. На уроке 4 — своя браузерная игра: холст Canvas, движение и игровой цикл.</p>
+    </div>
+  </div>
+</section>
+</main>
+
+<div class="notes" id="notes">
+  <div class="notes__header">Заметки преподавателя &middot; N — скрыть</div>
+  <div class="notes__body" id="notesBody">—</div>
+</div>
+
+<div class="hint"><kbd>←</kbd><kbd>→</kbd> слайды &middot; <kbd>N</kbd> заметки &middot; <kbd>F</kbd> весь экран</div>
+
+<svg width="0" height="0" style="position:absolute" aria-hidden="true"><defs>
+<symbol id="ek-i-trophy" viewBox="0 0 100 100"><path fill="currentColor" d="M24 16h52v12h8c6 0 10 4 10 10 0 15-11 25-23 27-3 5-8 9-14 10v8h14c4 0 7 3 7 7v4H22v-4c0-4 3-7 7-7h14v-8c-6-1-11-5-14-10C17 63 6 53 6 38c0-6 4-10 10-10h8V16zM24 36h-7c-2 0-4 2-4 4 0 8 5 15 12 18-1-5-1-10-1-16v-6zM76 36v6c0 6 0 11-1 16 7-3 12-10 12-18 0-2-2-4-4-4h-7z"/></symbol>
+<symbol id="ek-i-heart" viewBox="0 0 100 100"><path fill="currentColor" d="M50 88C28 72 10 56 10 38 10 24 21 14 34 14c6 0 12 3 16 8 4-5 10-8 16-8 13 0 24 10 24 24 0 18-18 34-40 50z"/></symbol>
+<symbol id="ek-i-star" viewBox="0 0 100 100"><path fill="currentColor" d="M50 8l12 27 29 3-22 20 6 29-25-15-25 15 6-29L9 38l29-3z"/></symbol>
+<symbol id="ek-i-gem" viewBox="0 0 100 100"><path fill="currentColor" d="M30 12h40l18 24-38 52L12 36zM36 20l-12 16h20zM64 20l-8 16h20zM50 22l-9 14h18zM26 44l20 30-8-30zM62 44l-8 30 20-30zM46 44h8l-4 26z"/></symbol>
+</defs></svg>
+
+<script>
+/* ============ Автомасштаб сцены ============ */
+(function(){
+  'use strict';
+  var stage = document.getElementById('deck');
+  function fit(){
+    var w = window.innerWidth, h = window.innerHeight;
+    if (!w || !h) return;
+    var s = Math.min(w / 1320, h / 780);
+    if (document.fullscreenElement) s = Math.min(w / 1280, h / 720);
+    stage.style.transform = 'translate(-50%,-50%) scale(' + s + ')';
+    stage.style.borderRadius = document.fullscreenElement ? '0' : '18px';
+  }
+  window.addEventListener('resize', fit);
+  document.addEventListener('fullscreenchange', fit);
+  fit();
+})();
+
+/* ============ Навигация по слайдам ============ */
+(function(){
+  'use strict';
+  var slides = Array.prototype.slice.call(document.querySelectorAll('.slide'));
+  var total = slides.length;
+  var idx = 0;
+  document.getElementById('total').textContent = total;
+
+  var progressEl = document.getElementById('progress');
+  var currentEl = document.getElementById('current');
+  var notesPanel = document.getElementById('notes');
+  var notesBody = document.getElementById('notesBody');
+
+  slides.forEach(function(s, i){
+    if (s.classList.contains('slide--content')) s.setAttribute('data-page', i + 1);
+  });
+
+  function render(){
+    slides.forEach(function(s, i){
+      s.classList.remove('active', 'prev');
+      if (i === idx) s.classList.add('active');
+      else if (i < idx) s.classList.add('prev');
+    });
+    progressEl.style.width = ((idx + 1) / total * 100).toFixed(2) + '%';
+    currentEl.textContent = idx + 1;
+    notesBody.textContent = slides[idx].getAttribute('data-notes') || '—';
+  }
+
+  function go(n){ idx = Math.max(0, Math.min(total - 1, n)); render(); }
+  function next(){ go(idx + 1); }
+  function prev(){ go(idx - 1); }
+
+  document.addEventListener('keydown', function(e){
+    var active = document.activeElement;
+    if (active && (active.isContentEditable || active.tagName === 'TEXTAREA' || active.tagName === 'INPUT')) return;
+    switch (e.key){
+      case 'ArrowRight': case 'PageDown': case ' ':
+        e.preventDefault(); next(); break;
+      case 'ArrowLeft': case 'PageUp':
+        e.preventDefault(); prev(); break;
+      case 'Home': e.preventDefault(); go(0); break;
+      case 'End': e.preventDefault(); go(total - 1); break;
+      case 'f': case 'F': case 'а': case 'А':
+        e.preventDefault();
+        if (!document.fullscreenElement){ if (document.documentElement.requestFullscreen) document.documentElement.requestFullscreen(); }
+        else if (document.exitFullscreen) document.exitFullscreen();
+        break;
+      case 'n': case 'N': case 'т': case 'Т':
+        e.preventDefault(); notesPanel.classList.toggle('active'); break;
+      case 'Escape':
+        if (document.fullscreenElement && document.exitFullscreen) document.exitFullscreen();
+        notesPanel.classList.remove('active'); break;
+    }
+  });
+
+  var tx = 0, ty = 0;
+  document.addEventListener('touchstart', function(e){ tx = e.changedTouches[0].screenX; ty = e.changedTouches[0].screenY; }, { passive: true });
+  document.addEventListener('touchend', function(e){
+    var dx = e.changedTouches[0].screenX - tx, dy = e.changedTouches[0].screenY - ty;
+    if (Math.abs(dx) > 60 && Math.abs(dx) > Math.abs(dy)){ if (dx < 0) next(); else prev(); }
+  }, { passive: true });
+
+  document.addEventListener('click', function(e){
+    if (e.target.closest('a,button,input,textarea,code,pre,[contenteditable],.code-win,.term,.prompt-card,.quiz-box,.notes')) return;
+    var x = e.clientX, w = window.innerWidth;
+    if (x < w * 0.25) prev();
+    else if (x > w * 0.75) next();
+  });
+
+  render();
+})();
+
+/* ============ Квизы: показать ответ ============ */
+(function(){
+  'use strict';
+  Array.prototype.slice.call(document.querySelectorAll('.quiz-btn')).forEach(function(btn){
+    btn.addEventListener('click', function(e){
+      e.stopPropagation();
+      var box = btn.closest('.quiz-box');
+      var reveal = box && box.querySelector('.quiz-reveal');
+      if (!reveal) return;
+      var shown = reveal.classList.toggle('show');
+      btn.textContent = shown ? 'Скрыть ответ' : 'Показать ответ';
+    });
+  });
+})();
+</script>
+</body>
+</html>

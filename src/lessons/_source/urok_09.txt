@@ -1,0 +1,613 @@
+===== SLIDE 1/38 [COVER] =====
+[NOTES] Поприветствуйте. Сегодня добавим к Python-программе интерфейс в Telegram: соберём бота, который принимает сообщения от пользователей и отвечает через нейросеть. Бота зарегистрируем у @BotFather, токен положим в .env. К концу урока у каждого будет рабочий бот в Telegram, которым можно поделиться с друзьями. Нужен телефон с Telegram у каждого или веб-версия web.telegram.org.
+[HTML]
+<div class="eyebrow">Step 2 · Модуль 3 · Урок 09</div>
+<h1>Telegram-бот<br>с нейросетью.</h1>
+<p class="subtitle">Соберём бота, который принимает сообщения в Telegram и отвечает через DeepSeek. Зарегистрируем его у @BotFather, токен положим в .env — и бот будет доступен другим пользователям.</p>
+<div class="meta-row">
+  <span class="badge primary">60 минут</span>
+  <span class="badge cyan">13–15 лет</span>
+  <span class="badge good">Публичный проект</span>
+</div>
+<div class="chip-row" style="margin-top:20px">
+  <span class="badge neutral">Python</span>
+  <span class="badge neutral">Telegram Bot API</span>
+  <span class="badge neutral">@BotFather</span>
+  <span class="badge neutral">DeepSeek API</span>
+</div>
+
+===== SLIDE 2/38 =====
+[NOTES] План. Теории даём минимум: уже на 8-й минуте просим у DeepSeek бота-эхо, а первый ответ бота в Telegram ожидаем к 18-20 минуте (регистрация у @BotFather и установка библиотеки занимают время). Дальше — 5 правок через диалог с нейросетью, каждая меняет поведение бота в чате. КРИТИЧНО заранее: поставьте python-telegram-bot (версия 20+) и зарегистрируйте бота у @BotFather ДО урока, чтобы к 12-й минуте у детей уже был токен на руках — иначе первый ответ сдвинется за 25-ю минуту.
+[HTML]
+<div class="eyebrow">Agenda · план занятия</div>
+<h2>Как пройдут 60 минут</h2>
+<div class="timeline">
+  <div class="timeline-row"><div class="time">0–5</div><div><div class="title">Разбор ДЗ</div><div class="desc">Смотрим доработанное приложение с погодой: прогноз на завтра, эмодзи, сравнение городов.</div></div></div>
+  <div class="timeline-row"><div class="time">5–8</div><div><div class="title">Как устроен бот</div><div class="desc">Коротко разбираем только то, что нужно для сборки: три звена и long polling.</div></div></div>
+  <div class="timeline-row"><div class="time">8–12</div><div><div class="title">Промпт-разминка</div><div class="desc">bot.py: бот-эхо, который отвечает тем же текстом.</div></div></div>
+  <div class="timeline-row"><div class="time">12–20</div><div><div class="title">Регистрация и запуск</div><div class="desc">@BotFather, токен в код, установка библиотеки — к 18–20 минуте бот отвечает в телефоне.</div></div></div>
+  <div class="timeline-row"><div class="time">20–48</div><div><div class="title">5 правок через диалог</div><div class="desc">Токен в .env → нейросеть → команды → характер → память и «печатает…».</div></div></div>
+  <div class="timeline-row"><div class="time">48–55</div><div><div class="title">Мини-вопросы и отладка</div><div class="desc">Почему run_polling не закрывается, что делать с утёкшим токеном.</div></div></div>
+  <div class="timeline-row"><div class="time">55–60</div><div><div class="title">Демо в группе</div><div class="desc">Каждый пишет своему боту и получает ответ через нейросеть.</div></div></div>
+</div>
+
+===== SLIDE 3/38 =====
+[NOTES] Откройте 1-2 доработанных приложения (на весь блок 5 минут). Разбирайте диалог с нейросетью, а не только результат. Подведите к главному: weather.py работал в терминале, поэтому результат видел только автор. Сегодня программа получит интерфейс в Telegram и сможет отвечать другим пользователям.
+[HTML]
+<div class="eyebrow">Разбор ДЗ урока 8</div>
+<h2>Смотрим приложение с погодой</h2>
+<p class="lead">Открываем 2–3 присланных <code class="inline">weather.py</code> и разбираем именно <em>диалог с нейросетью</em>: прогноз на завтра, эмодзи погоды, сравнение двух городов.</p>
+<div class="grid cols-3" style="margin-top:24px">
+  <div class="card">
+    <h3>Что сработало</h3>
+    <p style="font-size:14.5px">Точечные промпты: эмодзи по коду погоды, а сравнение городов — через два запроса к <em>одному</em> API.</p>
+  </div>
+  <div class="card">
+    <h3>Что переделывали</h3>
+    <p style="font-size:14.5px">Где ключ OpenWeather забыли перенести в <code class="inline">.env</code> — он остался прямо в коде.</p>
+  </div>
+  <div class="card">
+    <h3>Вывод</h3>
+    <p style="font-size:14.5px">Всё это работало в <em>терминале</em> — результат видел только автор. Сегодня программа будет отвечать пользователям в Telegram.</p>
+  </div>
+</div>
+
+===== SLIDE 4/38 =====
+[NOTES] Главная мысль урока: у Python-программы появляется интерфейс в Telegram. Это первый проект, которым можно поделиться с друзьями. Две линии: бот получает сообщения через run_polling, а на каждое сообщение отвечает DeepSeek — как на уроках 5–8.
+[HTML]
+<div class="eyebrow">Идея урока</div>
+<h2>У программы появляется интерфейс в Telegram</h2>
+<p class="lead">До сих пор программы работали в <em>терминале</em> — их видел только автор. Прогноз погоды, дневник и советчик работали локально, но ими было трудно поделиться.</p>
+<div class="card accent" style="margin-top:20px">
+  <p style="font-size:16px; color:#E2E8F0">Сегодня программа получает <strong>интерфейс в Telegram</strong>: бот принимает сообщения пользователей и отвечает через нейросеть. Это <strong>первый проект, которым можно поделиться</strong> с другим человеком.</p>
+</div>
+<p style="font-size:14px; margin-top:14px; color:var(--muted)">Две линии: бот <strong>говорит с Telegram</strong> через <code class="inline">run_polling</code>, а на каждое сообщение <strong>отвечает DeepSeek</strong> — как на уроках 5–8.</p>
+
+===== SLIDE 5/38 =====
+[NOTES] Короткий recap, минимум теории. Бот — обычная программа, которая общается с людьми в мессенджере. Telegram даёт для этого Bot API — набор правил, по которым программа получает сообщения и отправляет ответы. Ваш bot.py будет работать с Telegram через готовую библиотеку.
+[HTML]
+<div class="eyebrow">Вспоминаем</div>
+<h2>Что такое бот и Bot API</h2>
+<p class="lead"><strong>Бот</strong> — это обычная программа, которая <em>общается с людьми в мессенджере</em>: получает их сообщения и отправляет ответы. За ботом всегда стоит код — сегодня это будет ваш <code class="inline">bot.py</code>.</p>
+<div class="grid cols-2" style="margin-top:20px">
+  <div class="card">
+    <h3>Bot API</h3>
+    <p style="font-size:14.5px">Telegram даёт <em>Bot API</em> — набор правил, по которым программа получает сообщения и отправляет ответы. Обращаться к нему напрямую сложно.</p>
+  </div>
+  <div class="card good">
+    <h3>Библиотека делает это за вас</h3>
+    <p style="font-size:14.5px"><code class="inline">python-telegram-bot</code> берёт на себя технические детали: вы описываете реакцию на сообщение, а библиотека работает с Telegram.</p>
+  </div>
+</div>
+
+===== SLIDE 6/38 =====
+[NOTES] Покажите разницу на примере: программу в терминале запускает и видит только автор на своём компьютере. Чтобы показать её другу, пришлось бы дать доступ к своему ноутбуку. Бот в Telegram доступен любому, у кого есть его @username. Это мотивация всего урока.
+[HTML]
+<div class="eyebrow">Зачем нам новое</div>
+<h2>Чем плох терминал</h2>
+<div class="vs-grid">
+  <div class="vs-col minimal">
+    <h4>Программа в терминале</h4>
+    <p>Запускается на <em>вашем</em> компьютере, и результат видите только вы. Чтобы показать другу, пришлось бы посадить его за свой ноутбук.</p>
+    <p class="note">Так работали все прошлые проекты.</p>
+  </div>
+  <div class="vs-col detailed">
+    <h4>Бот в Telegram</h4>
+    <p>Любой, кому вы дали <em>@username</em> бота, пишет ему из своего телефона и получает ответ. Программа стала общей.</p>
+    <p class="note">Это соберём сегодня.</p>
+  </div>
+</div>
+<p style="font-size:14px; margin-top:14px; color:var(--muted)">Как только код выходит <strong>в мессенджер</strong>, им можно <strong>поделиться</strong> — и это работает у каждого в телефоне.</p>
+
+===== SLIDE 7/38 =====
+[NOTES] Одна схема на весь урок: три звена — пользователь, Telegram, ваш bot.py. Ключевая мысль про long polling: бот не ждёт отдельного запуска на каждое сообщение, а сам постоянно спрашивает у Telegram «есть новые сообщения?». Это делает функция run_polling. Больше про устройство пока знать не нужно.
+[HTML]
+<div class="eyebrow">Как это работает</div>
+<h2>Три звена и long polling</h2>
+<p class="lead">Между вами и ботом всегда три звена: <em>пользователь</em> пишет в <em>Telegram</em>, а ваш <em>bot.py</em> забирает сообщение и отправляет ответ обратно.</p>
+<div class="grid cols-3" style="margin-top:20px">
+  <div class="step-card"><span class="num">1</span><h3 style="margin-top:6px">Пользователь</h3><p style="font-size:14px">Пишет боту в Telegram со своего телефона.</p></div>
+  <div class="step-card"><span class="num">2</span><h3 style="margin-top:6px">Telegram</h3><p style="font-size:14px">Хранит сообщение и ждёт, пока программа его заберёт.</p></div>
+  <div class="step-card"><span class="num">3</span><h3 style="margin-top:6px">Ваш bot.py</h3><p style="font-size:14px">Забирает сообщение, готовит ответ и шлёт назад.</p></div>
+</div>
+<div class="card accent" style="margin-top:14px">
+  <p style="font-size:15px"><strong>Long polling</strong>: бот сам постоянно спрашивает у Telegram «есть новые сообщения?». Это делает одна строчка — <code class="inline">run_polling()</code>. Пока она работает — бот в сети.</p>
+</div>
+
+===== SLIDE 8/38 =====
+[NOTES] Без долгой подготовки: сразу просим у DeepSeek минимального бота-эхо и готовимся запустить. Промпт с ролью и точным заданием — техники прошлых уроков работают и здесь. Ученики копируют промпт целиком в новый чат DeepSeek. Токен пока подставим прямо в константу TOKEN, перенесём в .env следующей правкой.
+[HTML]
+<div class="eyebrow">Промпт #1 · разминка</div>
+<h2>Бот-эхо за две минуты</h2>
+<p class="lead">Начнём с минимального бота: попросим DeepSeek написать эхо-бота, который отвечает <em>тем же текстом</em>, что ему написали. Токен пока подставим прямо в код.</p>
+<div class="prompt-box"><span class="h">→ Новый чат DeepSeek</span>
+Ты — опытный Python-разработчик и наставник школьника. Напиши минимального Telegram-бота-эхо bot.py на библиотеке python-telegram-bot (версия 20+, async): бот принимает любое текстовое сообщение и отвечает тем же текстом. Токен возьми из константы TOKEN. Используй Application, MessageHandler, filters.TEXT и run_polling. Прокомментируй код для новичка, ответь одним блоком.</div>
+
+===== SLIDE 9/38 =====
+[NOTES] Базовый шаг урока: дождитесь, пока бот-эхо ответит в Telegram у каждого. На рабочем коде показываем три вещи: обработчик на async def с await, фильтр текст-но-не-команды и run_polling как бесконечный цикл. Токен пока в константе TOKEN — перенесём в .env следующей правкой. Бота регистрируют у @BotFather (следующий слайд), запускают локально; run_polling удерживает терминал — это норма, остановка через Ctrl+C.
+[HTML]
+<div class="eyebrow">Запуск и разбор</div>
+<h2>Бот-эхо отвечает в Telegram</h2>
+<div class="grid cols-2">
+  <div>
+    <pre><code class="language-python">import os
+from telegram import Update
+from telegram.ext import (Application,
+    MessageHandler, filters, ContextTypes)
+
+TOKEN = "123456:ABC-DEF..."   # пока прямо здесь
+
+async def on_message(update: Update,
+        context: ContextTypes.DEFAULT_TYPE):
+    text = update.message.text
+    await update.message.reply_text(text)
+
+app = Application.builder().token(TOKEN).build()
+app.add_handler(MessageHandler(
+    filters.TEXT &amp; ~filters.COMMAND, on_message))
+app.run_polling()   # бот спрашивает Telegram</code></pre>
+  </div>
+  <div>
+    <div class="kv-row"><div class="k">async def</div><div class="v">Обработчик асинхронный, перед reply_text — await.</div></div>
+    <div class="kv-row"><div class="k">filters.TEXT &amp; ~filters.COMMAND</div><div class="v">Ловим обычный текст, но не команды.</div></div>
+    <div class="kv-row"><div class="k">run_polling()</div><div class="v">Бесконечный цикл: бот сам спрашивает про сообщения.</div></div>
+    <div class="card good" style="margin-top:14px">
+      <p style="font-size:14px">Бот повторил ваше сообщение в Telegram? Каркас готов — дальше подключим ответы через нейросеть.</p>
+    </div>
+  </div>
+</div>
+
+===== SLIDE 10/38 =====
+[NOTES] Разберите три типичные проблемы запуска бота-эхо. Исправьте ошибки у всех: этот же bot.py нужен дальше для всех пяти правок. Напомните: заранее проверьте, что python-telegram-bot ставится именно версии 20+ (в старом синтаксисе всё иначе).
+[HTML]
+<div class="eyebrow">Типичные ситуации запуска</div>
+<h2>Если бот-эхо не запустился</h2>
+<div class="grid cols-3" style="margin-top:20px">
+  <div class="card warn">
+    <h3>Unauthorized</h3>
+    <p style="font-size:14.5px">Токен неверный или скопирован с лишним пробелом. Возьмите токен у <code class="inline">@BotFather</code> заново и вставьте целиком.</p>
+  </div>
+  <div class="card warn">
+    <h3>Старый синтаксис</h3>
+    <p style="font-size:14.5px">Ошибки на <code class="inline">Application</code> или <code class="inline">async</code> — стоит старая библиотека. Нужна <code class="inline">python-telegram-bot</code> версии 20+.</p>
+  </div>
+  <div class="card warn">
+    <h3>Бот молчит</h3>
+    <p style="font-size:14.5px">Пишете <em>не тому</em> боту. Проверьте, что открыли чат именно со своим <code class="inline">@username</code>, и что <code class="inline">run_polling</code> запущен.</p>
+  </div>
+</div>
+
+===== SLIDE 11/38 =====
+[NOTES] Бота регистрирует сам ученик у @BotFather, не преподаватель. Проверьте заранее, что @BotFather доступен. @username обязан заканчиваться на bot, иначе имя не примут.
+[HTML]
+<div class="eyebrow">Регистрация бота</div>
+<h2>Заводим бота у @BotFather</h2>
+<p class="lead">Бота создаёт Telegram через официального бота <code class="inline">@BotFather</code>. Пять коротких шагов — и у вас есть токен.</p>
+<div class="grid cols-2" style="margin-top:16px">
+  <div class="step-card"><span class="num">1</span><h3 style="margin-top:6px">Найдите @BotFather</h3><p style="font-size:14px">В поиске Telegram — официальный, с синей галочкой. Откройте чат.</p></div>
+  <div class="step-card"><span class="num">2</span><h3 style="margin-top:6px">Отправьте /newbot</h3><p style="font-size:14px">Команда запускает создание нового бота.</p></div>
+  <div class="step-card"><span class="num">3</span><h3 style="margin-top:6px">Имя бота</h3><p style="font-size:14px">Как он будет подписан в чате — любое, например «Мой AI-помощник».</p></div>
+  <div class="step-card"><span class="num">4</span><h3 style="margin-top:6px">@username</h3><p style="font-size:14px">Обязательно заканчивается на <code class="inline">bot</code>, например <code class="inline">my_ai_helper_bot</code>.</p></div>
+</div>
+<div class="card good" style="margin-top:14px">
+  <p style="font-size:15px">Шаг 5: <code class="inline">@BotFather</code> присылает <strong>токен</strong> вида <code class="inline">123456:ABC-DEF1234...</code>. Это ключ от вашего бота — на первом запуске положим его в код, а затем перенесём в <code class="inline">.env</code>.</p>
+</div>
+
+===== SLIDE 12/38 =====
+[NOTES] Ключевое правило безопасности урока. Токен = пароль от бота: по нему любой управляет ботом от вашего имени. Утёк — немедленно /revoke у @BotFather. На скриншотах ДЗ токен замазывать.
+[HTML]
+<div class="eyebrow">Безопасность</div>
+<h2>Токен — это пароль от бота</h2>
+<p class="lead">Токен даёт <em>полный контроль</em> над ботом. Кто получил токен — управляет ботом от вашего имени: читает сообщения, отвечает, меняет настройки.</p>
+<div class="grid cols-2" style="margin-top:16px">
+  <div class="card warn">
+    <h3>Никогда</h3>
+    <p style="font-size:14.5px">Не выкладывайте токен в общий чат, не пишите прямо в коде на скриншотах, не отправляйте в мессенджере. На скриншотах для домашки — <strong>замазывать</strong>.</p>
+  </div>
+  <div class="card good">
+    <h3>Если утёк</h3>
+    <p style="font-size:14.5px">Немедленно перевыпустите у <code class="inline">@BotFather</code> командой <code class="inline">/revoke</code> или <code class="inline">/token</code>. Старый токен сразу перестанет работать.</p>
+  </div>
+</div>
+<div class="card accent" style="margin-top:14px">
+  <p style="font-size:15px">Поэтому токен хранят так же, как ключ DeepSeek на уроке 8 — в файле <code class="inline">.env</code>, который не попадает в репозиторий.</p>
+</div>
+
+===== SLIDE 13/38 =====
+[NOTES] Recap с урока 8: load_dotenv + os.getenv читают секреты из .env. Функция ask_deepseek — та же, что на уроках 5-8, её тело сегодня не переписываем, а переиспользуем.
+[HTML]
+<div class="eyebrow">Recap · уроки 5-8</div>
+<h2>Секреты из .env и знакомый DeepSeek</h2>
+<p class="lead">Два секрета — токен бота и ключ нейросети — читаем из <code class="inline">.env</code>, как ключ на уроке 8. А запрос к DeepSeek берём готовый с уроков 5-8.</p>
+<pre style="margin-top:16px"><code class="language-python">import os
+from dotenv import load_dotenv
+load_dotenv()
+TOKEN = os.getenv("BOT_TOKEN")           # токен бота — как пароль
+API_KEY = os.getenv("DEEPSEEK_KEY")  # ключ нейросети — как на уроке 8</code></pre>
+<div class="card accent" style="margin-top:14px">
+  <p style="font-size:15px"><code class="inline">ask_deepseek(text)</code> — <strong>та же функция</strong>, что раньше: <code class="inline">requests.post</code> к <code class="inline">api.deepseek.com</code>, модель <code class="inline">deepseek-chat</code>, ключ из <code class="inline">.env</code>. Её тело сегодня не пишем заново — переиспользуем.</p>
+</div>
+
+===== SLIDE 14/38 =====
+[NOTES] Прочитайте цель вслух. Главное — программа получает интерфейс в Telegram и отвечает другим пользователям. Слева теория, справа практика.
+[HTML]
+<div class="eyebrow">Goal · что будет в конце</div>
+<h2>Цель урока</h2>
+<div class="card accent">
+  <p class="lead" style="color:#E2E8F0">К концу урока у каждого — свой Telegram-бот: он принимает сообщение, отправляет его в DeepSeek и присылает ответ обратно в чат. Бот доступен другим пользователям, помнит контекст и показывает «печатает…».</p>
+</div>
+<div class="grid cols-2" style="margin-top:28px">
+  <div>
+    <h3 style="color:var(--accent-2)">Узнаете</h3>
+    <ul class="check-list">
+      <li>Как программа получает интерфейс в мессенджере через Bot API</li>
+      <li>Что такое long polling и почему <code class="inline">run_polling</code> не закрывается</li>
+      <li>Почему обработчик — <code class="inline">async def</code>, а перед ответом — <code class="inline">await</code></li>
+    </ul>
+  </div>
+  <div>
+    <h3 style="color:var(--accent)">Сделаете</h3>
+    <ul class="check-list">
+      <li>Зарегистрируете бота у <code class="inline">@BotFather</code></li>
+      <li>Подключите к нему DeepSeek</li>
+      <li>Добавите команды, характер и память</li>
+    </ul>
+  </div>
+</div>
+
+===== SLIDE 15/38 =====
+[NOTES] Покажите заранее собранного бота на реальном телефоне. Напишите боту при группе: пусть все увидят «печатает…» и ответ нейросети прямо в Telegram. Нужен телефон с Telegram у каждого.
+[HTML]
+<div class="eyebrow">Демо результата</div>
+<h2>Что соберём сегодня</h2>
+<pre><code class="language-bash">🤖 Мой AI-помощник · чат в Telegram
+
+Вы:  Привет! Посоветуй книгу про космос
+Бот: печатает…
+Бот: Держи: «Краткая история времени» Стивена Хокинга —
+     объясняет космос простым языком. Ещё варианты?
+
+Вы:  А что-нибудь для подростка?
+Бот: Тогда «Астрофизика с космической скоростью» —
+     та же тема, но легче и с юмором.</code></pre>
+<p style="font-size:14px; margin-top:14px; color:var(--muted)">Отвечает <em>нейросеть</em>, бот помнит предыдущий вопрос и показывает «печатает…». Всё это происходит прямо в <em>Telegram</em>, а не в терминале.</p>
+
+===== SLIDE 16/38 =====
+[NOTES] Подготовка: bot.py в новой папке lesson-09. requests стоит с уроков 5-8, python-dotenv — с урока 8. Новая только python-telegram-bot версии 20+. Проверьте заранее, что библиотека ставится.
+[HTML]
+<div class="eyebrow">Подготовка</div>
+<h2>Папка lesson-09 и библиотека</h2>
+<div class="grid cols-2">
+  <div>
+    <ol class="num-list">
+      <li>Создайте папку <code class="inline">lesson-09</code> в <code class="inline">vibe-coding</code></li>
+      <li>Создайте в ней файл <code class="inline">bot.py</code> и файл <code class="inline">.env</code></li>
+      <li>Установите библиотеки одной командой (см. справа)</li>
+    </ol>
+    <div class="card accent" style="margin-top:14px">
+      <p style="font-size:14.5px"><code class="inline">requests</code> уже стоит с уроков 5-8, <code class="inline">python-dotenv</code> — с урока 8. Новая — только <code class="inline">python-telegram-bot</code>, версия <strong>20+</strong>.</p>
+    </div>
+  </div>
+  <div>
+<pre><code class="language-bash">D:/vibe-coding/lesson-09/
+├── bot.py
+└── .env</code></pre>
+<pre style="margin-top:12px"><code class="language-bash">pip install python-telegram-bot requests python-dotenv</code></pre>
+    <div class="card warn" style="margin-top:14px">
+      <p style="font-size:14.5px">Версия <strong>20+</strong> важна: в старой библиотеке синтаксис без <code class="inline">async</code> — весь код будет другим.</p>
+    </div>
+  </div>
+</div>
+
+===== SLIDE 17/38 =====
+[NOTES] Мостик к правкам. Сейчас у учеников уже работает бот-эхо из части 1: повторяет текст. Дальше пять правок превратят его в AI-бота. Каждая правка — через диалог с DeepSeek, каждая меняет поведение в чате.
+[HTML]
+<div class="eyebrow">Момент урока · мостик</div>
+<h2>От эха — к нейросети за пять правок</h2>
+<p class="lead">Сейчас бот-эхо просто <em>повторяет</em> ваше сообщение. Ядро уже собрано: <code class="inline">MessageHandler</code> ловит текст, <code class="inline">run_polling</code> держит бота в сети. Осталось поменять одну строчку — <em>что</em> бот отвечает.</p>
+<pre style="margin-top:16px"><code class="language-python">async def on_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    text = update.message.text
+    answer = ask_deepseek(text)        # раньше здесь было text — теперь ответ DeepSeek
+    await update.message.reply_text(answer)</code></pre>
+<div class="card good" style="margin-top:14px">
+  <p style="font-size:14.5px">Каждая из <strong>пяти правок</strong> — отдельный запрос к DeepSeek в тот же чат, и после каждой бот в Telegram меняет поведение: отвечает нейросетью, знает команды, получает характер и память.</p>
+</div>
+
+===== SLIDE 18/38 =====
+[NOTES] Запуск бота-эхо с токеном прямо в константе TOKEN — как в каркасе на слайде 9. Про .env здесь ещё не говорим: перенос токена в .env будет отдельной Правкой 1. Вставьте токен от @BotFather в строку TOKEN, запустите python bot.py. run_polling удерживает терминал — это норма, а не зависание. Дождитесь, пока у всех бот в сети.
+[HTML]
+<div class="eyebrow">Запуск бота</div>
+<h2>Запускаем бота-эхо: python bot.py</h2>
+<ol class="num-list">
+  <li>Вставьте токен от <code class="inline">@BotFather</code> прямо в строку <code class="inline">TOKEN = "..."</code> в <code class="inline">bot.py</code></li>
+  <li>Сохраните файл (<code class="inline">Ctrl+S</code>)</li>
+  <li>В терминале выполните <code class="inline">python bot.py</code></li>
+  <li>Терминал занят и не возвращает приглашение — <strong>так и должно быть</strong>: бот в сети</li>
+</ol>
+<pre style="margin-top:16px"><code class="language-python">TOKEN = "123456:ABC-DEF..."   # токен от @BotFather, пока прямо в коде</code></pre>
+<div class="card accent" style="margin-top:14px">
+  <p style="font-size:14.5px"><code class="inline">run_polling()</code> — <strong>бесконечный цикл</strong> long polling: бот сам постоянно спрашивает Telegram «есть новые сообщения?». Пока он запущен — бот работает. Остановить — <code class="inline">Ctrl+C</code>. Токен спрячем в <code class="inline">.env</code> следующей правкой.</p>
+</div>
+
+===== SLIDE 19/38 =====
+[NOTES] Промежуточный результат: каждый пишет своему боту в Telegram и получает эхо-ответ. Проверьте, что ученики пишут именно своему боту (правильный @username), а не соседнему. Это первый раз, когда их код отвечает через мессенджер.
+[HTML]
+<div class="eyebrow">Момент урока</div>
+<h2>Пишем боту первое сообщение</h2>
+<p class="lead">Найдите своего бота в Telegram по <em>@username</em>, откройте чат и отправьте любое сообщение. Бот-эхо <em>вернёт тот же текст</em> — значит, связь работает.</p>
+<div class="card good" style="margin-top:18px">
+  <p style="font-size:14.5px">Это <strong>первый раз</strong>, когда ваш код отвечает не в терминале, а человеку в мессенджере. Пока он только повторяет — но канал до Telegram уже открыт.</p>
+</div>
+<div class="card warn" style="margin-top:14px">
+  <p style="font-size:14.5px">Бот молчит? Проверьте, что пишете <strong>своему</strong> боту (тот самый <code class="inline">@username</code>), что токен в <code class="inline">TOKEN</code> вставлен целиком без пробелов и что <code class="inline">python bot.py</code> запущен и не остановлен.</p>
+</div>
+
+===== SLIDE 20/38 =====
+[NOTES] Коротко разберите четыре ситуации. Чаще всего не поставлена библиотека или ученик пишет не тому боту. Тем, у кого бот молчит, помогите лично; остальные сверяются со слайдом. Напомните: run_polling удерживает терминал — это норма, а не зависание.
+[HTML]
+<div class="eyebrow">Если бот не отвечает</div>
+<h2>Типичные ситуации запуска</h2>
+<div class="kv-row"><div class="k">ModuleNotFoundError</div><div class="v">Библиотека не установлена. В терминале: <code class="inline">pip install python-telegram-bot</code> (версия 20+) — и запускайте снова.</div></div>
+<div class="kv-row"><div class="k">Unauthorized</div><div class="v">Токен битый или не тот. Скопируйте <code class="inline">BOT_TOKEN</code> от <code class="inline">@BotFather</code> заново: целиком, без пробелов, с двоеточием внутри.</div></div>
+<div class="kv-row"><div class="k">Бот молчит</div><div class="v">Программа запущена, а ответа нет — скорее всего вы пишете <strong>не тому боту</strong>. Откройте бота по его <code class="inline">@username</code> из <code class="inline">@BotFather</code>.</div></div>
+<div class="kv-row"><div class="k">Терминал занят</div><div class="v"><code class="inline">run_polling()</code> не возвращает приглашение — это <strong>норма</strong>: пока программа работает, бот в сети. Остановить — <code class="inline">Ctrl+C</code>.</div></div>
+
+===== SLIDE 21/38 =====
+[NOTES] Первая правка идёт в тот же чат. После неё токен переносится из константы в .env — правило с урока 8. Дождитесь, пока у всех бот-эхо снова отвечает в Telegram уже с токеном из .env, потом переходите дальше.
+[HTML]
+<div class="eyebrow">Правка 1 · токен в .env</div>
+<h2>Токен переносим в .env</h2><div class="prompt-box"><span class="h">→ В тот же чат</span>
+Заведи бота у @BotFather и получи токен. Положи токен в файл .env строкой BOT_TOKEN=..., а в коде читай через python-dotenv. Проверь, что бот-эхо отвечает в Telegram. Верни весь файл.</div>
+
+===== SLIDE 22/38 =====
+[NOTES] Дайте минимум теории. Главное: токен больше не в коде, а в .env — как ключ DeepSeek на уроке 8. load_dotenv читает файл, os.getenv достаёт значение по имени. Откройте .env в VS Code и покажите строку BOT_TOKEN. Ключ DEEPSEEK_KEY добавим в .env позже, на Правке 2, когда подключим нейросеть.
+[HTML]
+<div class="eyebrow">Разбор кода</div>
+<h2>Как токен попадает в код из .env</h2>
+<pre><code class="language-python">from dotenv import load_dotenv
+import os
+
+load_dotenv()                       # прочитали файл .env рядом с bot.py
+TOKEN = os.getenv("BOT_TOKEN")      # достали токен по имени</code></pre>
+<p style="font-size:14px; margin-top:12px; color:var(--muted)"><code class="inline">load_dotenv()</code> читает файл <code class="inline">.env</code>, который лежит рядом с <code class="inline">bot.py</code>. <code class="inline">os.getenv("BOT_TOKEN")</code> достаёт значение по имени — ровно та же привычка, что с ключом DeepSeek на уроке 8. Токена в самом коде больше нет.</p>
+
+===== SLIDE 23/38 =====
+[NOTES] Ключевая правка урока: бот перестаёт повторять и начинает отвечать через нейросеть. Проверьте интернет и ключ DeepSeek в .env заранее. Это главный видимый результат: ученик пишет боту, бот возвращает ответ по смыслу.
+[HTML]
+<div class="eyebrow">Правка 2 · отвечает нейросеть</div>
+<h2>Бот отвечает через нейросеть</h2>
+<p class="lead">Главный шаг урока: на каждое сообщение бот отправляет текст в <em>DeepSeek</em> и возвращает её ответ — эхо превращается в AI-собеседника.</p><div class="prompt-box"><span class="h">→ В тот же чат</span>
+Подключи DeepSeek: на любое сообщение бот отправляет его текст в нейросеть и отвечает её ответом. Ключ DeepSeek положи в .env строкой DEEPSEEK_KEY=... и читай через python-dotenv. Верни весь файл.</div>
+
+===== SLIDE 24/38 =====
+[NOTES] Покажите путь сообщения тремя строчками: взяли текст из update, отдали в ask_deepseek, ответ вернули через reply_text. Функция ask_deepseek — та же, что на уроках 5-8, её не переписываем. Дайте написать боту пару фраз и убедиться, что отвечает по смыслу.
+[HTML]
+<div class="eyebrow">Разбор кода</div>
+<h2>Путь сообщения: Telegram → DeepSeek → назад</h2>
+<pre><code class="language-python">async def on_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    text = update.message.text          # что написал человек
+    answer = ask_deepseek(text)         # та же функция, что на уроках 5-8
+    await update.message.reply_text(answer)   # ответ нейросети — в чат</code></pre>
+<div class="card good" style="margin-top:14px">
+  <p style="font-size:14.5px">Три шага: берём текст из <code class="inline">update.message.text</code>, отдаём его в <code class="inline">ask_deepseek(text)</code> — ту самую функцию с уроков 5-8, её не переписываем, — и возвращаем ответ через <code class="inline">reply_text</code>. Пишете боту любую фразу — он отвечает <strong>по смыслу</strong>, а не повтором.</p>
+</div>
+
+===== SLIDE 25/38 =====
+[NOTES] Зафиксируйте два слова: async у обработчика и await перед reply_text. Идея простая: пока бот ждёт ответ от DeepSeek для одного человека, он не блокирует обработку других сообщений. Без await ответ не дойдёт — это частая ошибка.
+[HTML]
+<div class="eyebrow">Полезное знание</div>
+<h2>Два слова: async и await</h2>
+<div class="vs-grid">
+  <div class="vs-col minimal">
+    <h4>Обычная функция</h4>
+    <p>Бот занят одним человеком — остальные ждут в очереди, пока придёт ответ.</p>
+    <p class="note">Один медленный запрос блокирует остальных.</p>
+  </div>
+  <div class="vs-col detailed">
+    <h4>async def и await</h4>
+    <p>Пока бот ждёт ответ DeepSeek для одного — он принимает сообщения от других.</p>
+    <p class="note"><code class="inline">await</code> перед <code class="inline">reply_text</code> обязателен.</p>
+  </div>
+</div>
+<p style="font-size:14px; margin-top:14px; color:var(--muted)">Обработчик — это <code class="inline">async def</code>, а перед отправкой ответа стоит <code class="inline">await</code>. Так бот не блокируется на одном пользователе и остаётся доступным для всех.</p>
+
+===== SLIDE 26/38 =====
+[NOTES] Правка 3 добавляет команды /start и /help — то, что видит человек, впервые открывший бота. Дождитесь, пока у всех по /start приходит приветствие, потом дальше. Напомните: команды начинаются со слэша и обрабатываются отдельно от обычного текста.
+[HTML]
+<div class="eyebrow">Правка 3 · /start и /help</div>
+<h2>Первое, что видит новый собеседник</h2><div class="prompt-box"><span class="h">→ В тот же чат</span>
+Добавь команды: /start — приветствие «Привет! Я бот на нейросети, спроси что угодно», /help — короткая подсказка. Используй CommandHandler. Верни весь файл.</div>
+
+===== SLIDE 27/38 =====
+[NOTES] Свяжите с обработчиком текста: обычный текст ловит MessageHandler, команды со слэшем — CommandHandler. Вот зачем в фильтре стоит ~filters.COMMAND: чтобы /start не улетел в нейросеть. Не углубляйтесь в каждый аргумент.
+[HTML]
+<div class="eyebrow">Разбор кода</div>
+<h2>Команды идут отдельно от обычного текста</h2>
+<pre><code class="language-python">async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    await update.message.reply_text("Привет! Я бот на нейросети, спроси что угодно")
+
+app.add_handler(CommandHandler("start", start))
+app.add_handler(MessageHandler(filters.TEXT &amp; ~filters.COMMAND, on_message))</code></pre>
+<p style="font-size:14px; margin-top:12px; color:var(--muted)">Команды со слэшем (<code class="inline">/start</code>, <code class="inline">/help</code>) ловит <code class="inline">CommandHandler</code>, а обычный текст — <code class="inline">MessageHandler</code>. Вот зачем в фильтре стоит <code class="inline">~filters.COMMAND</code>: чтобы <code class="inline">/start</code> не улетел в нейросеть, а попал в свой обработчик.</p>
+
+===== SLIDE 28/38 =====
+[NOTES] Правка 4 задаёт боту характер через системную роль, как на уроках 6-7. Дайте ученикам придумать свою роль и сравнить ответы на один и тот же вопрос. Видимый результат — тон ответов меняется сразу.
+[HTML]
+<div class="eyebrow">Правка 4 · характер бота</div>
+<h2>Бот получает характер</h2><div class="prompt-box"><span class="h">→ В тот же чат</span>
+Задай боту характер через системную роль (например, дружелюбный помощник-подросток). Ответы должны звучать в этом характере. Верни весь файл.</div>
+
+===== SLIDE 29/38 =====
+[NOTES] Главная мысль: характер задаётся системной ролью, как на уроках 6-7. Один и тот же вопрос при разных ролях даёт разные по тону ответы. Дайте сфотографировать. Если группа отстаёт — правку 5 (память и «печатает…») можно перенести в ДЗ.
+[HTML]
+<div class="eyebrow">Разбор кода</div>
+<h2>Характер живёт в системной роли</h2>
+<pre><code class="language-python">messages = [
+    {"role": "system", "content": "Ты дружелюбный помощник-подросток"},
+    {"role": "user", "content": text},
+]</code></pre>
+<div class="card accent" style="margin-top:14px">
+  <p style="font-size:14.5px">Характер задаёт первое сообщение с ролью <code class="inline">system</code> — ровно как на уроках 6-7. Меняете одну строку роли — и на <strong>один и тот же вопрос</strong> бот отвечает другим тоном. Сам вопрос при этом не трогаем.</p>
+</div>
+
+===== SLIDE 30/38 =====
+[NOTES] Финальная правка собирает бота в законченный вид: появляется память по пользователям и статус «печатает…». Это заметный пользовательский результат: бот отвечает с учётом контекста. Правка сложная: словарь по user_id хранит историю каждого, а send_chat_action требует правильного порядка вызова. Если группа отстаёт, оставьте только память, а «печатает…» отдайте в ДЗ. После правки попросите написать боту два-три сообщения подряд и убедиться, что он помнит начало разговора.
+[HTML]
+<div class="eyebrow">Правка 5 · память и «печатает…»</div>
+<h2>Память и «печатает…»</h2><div class="prompt-box"><span class="h">→ В тот же чат</span>
+Финальная правка. Пусть бот <em>помнит несколько последних сообщений каждого пользователя</em>: заведи словарь по <em>user_id</em> со списком messages и передавай эту историю в DeepSeek, чтобы он понимал контекст разговора.
+
+И пока бот думает над ответом, пусть показывает статус <em>«печатает…»</em> через send_chat_action. Верни весь файл.</div>
+
+===== SLIDE 31/38 =====
+[NOTES] Ключевой слайд урока. Подчеркните главное: у бота один код, но много собеседников, поэтому история хранится не в одной переменной, а в словаре по user_id — у каждого свой список сообщений. Если это не учесть, бот будет смешивать разговоры разных людей.
+[HTML]
+<div class="eyebrow">Разбор кода</div>
+<h2>Почему память — словарь по user_id</h2>
+<p>Бот один, а собеседников много. У каждого своя история, поэтому храним её в словаре по <code class="inline">user_id</code>. История — это <em>список сообщений с ролями</em>, тот самый формат, что уходит в DeepSeek на уроках 5-8:</p>
+<pre style="margin-top:14px"><code class="language-python">history = {}                       # user_id -&gt; список сообщений с ролями
+
+async def on_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    user_id = update.message.from_user.id
+    msgs = history.setdefault(user_id, [])          # своя история для каждого
+    msgs.append({"role": "user", "content": text})  # запомнили вопрос человека
+    answer = ask_deepseek(msgs)                      # весь список сообщений — в DeepSeek
+    msgs.append({"role": "assistant", "content": answer})  # запомнили и ответ бота</code></pre>
+<div class="card accent" style="margin-top:14px">
+  <p style="font-size:14.5px">В <code class="inline">msgs</code> лежат словари <code class="inline">{"role": "user"...}</code> и <code class="inline">{"role": "assistant"...}</code> по очереди — именно этот список нейросеть читает как весь разговор. Одна общая переменная не подошла бы: сообщения Вани и Насти смешались бы. Ключ словаря <code class="inline">user_id</code> разделяет истории — у каждого <strong>свой контекст</strong>.</p>
+</div>
+
+===== SLIDE 32/38 =====
+[NOTES] Вопрос про run_polling — прямое следствие того, что бот работает не закрываясь. Дайте 10-15 секунд, потом раскройте ответ. Свяжите с правилом: run_polling удерживает терминал — это норма, а не зависание.
+[HTML]
+<div class="eyebrow">Проверка · вопрос 1</div>
+<h2>Изучите ситуацию и ответьте</h2>
+<div class="quiz-card">
+  <span class="q-num">Вопрос</span>
+  <p class="q-text">Ваня написал бота, запустил, но окно программы не закрывается и не возвращает приглашение терминала. Он думает, что программа зависла. Так ли это?</p>
+</div>
+<details style="margin-top:18px">
+  <summary>Ответ</summary>
+  <div class="content">
+    <p>Нет. <code class="inline">run_polling()</code> запускает <strong>бесконечный цикл</strong> long polling: бот сам постоянно спрашивает у Telegram «есть новые сообщения?». Программа и должна работать не закрываясь — пока она запущена, бот в сети.</p>
+    <p>Остановить бота — <code class="inline">Ctrl+C</code> в терминале.</p>
+  </div>
+</details>
+
+===== SLIDE 33/38 =====
+[NOTES] Вопрос про утёкший токен — вторая частая проблема. Свяжите с правилом: токен = пароль, хранится только в .env, на скриншотах скрыт. Напомните, что перевыпуск сразу отключает старый токен.
+[HTML]
+<div class="eyebrow">Проверка · вопрос 2</div>
+<h2>Изучите ситуацию и ответьте</h2>
+<div class="quiz-card">
+  <span class="q-num">Вопрос</span>
+  <p class="q-text">Катя случайно выложила токен бота в чат класса. Что теперь может любой из одноклассников и что делать?</p>
+</div>
+<details style="margin-top:18px">
+  <summary>Ответ</summary>
+  <div class="content">
+    <p>По токену любой может <strong>полностью управлять ботом</strong> от её имени — читать сообщения и отвечать за неё.</p>
+    <p>Токен нужно немедленно перевыпустить у <code class="inline">@BotFather</code> (<code class="inline">/revoke</code> или <code class="inline">/token</code>) — старый сразу перестанет работать. Хранить токен только в <code class="inline">.env</code>.</p>
+  </div>
+</details>
+
+===== SLIDE 34/38 =====
+[NOTES] Научите читать traceback снизу вверх — это пригодится на всех уроках Python. Напомните правило: непонятную ошибку целиком копируем в DeepSeek. Три проверки справа — самые частые именно с ботом: не тот бот, не запущен run_polling, не поставлена библиотека.
+[HTML]
+<div class="eyebrow">Отладка</div>
+<h2>Читаем ошибки бота</h2>
+<div class="grid cols-2">
+  <div>
+    <h3>Traceback — снизу вверх</h3>
+<pre><code class="language-bash">Traceback (most recent call last):
+  File "bot.py", line 12, in &lt;module&gt;
+    app.run_polling()
+telegram.error.InvalidToken: Unauthorized</code></pre>
+    <p style="font-size:14px; margin-top:10px; color:var(--muted)">Последняя строка — <strong>что</strong> случилось, строкой выше — <strong>где</strong>. <code class="inline">Unauthorized</code> значит: токен битый или не тот.</p>
+  </div>
+  <div>
+    <h3>Если бот молчит</h3>
+    <ul class="check-list">
+      <li>Скопируйте <strong>traceback целиком</strong> в чат DeepSeek — попросите объяснить и починить</li>
+      <li>Проверьте, что программа запущена и <code class="inline">run_polling</code> удерживает терминал</li>
+      <li>Убедитесь, что пишете <strong>тому же боту</strong> — сверьте <code class="inline">@username</code></li>
+    </ul>
+    <p style="font-size:14px; margin-top:10px; color:var(--muted)"><code class="inline">ModuleNotFoundError</code> значит, что не поставлена библиотека <code class="inline">python-telegram-bot</code>.</p>
+  </div>
+</div>
+
+===== SLIDE 35/38 =====
+[NOTES] 5 правил урока. Дайте сфотографировать слайд. Особо подчеркните второе и третье: run_polling удерживает терминал — это норма, а токен = пароль и хранится только в .env.
+[HTML]
+<div class="eyebrow">Запомните</div>
+<h2>Правила работы с ботом</h2>
+<div class="kv-row"><div class="k">01 · Интерфейс в мессенджере</div><div class="v">Программа отвечает людям прямо в <strong>Telegram</strong>, а не только в локальном терминале.</div></div>
+<div class="kv-row"><div class="k">02 · run_polling — это норма</div><div class="v">Программа работает и не закрывается — значит бот в сети. Это не зависание. Остановить — <code class="inline">Ctrl+C</code>.</div></div>
+<div class="kv-row"><div class="k">03 · Токен — это пароль</div><div class="v">Не публикуем, на скриншотах замазываем, храним только в <code class="inline">.env</code>. Утёк — перевыпускаем у <code class="inline">@BotFather</code>.</div></div>
+<div class="kv-row"><div class="k">04 · Обработчик — async и await</div><div class="v">Ловим сообщения через <code class="inline">async def</code>, а перед <code class="inline">reply_text</code> ставим <code class="inline">await</code> — тогда бот не блокируется на одном пользователе.</div></div>
+<div class="kv-row"><div class="k">05 · Характер и память</div><div class="v">Характер задаём системной ролью, а память — словарём по <code class="inline">user_id</code>: у каждого свой разговор.</div></div>
+
+===== SLIDE 36/38 =====
+[NOTES] Чек-лист завершения бота. Кто отметил всё, пусть даст ссылку на бота соседу и проверит, что тот тоже получает ответы нейросети. Это проверяет, что бот доступен другим пользователям.
+[HTML]
+<div class="eyebrow">Чек-лист</div>
+<h2>Что должно быть к 55-й минуте</h2>
+<div class="grid cols-2">
+  <div>
+    <h3 style="color:var(--accent-2)">Готово</h3>
+    <ul class="check-list">
+      <li><code class="inline">bot.py</code> запускается командой <code class="inline">python bot.py</code></li>
+      <li>Токен лежит в <code class="inline">.env</code> строкой <code class="inline">BOT_TOKEN</code></li>
+      <li>Бот отвечает нейросетью в <strong>Telegram</strong></li>
+      <li>Есть команды <code class="inline">/start</code> и <code class="inline">/help</code></li>
+    </ul>
+  </div>
+  <div>
+    <h3 style="color:var(--accent)">Работает</h3>
+    <ul class="check-list">
+      <li>У бота свой характер через системную роль</li>
+      <li>Бот помнит несколько последних сообщений</li>
+      <li>Пока думает — показывает «печатает…»</li>
+      <li>Бот отвечает не только вам, но и другому пользователю</li>
+    </ul>
+  </div>
+</div>
+<div class="card good" style="margin-top:22px">
+  <p style="font-size:15px">Всё отмечено? Дайте ссылку на бота соседу — пусть напишет и получит ответ нейросети. Бот доступен другому пользователю.</p>
+</div>
+
+===== SLIDE 37/38 =====
+[NOTES] ДЗ — доработать бота, примерно 30 минут. Каждое улучшение — отдельный диалог с DeepSeek, не всё сразу. Напомните про токен и ключ на скриншотах: их обязательно скрыть.
+[HTML]
+<div class="eyebrow">Домашнее задание · около 30 минут</div>
+<h2>Доработайте бота</h2>
+<p class="lead">Три улучшения — каждое через отдельный диалог с DeepSeek:</p>
+<div class="grid cols-3" style="margin-top:18px">
+  <div class="card">
+    <h3>Команда /joke</h3>
+    <p style="font-size:14.5px">Добавьте команду <code class="inline">/joke</code> — бот просит у нейросети свежую шутку и присылает её.</p>
+  </div>
+  <div class="card">
+    <h3>Свой характер</h3>
+    <p style="font-size:14.5px">Придумайте боту яркую личность через системную роль и проверьте, как меняются ответы.</p>
+  </div>
+  <div class="card">
+    <h3>Кнопки</h3>
+    <p style="font-size:14.5px">Добавьте боту кнопки (<code class="inline">ReplyKeyboardMarkup</code>) с готовыми вопросами.</p>
+  </div>
+</div>
+<div class="card warn" style="margin-top:22px">
+  <p style="font-size:15px">Пришлите скриншот диалога с ботом — <strong>токен и ключ замажьте!</strong> Ваш самый удачный промпт — отдельным сообщением.</p>
+</div>
+
+===== SLIDE 38/38 [FINAL] =====
+[NOTES] Закройте урок. Сегодня программа получила интерфейс в Telegram и начала отвечать другим пользователям. На уроке 10 — веб-приложение на Streamlit: тот же AI-помощник, но со ссылкой в браузере, которую можно открыть с любого устройства.
+[HTML]
+<div class="eyebrow">Урок 9 завершён</div>
+<div class="outro-big">До встречи<br>на уроке 10.</div>
+<p class="lead">Сегодня программа получила интерфейс в <strong>Telegram</strong>: бот принимает сообщения от друзей и отвечает через нейросеть. На уроке 10 сделаем второй публичный проект — веб-приложение на Streamlit: тот же AI-помощник, но со ссылкой в браузере, которую можно открыть с любого устройства.</p>
+<div class="chip-row" style="margin-top:30px">
+  <span class="badge primary">Урок 10 · Streamlit</span>
+  <span class="badge cyan">Веб-приложение</span>
+  <span class="badge good">Публичная ссылка</span>
+</div>

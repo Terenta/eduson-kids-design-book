@@ -1,0 +1,661 @@
+===== SLIDE 1/38 [COVER] =====
+[NOTES] Поприветствуйте. Сегодня соберём настоящую игру в браузере. Самый зрелищный урок модуля — каждый получит игру, в которую можно играть и показать друзьям.
+[HTML]
+<div class="eyebrow">Step 2 · Модуль 1 · Урок 04</div>
+<h1>Своя браузерная<br>игра<br>на Canvas.</h1>
+<p class="subtitle">Соберём «Змейку» с управлением, очками и сохранением рекорда. Узнаем, что такое игровой цикл и как рисовать на холсте.</p>
+<div class="meta-row">
+  <span class="badge primary">60 минут</span>
+  <span class="badge cyan">13–15 лет</span>
+  <span class="badge good">Практика</span>
+</div>
+<div class="chip-row" style="margin-top:20px">
+  <span class="badge neutral">HTML5 Canvas</span>
+  <span class="badge neutral">Игровой цикл</span>
+  <span class="badge neutral">requestAnimationFrame</span>
+  <span class="badge neutral">localStorage</span>
+</div>
+
+===== SLIDE 2/38 =====
+[NOTES] План. Первые 25 минут — теория и каркас. Дальше — 5 правок.
+[HTML]
+<div class="eyebrow">Agenda · план занятия</div>
+<h2>Как пройдут 60 минут</h2>
+<div class="timeline">
+  <div class="timeline-row"><div class="time">0–5</div><div><div class="title">Разбор ДЗ</div><div class="desc">Смотрим расширения списка задач.</div></div></div>
+  <div class="timeline-row"><div class="time">5–15</div><div><div class="title">Canvas и игровой цикл</div><div class="desc">Холст в браузере и три фазы игры.</div></div></div>
+  <div class="timeline-row"><div class="time">15–25</div><div><div class="title">Стартовый промпт</div><div class="desc">Каркас: холст, сетка, точка-змея.</div></div></div>
+  <div class="timeline-row"><div class="time">25–45</div><div><div class="title">5 правок через диалог</div><div class="desc">Движение → клавиши → яблоки → проигрыш → рекорд.</div></div></div>
+  <div class="timeline-row"><div class="time">45–55</div><div><div class="title">Косметика и проверка</div><div class="desc">Цвета, мини-вопросы.</div></div></div>
+  <div class="timeline-row"><div class="time">55–60</div><div><div class="title">Турнир в группе</div><div class="desc">Сравниваем рекорды.</div></div></div>
+</div>
+
+===== SLIDE 3/38 =====
+[NOTES] Смотрим расширения списка задач. Отметьте, кто как реализовал фильтр.
+[HTML]
+<div class="eyebrow">Разбор ДЗ урока 3</div>
+<h2>Смотрим расширения списка</h2>
+<div class="grid cols-3" style="margin-top:24px">
+  <div class="card">
+    <h3>Приоритеты</h3>
+    <p style="font-size:14.5px">Разбираем, как реализована красная метка для высокого приоритета.</p>
+  </div>
+  <div class="card">
+    <h3>Фильтр</h3>
+    <p style="font-size:14.5px">Сравниваем подходы: скрытие через класс vs перерисовка списка.</p>
+  </div>
+  <div class="card">
+    <h3>Счётчик</h3>
+    <p style="font-size:14.5px">Где обновляется цифра — при каждом изменении или один раз.</p>
+  </div>
+</div>
+
+===== SLIDE 4/38 =====
+[NOTES] Canvas — «холст», на котором JS рисует. Не элементы, как DOM, а пиксели.
+[HTML]
+<div class="eyebrow">Идея урока</div>
+<h2>Что такое Canvas</h2>
+<p class="lead">Canvas — это <em>прямоугольная область на странице</em>, на которой JavaScript может рисовать что угодно: линии, прямоугольники, картинки, текст. Удобно для игр и анимаций.</p>
+<div class="card accent" style="margin-top:24px">
+  <p style="font-size:16px; color:#E2E8F0">Один тег <code class="inline">&lt;canvas&gt;</code> — и у вас есть «лист бумаги», на котором программа рисует кадр за кадром.</p>
+</div>
+
+===== SLIDE 5/38 =====
+[NOTES] Объясните разницу. DOM — элементы со стилями. Canvas — пиксели. Для игр Canvas быстрее.
+[HTML]
+<div class="eyebrow">Сравнение</div>
+<h2>Canvas или DOM — когда что</h2>
+<div class="grid cols-2">
+  <div class="card">
+    <h3>DOM (уроки 1-3)</h3>
+    <ul class="check-list">
+      <li>Набор элementов: div, button, li</li>
+      <li>У каждого свой стиль и события</li>
+      <li>Удобно для интерфейсов: формы, списки</li>
+    </ul>
+  </div>
+  <div class="card accent">
+    <h3>Canvas (урок 4)</h3>
+    <ul class="check-list">
+      <li>Нет элементов — только пиксели</li>
+      <li>Рисуем всё сами кадр за кадром</li>
+      <li>Быстро — идеально для игр и анимаций</li>
+    </ul>
+  </div>
+</div>
+
+===== SLIDE 6/38 =====
+[NOTES] Покажите ctx и базовые методы рисования. Дети должны увидеть, как из JS появляется фигура.
+[HTML]
+<div class="eyebrow">Основа рисования</div>
+<h2>Как рисовать на Canvas</h2>
+<pre><code class="language-javascript">const canvas = document.getElementById('game');
+const ctx = canvas.getContext('2d');   // «кисть» для рисования
+
+// Прямоугольник: x, y, ширина, высота
+ctx.fillStyle = '#10B981';
+ctx.fillRect(100, 100, 20, 20);
+
+// Очистить весь холст
+ctx.clearRect(0, 0, 400, 400);
+
+// Текст
+ctx.fillStyle = 'white';
+ctx.font = '20px Inter';
+ctx.fillText('Счёт: 5', 10, 30);</code></pre>
+<p style="font-size:14px; margin-top:12px; color:var(--muted)"><code class="inline">ctx</code> (context) — это «кисть». Все рисунки идут через неё.</p>
+
+===== SLIDE 7/38 =====
+[NOTES] Важно: начало координат в левом ВЕРХНЕМ углу. Y растёт вниз. Это частый источник путаницы.
+[HTML]
+<div class="eyebrow">Система координат</div>
+<h2>Где у Canvas точка (0, 0)</h2>
+<div class="grid cols-2">
+  <div>
+    <p>Точка <code class="inline">(0, 0)</code> — в <strong>левом верхнем углу</strong>.</p>
+    <ul class="check-list">
+      <li><strong>X</strong> растёт вправо →</li>
+      <li><strong>Y</strong> растёт вниз ↓ (не вверх, как в математике!)</li>
+    </ul>
+    <p style="font-size:14px; margin-top:10px; color:var(--muted)">Поэтому «движение вниз» — это увеличение Y.</p>
+  </div>
+  <div>
+<pre><code class="language-bash">(0,0) ───────────→ X
+  │  ┌──────────────┐
+  │  │              │
+  │  │   холст      │
+  ▼  │   400×400    │
+  Y  └──────────────┘
+            (400,400)</code></pre>
+  </div>
+</div>
+
+===== SLIDE 8/38 =====
+[NOTES] Сердце любой игры. 3 фазы повторяются десятки раз в секунду.
+[HTML]
+<div class="eyebrow">Сердце любой игры</div>
+<h2>Что такое игровой цикл</h2>
+<p>Игра — это цикл, который повторяется много раз в секунду. На каждом «тике» — три действия:</p>
+<div class="grid cols-3" style="margin-top:18px">
+  <div class="step-card"><span class="num">1</span><h3 style="margin-top:6px">Input</h3><p style="font-size:14px">Что нажал игрок? Куда движется змейка?</p></div>
+  <div class="step-card"><span class="num">2</span><h3 style="margin-top:6px">Update</h3><p style="font-size:14px">Двигаем объекты, проверяем столкновения, обновляем счёт.</p></div>
+  <div class="step-card"><span class="num">3</span><h3 style="margin-top:6px">Render</h3><p style="font-size:14px">Стираем холст и рисуем заново: змею, яблоко, счёт.</p></div>
+</div>
+
+===== SLIDE 9/38 =====
+[NOTES] Детально про input. Игра не реагирует мгновенно — она запоминает намерение и применяет на следующем тике.
+[HTML]
+<div class="eyebrow">Фаза 1 · Input</div>
+<h2>Как игра слышит игрока</h2>
+<p>Игра <strong>не двигает змейку сразу</strong> при нажатии. Она запоминает <em>направление</em>, а двигает на следующем тике update.</p>
+<pre style="margin-top:14px"><code class="language-javascript">let dir = { x: 1, y: 0 };   // едем вправо
+
+document.addEventListener('keydown', (e) =&gt; {
+  if (e.key === 'ArrowUp')    dir = { x: 0, y: -1 };
+  if (e.key === 'ArrowDown')  dir = { x: 0, y:  1 };
+  if (e.key === 'ArrowLeft')  dir = { x: -1, y: 0 };
+  if (e.key === 'ArrowRight') dir = { x: 1, y:  0 };
+});</code></pre>
+<p style="font-size:14px; margin-top:12px; color:var(--muted)">Input только <em>запоминает</em> намерение. Двигает — фаза Update.</p>
+
+===== SLIDE 10/38 =====
+[NOTES] Update — вся логика. Двигаем голову, проверяем яблоко и столкновения.
+[HTML]
+<div class="eyebrow">Фаза 2 · Update</div>
+<h2>Где вся логика игры</h2>
+<p>В update происходит главное:</p>
+<ul class="check-list" style="margin-top:8px">
+  <li>Двигаем голову змейки на одну клетку в сторону <code class="inline">dir</code></li>
+  <li>Проверяем: голова попала на яблоко? → счёт +1, змейка растёт</li>
+  <li>Проверяем: голова вышла за стену или врезалась в себя? → game over</li>
+  <li>Хвост удаляется (если яблоко не съедено) — змейка «ползёт»</li>
+</ul>
+<div class="card warn" style="margin-top:16px">
+  <p style="font-size:14.5px">Update <strong>не рисует</strong> ничего. Он только считает новое состояние. Рисование — отдельная фаза.</p>
+</div>
+
+===== SLIDE 11/38 =====
+[NOTES] Render — только рисование. Сначала стереть весь холст, потом нарисовать заново.
+[HTML]
+<div class="eyebrow">Фаза 3 · Render</div>
+<h2>Стереть и нарисовать заново</h2>
+<pre><code class="language-javascript">function render() {
+  // 1. Стираем весь холст
+  ctx.clearRect(0, 0, 400, 400);
+
+  // 2. Рисуем каждый сегмент змейки
+  ctx.fillStyle = '#10B981';
+  for (const seg of snake) {
+    ctx.fillRect(seg.x * 20, seg.y * 20, 19, 19);
+  }
+
+  // 3. Рисуем яблоко
+  ctx.fillStyle = '#EF4444';
+  ctx.fillRect(apple.x * 20, apple.y * 20, 19, 19);
+}</code></pre>
+<p style="font-size:14px; margin-top:12px; color:var(--muted)">Главное правило: <strong>сначала clearRect</strong>, иначе старые кадры останутся «следами».</p>
+
+===== SLIDE 12/38 =====
+[NOTES] Что запускает цикл. Браузер сам подбирает частоту ~60 кадров/сек.
+[HTML]
+<div class="eyebrow">Двигатель цикла</div>
+<h2>requestAnimationFrame</h2>
+<p>Это функция браузера, которая вызывает ваш код <strong>перед каждым кадром экрана</strong> — обычно 60 раз в секунду.</p>
+<pre style="margin-top:14px"><code class="language-javascript">function loop() {
+  update();                      // посчитать состояние
+  render();                      // нарисовать
+  requestAnimationFrame(loop);   // запросить следующий кадр
+}
+loop();                          // запускаем</code></pre>
+<div class="card accent" style="margin-top:14px">
+  <p style="font-size:14.5px">В отличие от <code class="inline">setInterval</code>, она сама подстраивается под устройство: на слабом компьютере кадры реже, но игра остаётся плавной.</p>
+</div>
+
+===== SLIDE 13/38 =====
+[NOTES] Объясните: змейка — это просто массив координат. Движение = добавить голову, убрать хвост.
+[HTML]
+<div class="eyebrow">Структура данных</div>
+<h2>Змейка — это массив клеток</h2>
+<pre><code class="language-javascript">// Каждый сегмент — клетка с координатами
+let snake = [
+  { x: 10, y: 10 },   // голова
+  { x: 9,  y: 10 },
+  { x: 8,  y: 10 },   // хвост
+];</code></pre>
+<div class="grid cols-2" style="margin-top:16px">
+  <div class="card">
+    <h3>Движение</h3>
+    <p style="font-size:14px">Добавить новую голову спереди, удалить хвост сзади.</p>
+  </div>
+  <div class="card">
+    <h3>Рост</h3>
+    <p style="font-size:14px">Съели яблоко — голову добавили, а хвост <em>не</em> удалили.</p>
+  </div>
+</div>
+
+===== SLIDE 14/38 =====
+[NOTES] Почему клетки, а не пиксели. Для пошаговых игр сетка проще.
+[HTML]
+<div class="eyebrow">Полезный приём</div>
+<h2>Сетка вместо пикселей</h2>
+<p>Холст 400×400 пикселей. Клетка — 20 пикселей. Значит сетка — <strong>20×20 клеток</strong>.</p>
+<div class="grid cols-2" style="margin-top:16px">
+  <div class="card">
+    <h3>Думаем в клетках</h3>
+    <p style="font-size:14px">Змейка на клетке (10, 10). Удобно проверять столкновения.</p>
+  </div>
+  <div class="card">
+    <h3>Рисуем в пикселях</h3>
+    <p style="font-size:14px">Клетка (10, 10) → пиксели (200, 200): умножаем на 20.</p>
+  </div>
+</div>
+<pre style="margin-top:14px"><code class="language-javascript">ctx.fillRect(seg.x * 20, seg.y * 20, 19, 19);
+//            клетка→пиксели       чуть меньше — видна сетка</code></pre>
+
+===== SLIDE 15/38 =====
+[NOTES] Цель урока. Подчеркните: к концу — играбельная игра.
+[HTML]
+<div class="eyebrow">Goal · что будет в конце</div>
+<h2>Цель урока</h2>
+<div class="card accent">
+  <p class="lead" style="color:#E2E8F0">Через диалог с DeepSeek собрать «Змейку»: управление стрелками, поедание яблок, счёт, проигрыш при столкновении, сохранение рекорда.</p>
+</div>
+<div class="grid cols-2" style="margin-top:28px">
+  <div>
+    <h3 style="color:var(--accent-2)">Узнаете</h3>
+    <ul class="check-list">
+      <li>Что такое Canvas и как на нём рисовать</li>
+      <li>Что такое игровой цикл</li>
+      <li>Как ловить нажатия клавиш через keydown</li>
+    </ul>
+  </div>
+  <div>
+    <h3 style="color:var(--accent)">Сделаете</h3>
+    <ul class="check-list">
+      <li>Каркас игры с холстом и сеткой</li>
+      <li>Движение змейки по клавишам</li>
+      <li>Яблоки, счёт и проигрыш</li>
+      <li>Сохранение рекорда между сессиями</li>
+    </ul>
+  </div>
+</div>
+
+===== SLIDE 16/38 =====
+[NOTES] Покажите готовую игру (соберите заранее). Дети должны захотеть собрать такую же.
+[HTML]
+<div class="eyebrow">Демо результата</div>
+<h2>Что соберём сегодня</h2>
+<p class="lead">К концу урока у каждого — играбельная «Змейка»:</p>
+<div class="grid cols-2" style="margin-top:20px">
+  <div class="card">
+    <h3>Игровой процесс</h3>
+    <ul class="check-list">
+      <li>Стрелки — управление</li>
+      <li>Красное яблоко — растём и набираем очки</li>
+      <li>Стена или своё тело — Game Over</li>
+    </ul>
+  </div>
+  <div class="card accent">
+    <h3>Прогресс</h3>
+    <ul class="check-list">
+      <li>Табло «Счёт: N»</li>
+      <li>«Лучший: N» — рекорд</li>
+      <li>Рекорд держится после перезагрузки</li>
+    </ul>
+  </div>
+</div>
+
+===== SLIDE 17/38 =====
+[NOTES] lesson-04, 3 файла как обычно.
+[HTML]
+<div class="eyebrow">Структура проекта</div>
+<h2>Папка lesson-04</h2>
+<div class="grid cols-2">
+  <div>
+    <ol class="num-list">
+      <li>В <code class="inline">vibe-coding</code> создайте папку <code class="inline">lesson-04</code></li>
+      <li>Откройте её в VS Code</li>
+      <li>Создайте 3 файла: <code class="inline">index.html</code>, <code class="inline">style.css</code>, <code class="inline">script.js</code></li>
+    </ol>
+  </div>
+  <div>
+<pre><code class="language-bash">D:/vibe-coding/lesson-04/
+├── index.html
+├── style.css
+└── script.js</code></pre>
+  </div>
+</div>
+
+===== SLIDE 18/38 =====
+[NOTES] Каркас: холст 400×400, клетка 20px, 20×20 клеток, точка в центре, пустой цикл.
+[HTML]
+<div class="eyebrow">Промпт #1 · стартовый</div>
+<h2>Каркас игры</h2><div class="prompt-box"><span class="h">→ Новый чат DeepSeek</span>
+Ты <em>senior разработчик игр</em>, делал казуальные браузерные игры.
+Я делаю классическую <em>Змейку</em> для урока программирования.
+
+Требования к каркасу:
+- <em>Три файла</em>: index.html, style.css, script.js
+- В index.html — заголовок «Змейка», &lt;canvas id="game" width="400" height="400"&gt;, табло «Счёт: 0»
+- В style.css — тёмная тема, акцент <em>зелёный #10B981</em>, холст центрирован, лёгкая рамка
+- В script.js — настройка холста (ctx), сетка 20×20 клеток (клетка 20px), <em>одна точка змеи</em> в центре, <em>пустой игровой цикл</em> через requestAnimationFrame, который пока только очищает холст и рисует змею
+
+Без библиотек. Чистый JS.
+
+Ответь тремя блоками с подписью имён файлов.</div>
+
+===== SLIDE 19/38 =====
+[NOTES] Видим зелёную точку на чёрном фоне. Не двигается — правильно.
+[HTML]
+<div class="eyebrow">Запуск каркаса</div>
+<h2>Холст и одна точка</h2>
+<ol class="num-list">
+  <li>Скопируйте 3 блока в 3 файла, сохраните</li>
+  <li>Правый клик по <code class="inline">index.html</code> → <strong>Open with Live Server</strong></li>
+  <li>Вы видите чёрный квадрат с зелёной точкой посередине</li>
+</ol>
+<div class="card accent" style="margin-top:18px">
+  <p style="font-size:15px">Точка <strong>не двигается</strong> — это нормально. Движение добавим следующей правкой.</p>
+</div>
+
+===== SLIDE 20/38 =====
+[NOTES] Troubleshooting запуска каркаса игры.
+[HTML]
+<div class="eyebrow">Если точка не появилась</div>
+<h2>Типичные ситуации запуска</h2>
+<div class="kv-row"><div class="k">холст белый/пустой</div><div class="v">Откройте F12 → Console. Ошибка про <code class="inline">getContext</code> или <code class="inline">canvas</code> — скопируйте в DeepSeek.</div></div>
+<div class="kv-row"><div class="k">холст крошечный</div><div class="v">В теге <code class="inline">&lt;canvas&gt;</code> нет width/height или они в CSS. Размер задаётся атрибутами тега.</div></div>
+<div class="kv-row"><div class="k">страница белая</div><div class="v">Файл не сохранён. <code class="inline">Ctrl+S</code> и проверьте, что код вставлен.</div></div>
+
+===== SLIDE 21/38 =====
+[NOTES] Учим змейку двигаться сама. Пока без управления — посмотреть, как ползёт.
+[HTML]
+<div class="eyebrow">Правка 1 · движение</div>
+<h2>Змейка двигается сама</h2><div class="prompt-box"><span class="h">→ В тот же чат</span>
+Доработай script.js:
+- Змейка — теперь массив сегментов (каждый = клетка с x, y)
+- Начнём с 3 сегментов в центре
+- Направление движения — переменная <em>dir</em> {x, y}, по умолчанию {x: 1, y: 0} (вправо)
+- В update: <em>двигай голову на одну клетку в направлении dir</em>, остальные сегменты следуют (последний удаляется, новый добавляется в начало)
+- Скорость — <em>4 кадра в секунду</em> (счётчик внутри requestAnimationFrame)
+
+Не трогай стили и HTML. Верни обновлённый script.js.</div>
+
+===== SLIDE 22/38 =====
+[NOTES] Объясните механику: новая голова вперёд, хвост убирается. Так змейка «ползёт» не двигая каждый сегмент.
+[HTML]
+<div class="eyebrow">Разбор кода</div>
+<h2>Как именно ползёт змейка</h2>
+<pre><code class="language-javascript">function update() {
+  const head = snake[0];
+  const newHead = {            // новая голова на клетку вперёд
+    x: head.x + dir.x,
+    y: head.y + dir.y
+  };
+  snake.unshift(newHead);      // добавили голову в начало
+  snake.pop();                 // удалили хвост в конце
+}</code></pre>
+<div class="card accent" style="margin-top:14px">
+  <p style="font-size:15px">Гениальный приём: мы <strong>не двигаем</strong> каждый сегмент. Просто добавляем голову и убираем хвост — выглядит как ползущая змея.</p>
+</div>
+
+===== SLIDE 23/38 =====
+[NOTES] Управление с клавиатуры. Запрещаем разворот на 180°.
+[HTML]
+<div class="eyebrow">Правка 2 · управление</div>
+<h2>Управление стрелками</h2><div class="prompt-box"><span class="h">→ В тот же чат</span>
+Добавь обработку клавиатуры:
+- При нажатии стрелок (<em>ArrowUp, ArrowDown, ArrowLeft, ArrowRight</em>) — меняй направление dir
+- Запрети разворот на 180°: если змейка двигается вправо, нажатие «влево» <em>не должно сработать</em>
+- Используй <em>document.addEventListener('keydown', …)</em>
+- Добавь <em>e.preventDefault()</em>, чтобы стрелки не прокручивали страницу
+
+Изменения только в script.js. Верни целиком обновлённый script.js.</div>
+
+===== SLIDE 24/38 =====
+[NOTES] Объясните, почему разворот на 180 убивает игру: голова мгновенно врезается в шею.
+[HTML]
+<div class="eyebrow">Важная тонкость</div>
+<h2>Почему нельзя развернуться на 180°</h2>
+<div class="grid cols-2">
+  <div class="card warn">
+    <h3>✕ Без запрета</h3>
+    <p style="font-size:14.5px">Змейка едет вправо. Игрок жмёт «влево». Голова мгновенно врезается в свою же шею — мгновенный проигрыш на ровном месте.</p>
+  </div>
+  <div class="card good">
+    <h3>✓ С запретом</h3>
+    <p style="font-size:14.5px">Проверяем: новое направление не противоположно текущему. Если противоположно — игнорируем нажатие.</p>
+  </div>
+</div>
+<pre style="margin-top:14px"><code class="language-javascript">// нельзя влево, если едем вправо
+if (newDir.x === -dir.x && newDir.y === -dir.y) return;</code></pre>
+
+===== SLIDE 25/38 =====
+[NOTES] Зачем preventDefault. Без него стрелки скроллят страницу — играть невозможно.
+[HTML]
+<div class="eyebrow">Полезное знание</div>
+<h2>Зачем e.preventDefault()</h2>
+<p>У стрелок есть <strong>стандартное поведение браузера</strong> — прокрутка страницы. В игре это мешает: нажал «вниз» — страница уехала.</p>
+<pre style="margin-top:14px"><code class="language-javascript">document.addEventListener('keydown', (e) =&gt; {
+  e.preventDefault();          // отменяем прокрутку страницы
+  // ... меняем направление
+});</code></pre>
+<p style="font-size:14px; margin-top:12px; color:var(--muted)"><code class="inline">preventDefault()</code> говорит браузеру: «не делай своё стандартное действие, я обработаю сам».</p>
+
+===== SLIDE 26/38 =====
+[NOTES] Появляется красная клетка. Съели — счёт +1, новое яблоко.
+[HTML]
+<div class="eyebrow">Правка 3 · яблоки</div>
+<h2>Яблоки и счёт</h2><div class="prompt-box"><span class="h">→ В тот же чат</span>
+Добавь яблоко:
+- Случайная клетка на сетке (не на змейке)
+- Цвет красный <em>#EF4444</em>
+- Когда голова змейки попадает на яблоко: <em>счёт +1</em>, длина змейки <em>+1 сегмент</em>, яблоко появляется в новом случайном месте
+- Обнови табло «Счёт: N»
+
+Изменения в script.js и (если нужно) в index.html (для табло). Верни изменённые файлы.</div>
+
+===== SLIDE 27/38 =====
+[NOTES] Как генерится случайная клетка и почему её надо проверять на пересечение со змейкой.
+[HTML]
+<div class="eyebrow">Разбор кода</div>
+<h2>Случайная позиция яблока</h2>
+<pre><code class="language-javascript">function randomApple() {
+  let pos;
+  do {
+    pos = {
+      x: Math.floor(Math.random() * 20),  // 0..19
+      y: Math.floor(Math.random() * 20),
+    };
+  } while (snake.some(s =&gt; s.x === pos.x && s.y === pos.y));
+  return pos;          // клетка точно НЕ на змейке
+}</code></pre>
+<div class="card warn" style="margin-top:14px">
+  <p style="font-size:14.5px"><code class="inline">do...while</code> повторяет генерацию, пока яблоко не окажется на свободной клетке. Иначе яблоко могло бы появиться внутри змейки.</p>
+</div>
+
+===== SLIDE 28/38 =====
+[NOTES] Столкновение со стеной или с собой = game over.
+[HTML]
+<div class="eyebrow">Правка 4 · проигрыш</div>
+<h2>Game Over при столкновении</h2><div class="prompt-box"><span class="h">→ В тот же чат</span>
+Добавь логику проигрыша:
+- Если голова змейки выходит <em>за границы холста</em> — game over
+- Если голова попадает в любой <em>сегмент собственного тела</em> — game over
+- При game over: <em>останови игру</em>, нарисуй полупрозрачный чёрный прямоугольник на весь холст, в центре крупный белый текст «GAME OVER» и снизу «Нажмите Пробел, чтобы начать заново»
+- При нажатии Пробела — игра начинается с нуля
+
+Изменения в script.js. Верни обновлённый script.js.</div>
+
+===== SLIDE 29/38 =====
+[NOTES] Детально: два вида столкновений — со стеной и с собой.
+[HTML]
+<div class="eyebrow">Разбор кода</div>
+<h2>Как проверяются столкновения</h2>
+<pre><code class="language-javascript">const h = snake[0];                    // голова
+
+// 1. Со стеной — вышли за сетку 0..19
+if (h.x &lt; 0 || h.x &gt; 19 || h.y &lt; 0 || h.y &gt; 19) {
+  gameOver();
+}
+
+// 2. С собой — голова на клетке тела
+for (let i = 1; i &lt; snake.length; i++) {
+  if (h.x === snake[i].x && h.y === snake[i].y) {
+    gameOver();
+  }
+}</code></pre>
+<p style="font-size:14px; margin-top:12px; color:var(--muted)">Проверку начинаем с <code class="inline">i = 1</code> — голова сама с собой не сталкивается.</p>
+
+===== SLIDE 30/38 =====
+[NOTES] Сохраняем максимальный счёт в localStorage — связь с уроком 3.
+[HTML]
+<div class="eyebrow">Правка 5 · рекорд</div>
+<h2>Сохраняем рекорд между сессиями</h2><div class="prompt-box"><span class="h">→ В тот же чат</span>
+Добавь рекорд:
+- В localStorage храни <em>лучший счёт</em> (ключ <em>snake_best</em>)
+- При game over: если текущий счёт <em>больше</em> сохранённого — обнови сохранённый
+- На табло над холстом покажи <em>«Лучший: N»</em>
+- При перезагрузке страницы рекорд должен подгрузиться
+
+Изменения в script.js и index.html. Верни изменённые блоки.</div>
+
+===== SLIDE 31/38 =====
+[NOTES] Вопрос про скорость. Подождите, потом раскройте.
+[HTML]
+<div class="eyebrow">Проверка · вопрос 1</div>
+<h2>Изучите ситуацию и ответьте</h2>
+<div class="quiz-card">
+  <span class="q-num">Вопрос</span>
+  <p class="q-text">Змейка двигается слишком быстро — играть невозможно. Какие два способа замедлить движение, не трогая requestAnimationFrame?</p>
+</div>
+<details style="margin-top:18px">
+  <summary>Ответы</summary>
+  <div class="content">
+    <p>1. <strong>Счётчик кадров:</strong> увеличивать <code>frames++</code> в цикле и вызывать <code>update()</code> только когда <code>frames % 10 === 0</code>.</p>
+    <p>2. <strong>По времени:</strong> запоминать <code>lastTime</code>, обновлять только если прошло, например, 150 мс.</p>
+  </div>
+</details>
+
+===== SLIDE 32/38 =====
+[NOTES] Вопрос про состояние при рестарте. Частая ошибка — забыть сбросить переменные.
+[HTML]
+<div class="eyebrow">Проверка · вопрос 2</div>
+<h2>Изучите ситуацию и ответьте</h2>
+<div class="quiz-card">
+  <span class="q-num">Вопрос</span>
+  <p class="q-text">После Game Over игрок жмёт Пробел. Игра запускается, но змейка сразу длинная (как перед смертью) и счёт не обнулился. Что забыли сделать?</p>
+</div>
+<details style="margin-top:18px">
+  <summary>Ответ</summary>
+  <div class="content">
+    <p>Забыли <strong>сбросить состояние</strong> при рестарте. Нужно заново задать: <code>snake</code> = 3 сегмента в центре, <code>dir</code> = вправо, <code>score</code> = 0, новое яблоко.</p>
+    <p>Промпт для DeepSeek: «при нажатии Пробела сбрасывай snake, dir, score и яблоко в начальное состояние».</p>
+  </div>
+</details>
+
+===== SLIDE 33/38 =====
+[NOTES] Если игра ведёт себя странно — печатайте состояние в Console.
+[HTML]
+<div class="eyebrow">Инструмент отладки</div>
+<h2>Отладка игры через Console</h2>
+<div class="grid cols-2">
+  <div>
+    <h3>Печатайте состояние</h3>
+<pre><code class="language-javascript">console.log('snake:', snake);
+console.log('dir:', dir);
+console.log('apple:', apple);</code></pre>
+  </div>
+  <div>
+    <h3>Частые находки</h3>
+    <ul class="check-list">
+      <li><code class="inline">dir</code> не меняется → событие keydown не работает</li>
+      <li><code class="inline">snake</code> растёт без яблок → не удаляется хвост</li>
+      <li>яблоко всегда в одном месте → не вызывается randomApple</li>
+    </ul>
+  </div>
+</div>
+
+===== SLIDE 34/38 =====
+[NOTES] 5 привычек геймдева. Дайте сфотографировать.
+[HTML]
+<div class="eyebrow">Запомните</div>
+<h2>Полезные привычки геймдева</h2>
+<div class="kv-row"><div class="k">01 · 3 фазы цикла</div><div class="v">input → update → render. На каждом кадре в этом порядке.</div></div>
+<div class="kv-row"><div class="k">02 · Сетка вместо пикселей</div><div class="v">Для пошаговых игр удобнее работать с клетками.</div></div>
+<div class="kv-row"><div class="k">03 · Запрет некорректных действий</div><div class="v">Игрок не должен ломать игру нажатием. Проверяйте допустимость.</div></div>
+<div class="kv-row"><div class="k">04 · Сброс состояния при рестарте</div><div class="v">snake, dir, score, apple — всё заново в начальное состояние.</div></div>
+<div class="kv-row"><div class="k">05 · console.log — друг</div><div class="v">Странное поведение — печатайте <code class="inline">snake</code> и <code class="inline">dir</code>.</div></div>
+
+===== SLIDE 35/38 =====
+[NOTES] Чек-лист завершения игры.
+[HTML]
+<div class="eyebrow">Финальная проверка</div>
+<h2>Что должно быть к 55-й минуте</h2>
+<div class="grid cols-2">
+  <div>
+    <h3 style="color:var(--accent-2)">Готово</h3>
+    <ul class="check-list">
+      <li>Папка <code class="inline">lesson-04</code> с 3 файлами</li>
+      <li>Холст с зелёной змейкой</li>
+      <li>Змейка управляется стрелками</li>
+      <li>Не разворачивается на 180°</li>
+    </ul>
+  </div>
+  <div>
+    <h3 style="color:var(--accent)">Работает</h3>
+    <ul class="check-list">
+      <li>Яблоки появляются и съедаются, счёт растёт</li>
+      <li>Столкновение → экран Game Over</li>
+      <li>Пробел — рестарт с нуля</li>
+      <li>Рекорд держится после перезагрузки</li>
+    </ul>
+  </div>
+</div>
+
+===== SLIDE 36/38 =====
+[NOTES] Шпаргалка по проблемам игры.
+[HTML]
+<div class="eyebrow">Шпаргалка</div>
+<h2>Что делать, если…</h2>
+<div class="kv-row"><div class="k">точка не появилась</div><div class="v">F12 → Console, прочитайте ошибку про canvas, отправьте в DeepSeek.</div></div>
+<div class="kv-row"><div class="k">слишком быстро</div><div class="v">Счётчик кадров: update только когда <code class="inline">frames % 10 === 0</code>.</div></div>
+<div class="kv-row"><div class="k">стрелки скроллят</div><div class="v">Добавьте <code class="inline">e.preventDefault()</code> в обработчик keydown.</div></div>
+<div class="kv-row"><div class="k">яблоко в змейке</div><div class="v">Генерация без проверки. Промпт: «генерируй позицию, пока она не свободна».</div></div>
+<div class="kv-row"><div class="k">рестарт ломается</div><div class="v">Не сброшено состояние. Промпт: «при Пробеле сбрось snake, dir, score, apple».</div></div>
+
+===== SLIDE 37/38 =====
+[NOTES] ДЗ — прокачать игру. 3 улучшения через диалог.
+[HTML]
+<div class="eyebrow">Домашнее задание · около 30 минут</div>
+<h2>Прокачайте свою змейку</h2>
+<p class="lead">Через диалог с DeepSeek добавьте 3 улучшения:</p>
+<div class="grid cols-3" style="margin-top:18px">
+  <div class="card">
+    <h3>Растущая скорость</h3>
+    <p style="font-size:14.5px">Каждые 5 яблок скорость +20%. К 25 яблокам играть тяжело.</p>
+  </div>
+  <div class="card">
+    <h3>Золотое яблоко</h3>
+    <p style="font-size:14.5px">Раз в 30 секунд — золотое яблоко: +5 очков, исчезает через 3 секунды.</p>
+  </div>
+  <div class="card">
+    <h3>Эффект частиц</h3>
+    <p style="font-size:14.5px">При поедании — вспышка из 5-8 точек, разлетающихся в стороны.</p>
+  </div>
+</div>
+<div class="card warn" style="margin-top:22px">
+  <p style="font-size:15px">Пришлите скриншот игры и ваш лучший рекорд. Один лучший промпт — отдельным сообщением.</p>
+</div>
+
+===== SLIDE 38/38 [FINAL] =====
+[NOTES] Закройте урок. Модуль 1 (веб) завершён. Дальше — Python.
+[HTML]
+<div class="eyebrow">Урок 4 завершён · Модуль 1 пройден</div>
+<div class="outro-big">До встречи<br>на уроке 5.</div>
+<p class="lead">Модуль 1 (веб-основы) завершён: HTML, CSS, JavaScript, события, Canvas. На уроке 5 начинаем Python — и впервые подключим нейросеть прямо внутрь своей программы. Подход тот же: формулируем задачу, нейросеть пишет код, мы запускаем и проверяем.</p>
+<div class="chip-row" style="margin-top:30px">
+  <span class="badge primary">Урок 5 · Первая программа на Python с AI</span>
+  <span class="badge cyan">Терминал</span>
+  <span class="badge good">DeepSeek API</span>
+</div>

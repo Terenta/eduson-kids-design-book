@@ -1,0 +1,1116 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Урок 8 — Работа с внешними API | Eduson Kids</title>
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter+Tight:wght@600;700;800;900&family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;700&display=swap">
+
+<style>
+/* ============ Дизайн-токены Eduson Kids ============ */
+:root{
+  --ek-violet:#8C7FF6; --ek-violet-soft:#A79EF9; --ek-violet-deep:#6F61E8; --ek-violet-bg:#F0EEFE;
+  --ek-green:#3DF79D; --ek-green-soft:#7BF9BD; --ek-green-mint:#C9F7E3; --ek-green-pale:#E7FDF2; --ek-green-deep:#0FBF6E;
+  --ek-ink:#17171C; --ek-gray:#8F8F98; --ek-gray-light:#EFEFF2; --ek-line:#E3E3EA;
+  --ek-red:#FF6B6B; --ek-red-soft:#FF8A8A; --ek-red-deep:#E04848; --ek-red-pale:#FFECEC;
+  --f-head:'Inter Tight','Inter','Segoe UI',system-ui,sans-serif;
+  --f-body:'Inter','Segoe UI',system-ui,sans-serif;
+  --f-mono:'JetBrains Mono','Cascadia Mono','Consolas',monospace;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{height:100%;overflow:hidden}
+body{font-family:var(--f-body);background:#E9E9F1;color:var(--ek-ink);-webkit-font-smoothing:antialiased}
+
+/* ============ Хром: прогресс, счётчик, подсказка ============ */
+.progress{position:fixed;top:0;left:0;right:0;height:4px;background:rgba(23,23,28,.08);z-index:100}
+.progress__fill{height:100%;width:0%;background:var(--ek-violet);transition:width 300ms ease}
+.counter{position:fixed;top:14px;right:18px;z-index:90;font:600 13px var(--f-body);color:var(--ek-gray);background:#fff;border:1px solid var(--ek-line);padding:6px 14px;border-radius:999px;font-variant-numeric:tabular-nums}
+.counter b{color:var(--ek-ink)}
+.hint{position:fixed;bottom:12px;left:50%;transform:translateX(-50%);z-index:90;font:500 11px var(--f-body);color:var(--ek-gray);background:#fff;border:1px solid var(--ek-line);padding:6px 14px;border-radius:999px;letter-spacing:.03em}
+.hint kbd{font-family:var(--f-mono);background:var(--ek-gray-light);padding:1px 6px;border-radius:4px;font-size:10px;margin:0 2px;color:var(--ek-ink)}
+
+/* ============ Сцена 1280×720 ============ */
+.stage{position:absolute;left:50%;top:50%;width:1280px;height:720px;transform:translate(-50%,-50%);border-radius:18px;overflow:hidden;box-shadow:0 30px 90px rgba(23,23,28,.18);background:#fff}
+.slide{position:absolute;inset:0;background:#fff;opacity:0;transform:translateY(26px);transition:opacity 280ms ease,transform 280ms ease;pointer-events:none;font-family:var(--f-head)}
+.slide.active{opacity:1;transform:none;pointer-events:auto}
+.slide.prev{transform:translateY(-26px)}
+.slide--violet{background:var(--ek-violet)}
+.slide--green{background:var(--ek-green)}
+
+/* Номер страницы на контентных слайдах */
+.slide--content::after{content:attr(data-page);position:absolute;right:54px;bottom:30px;font:800 30px/1 var(--f-head);color:var(--ek-ink);opacity:.5}
+
+/* ============ Декор «Орбита» ============ */
+.sl-orbit{position:absolute;inset:0;pointer-events:none}
+.slide--violet .sl-orbit{--decor:#A79EF9;--letter:#C4BEFA}
+.slide--green .sl-orbit{--decor:#7BF9BD;--letter:#C4FCE0}
+.sl-ring{position:absolute;left:50%;top:50%;width:1040px;height:660px;transform:translate(-50%,-50%);border:3px solid var(--decor);border-radius:50%;opacity:.9}
+.sl-ico{position:absolute;color:var(--decor)}
+.sl-letter{position:absolute;border-radius:50%;background:var(--decor);color:var(--letter);display:flex;align-items:center;justify-content:center;font:800 var(--fs,40px)/1 var(--f-head);font-style:normal}
+
+/* ============ Каверы: карточка-окно и спич-бабл ============ */
+.cover-center{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);z-index:2}
+.cover-card{position:relative;width:860px;background:#fff;border-radius:28px;box-shadow:0 30px 80px rgba(23,23,28,.18)}
+.card-top{display:flex;justify-content:space-between;align-items:center;padding:24px 30px 0}
+.win-dots{display:flex;gap:9px}
+.win-dots i{width:13px;height:13px;border-radius:50%;background:var(--ek-violet)}
+.win-close{position:relative;width:22px;height:22px}
+.win-close::before,.win-close::after{content:"";position:absolute;left:-1px;top:9px;width:24px;height:4px;border-radius:2px;background:var(--ek-violet)}
+.win-close::before{transform:rotate(45deg)}
+.win-close::after{transform:rotate(-45deg)}
+.cover-card .badge{position:absolute;left:50%;top:-30px;transform:translateX(-50%) rotate(-4deg)}
+.cover-card h1{padding:26px 64px 30px;text-align:center;font:800 50px/1.14 var(--f-head);letter-spacing:-.015em;color:var(--ek-ink)}
+.cover-card .cover-sub{padding:0 80px 34px;text-align:center;font:500 19px/1.5 var(--f-body);color:#3C3C45}
+.cover-card .cover-chips{display:flex;justify-content:center;gap:10px;flex-wrap:wrap;padding:0 40px 40px}
+.bubble{position:relative;width:660px;background:#EFEFF1;border-radius:30px;padding:56px 70px;text-align:center}
+.bubble::after{content:"";position:absolute;right:56px;bottom:-24px;width:0;height:0;border-left:38px solid transparent;border-top:28px solid #EFEFF1}
+.bubble h1{font:800 42px/1.25 var(--f-head);letter-spacing:-.01em;color:var(--ek-ink)}
+.bubble p{margin-top:16px;font:500 18px/1.5 var(--f-body);color:#3C3C45}
+
+/* ============ Стикер-бейдж и чипы ============ */
+.badge{display:inline-block;background:var(--ek-green);color:var(--ek-ink);font:800 24px/1 var(--f-head);padding:13px 22px;border-radius:13px;transform:rotate(-3deg);box-shadow:0 10px 24px rgba(23,23,28,.10)}
+.badge--violet{background:var(--ek-violet);color:#fff}
+.badge--sm{font-size:16px;padding:9px 16px;border-radius:10px}
+.chip{display:inline-block;font:700 14px/1 var(--f-body);padding:8px 14px;border-radius:999px;background:var(--ek-violet-bg);color:var(--ek-violet-deep)}
+.chip--green{background:var(--ek-green-pale);color:var(--ek-green-deep)}
+.chip--gray{background:var(--ek-gray-light);color:#3C3C45}
+
+/* ============ Контентные слайды ============ */
+.sl-body{position:absolute;inset:0;padding:56px 80px 62px;display:flex;flex-direction:column;gap:16px;overflow:hidden}
+h2{font:800 38px/1.16 var(--f-head);letter-spacing:-.01em;color:var(--ek-ink)}
+.acc{color:var(--ek-violet-deep)}
+.sl-body>p, .col p{font:500 18px/1.5 var(--f-body);color:#3C3C45}
+.code-chip{font-family:var(--f-mono);font-weight:700;font-size:.88em;background:var(--ek-violet-bg);color:var(--ek-violet-deep);padding:2px 8px;border-radius:8px;white-space:nowrap}
+.hl{color:var(--ek-violet-deep);font-weight:700}
+.out-chip{font-family:var(--f-mono);font-weight:700;font-size:.88em;background:var(--ek-green-pale);color:#0B7A48;padding:2px 8px;border-radius:8px;white-space:nowrap}
+
+.grid-2{display:grid;grid-template-columns:1fr 1fr;gap:22px;align-items:start}
+.grid-3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:18px;align-items:stretch}
+
+.info-card{background:#F5F5F9;border-radius:18px;padding:18px 22px;font:500 16px/1.55 var(--f-body);color:#3C3C45}
+.info-card h3{font:800 19px/1.3 var(--f-head);color:var(--ek-ink);margin-bottom:8px}
+.ek-note{background:var(--ek-violet-bg);border-left:4px solid var(--ek-violet);border-radius:0 14px 14px 0;padding:14px 20px;font:600 17px/1.5 var(--f-body);color:#3C3560}
+.ek-note--green{background:var(--ek-green-pale);border-left-color:var(--ek-green-deep);color:#0B5B39}
+.ek-note--red{background:var(--ek-red-pale);border-left-color:var(--ek-red);color:#7A2E2E}
+
+ul.clean{list-style:none;display:flex;flex-direction:column;gap:10px}
+ul.clean li{display:flex;gap:14px;align-items:flex-start;font:500 17.5px/1.5 var(--f-body);color:#3C3C45}
+ul.clean li::before{content:'—';flex:0 0 auto;color:var(--ek-violet-deep);font-weight:800}
+
+ol.steps{list-style:none;counter-reset:step;display:flex;flex-direction:column;gap:12px}
+ol.steps li{counter-increment:step;display:flex;gap:16px;align-items:center;padding:14px 20px;background:#F5F5F9;border-radius:16px;font:500 17.5px/1.45 var(--f-body);color:#2E2E36}
+ol.steps li::before{content:counter(step);flex:0 0 40px;height:40px;display:flex;align-items:center;justify-content:center;border-radius:50%;background:var(--ek-violet);font:800 18px var(--f-head);color:#fff}
+ol.steps li:last-child::before{background:var(--ek-green);color:var(--ek-ink)}
+ol.steps.steps--tight{gap:8px}
+ol.steps.steps--tight li{padding:9px 16px;font-size:15.5px;gap:12px}
+ol.steps.steps--tight li::before{flex-basis:32px;height:32px;font-size:14px}
+
+.q-label{font:700 13px/1 var(--f-head);letter-spacing:.08em;text-transform:uppercase;color:var(--ek-gray)}
+
+/* ============ План занятия (agenda) ============ */
+.agenda{display:flex;flex-direction:column;gap:8px}
+.agenda-row{display:flex;gap:16px;align-items:center;padding:10px 18px;background:#F5F5F9;border-radius:14px}
+.agenda-row .t{flex:0 0 84px;text-align:center;font:800 14px/1 var(--f-mono);color:var(--ek-ink);background:var(--ek-green);border-radius:999px;padding:8px 0}
+.agenda-row .tt{font:700 16.5px/1.3 var(--f-head);color:var(--ek-ink)}
+.agenda-row .dd{font:500 14px/1.4 var(--f-body);color:var(--ek-gray)}
+
+/* ============ Ключ-значение (привычки, шпаргалки) ============ */
+.kv{display:flex;flex-direction:column}
+.kv-row{display:grid;grid-template-columns:250px 1fr;gap:18px;align-items:start;padding:11px 4px;border-bottom:1.5px solid var(--ek-line)}
+.kv-row:last-child{border-bottom:none}
+.kv-row .k{font:800 14px/1.35 var(--f-head);letter-spacing:.05em;text-transform:uppercase;color:var(--ek-violet-deep);padding-top:2px}
+.kv-row .v{font:500 16.5px/1.5 var(--f-body);color:#3C3C45}
+
+/* ============ Окно кода (статичное) ============ */
+.code-win{background:#fff;border:2.5px solid var(--ek-ink);border-radius:16px;overflow:hidden;font-family:var(--f-mono);box-shadow:10px 10px 0 rgba(140,127,246,.14)}
+.code-head{display:flex;align-items:center;justify-content:space-between;padding:9px 16px;border-bottom:2px solid var(--ek-ink)}
+.code-head .win-dots i{width:11px;height:11px}
+.lang-badge{font:700 11px var(--f-mono);letter-spacing:.14em;color:var(--ek-gray)}
+.code-body{padding:14px 20px;font:500 14.5px/1.6 var(--f-mono);color:var(--ek-ink);white-space:pre;overflow:auto;max-height:400px;tab-size:4}
+.code-body .cm{color:var(--ek-gray)}
+.code-body .st{color:var(--ek-green-deep)}
+.code-body .kw{color:var(--ek-violet-deep);font-weight:700}
+
+/* ============ Терминал (тёмное окно) ============ */
+.term{background:var(--ek-ink);border-radius:16px;overflow:hidden;font-family:var(--f-mono);box-shadow:10px 10px 0 rgba(23,23,28,.12)}
+.term-head{display:flex;align-items:center;justify-content:space-between;padding:9px 16px;border-bottom:1px solid rgba(255,255,255,.14)}
+.term-head .win-dots i{width:11px;height:11px;background:var(--ek-green)}
+.term-head .lang-badge{color:rgba(255,255,255,.5)}
+.term-body{padding:14px 20px;font:500 14.5px/1.62 var(--f-mono);color:var(--ek-green);white-space:pre-wrap;word-break:break-word;overflow:auto;max-height:420px}
+.term-body .usr{color:#fff}
+.term-body .dim{color:rgba(255,255,255,.55)}
+
+/* ============ Промпт-карточка (диалог с DeepSeek) ============ */
+.prompt-card{position:relative;background:var(--ek-violet-bg);border:2.5px solid var(--ek-violet);border-radius:18px;padding:20px 26px 18px;box-shadow:10px 10px 0 rgba(140,127,246,.18)}
+.prompt-card .pc-tag{position:absolute;top:-16px;left:22px;background:var(--ek-violet);color:#fff;font:800 14px/1 var(--f-head);padding:9px 16px;border-radius:10px;transform:rotate(-2deg);box-shadow:0 8px 18px rgba(23,23,28,.12)}
+.prompt-card .pc-text{margin-top:6px;font:500 15px/1.62 var(--f-mono);color:#2E2A52;white-space:pre-wrap}
+.prompt-card .pc-text .hl{color:var(--ek-violet-deep)}
+.prompt-card--copy .pc-tag{background:var(--ek-green);color:var(--ek-ink)}
+
+/* ============ Сравнение (vs) ============ */
+.vs{display:grid;grid-template-columns:1fr 1fr;gap:20px;align-items:stretch}
+.vs-col{border-radius:18px;padding:20px 24px}
+.vs-col h4{font:800 15px/1 var(--f-head);letter-spacing:.08em;text-transform:uppercase;margin-bottom:12px}
+.vs-col p{font:500 16px/1.55 var(--f-body)}
+.vs-col .note{margin-top:12px;font:500 13.5px/1.4 var(--f-body);opacity:.75}
+.vs-col--plain{background:var(--ek-gray-light);color:#3C3C45}
+.vs-col--plain h4{color:var(--ek-gray)}
+.vs-col--win{background:var(--ek-green-pale);color:#124F35;border:2px solid var(--ek-green-soft)}
+.vs-col--win h4{color:var(--ek-green-deep)}
+
+/* ============ Квиз с раскрытием ответа ============ */
+.quiz-box{background:#F5F5F9;border:2.5px solid var(--ek-ink);border-radius:18px;padding:22px 26px;box-shadow:10px 10px 0 rgba(61,247,157,.25)}
+.quiz-box .q-num{display:inline-block;background:var(--ek-green);color:var(--ek-ink);font:800 13px/1 var(--f-head);letter-spacing:.08em;text-transform:uppercase;padding:8px 14px;border-radius:999px;margin-bottom:14px}
+.quiz-box .q-text{font:700 21px/1.42 var(--f-head);color:var(--ek-ink)}
+.quiz-answer{margin-top:16px}
+.quiz-btn{border:0;border-radius:12px;padding:12px 22px;font:800 15px/1 var(--f-head);cursor:pointer;background:var(--ek-violet);color:#fff;transition:background .15s}
+.quiz-btn:hover{background:var(--ek-violet-deep)}
+.quiz-reveal{display:none;margin-top:14px;background:var(--ek-green-pale);border-left:4px solid var(--ek-green-deep);border-radius:0 14px 14px 0;padding:14px 20px;font:500 16.5px/1.55 var(--f-body);color:#0B5B39}
+.quiz-reveal.show{display:block}
+.quiz-reveal p+p{margin-top:8px}
+
+/* Появление контента */
+.slide.active .info-card,.slide.active ul.clean li,.slide.active ol.steps li,.slide.active .grid-2>*,.slide.active .grid-3>*,.slide.active .agenda-row,.slide.active .kv-row{animation:reveal 450ms ease backwards}
+.slide.active .info-card:nth-child(2),.slide.active ul.clean li:nth-child(2),.slide.active ol.steps li:nth-child(2),.slide.active .grid-2>*:nth-child(2),.slide.active .grid-3>*:nth-child(2),.slide.active .agenda-row:nth-child(2),.slide.active .kv-row:nth-child(2){animation-delay:80ms}
+.slide.active ul.clean li:nth-child(3),.slide.active ol.steps li:nth-child(3),.slide.active .grid-3>*:nth-child(3),.slide.active .agenda-row:nth-child(3),.slide.active .kv-row:nth-child(3){animation-delay:160ms}
+.slide.active ol.steps li:nth-child(4),.slide.active .agenda-row:nth-child(4),.slide.active .kv-row:nth-child(4){animation-delay:240ms}
+.slide.active ol.steps li:nth-child(5),.slide.active .agenda-row:nth-child(5),.slide.active .kv-row:nth-child(5){animation-delay:320ms}
+.slide.active .agenda-row:nth-child(6),.slide.active ol.steps li:nth-child(6),.slide.active .kv-row:nth-child(6){animation-delay:400ms}
+.slide.active .agenda-row:nth-child(7),.slide.active ol.steps li:nth-child(7),.slide.active .kv-row:nth-child(7){animation-delay:480ms}
+@keyframes reveal{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:translateY(0)}}
+@media (prefers-reduced-motion:reduce){.slide.active .info-card,.slide.active ul.clean li,.slide.active ol.steps li,.slide.active .grid-2>*,.slide.active .grid-3>*,.slide.active .agenda-row,.slide.active .kv-row{animation:none}}
+
+/* ============ Заметки преподавателя ============ */
+.notes{position:fixed;bottom:0;left:0;right:0;background:#fff;border-top:1px solid var(--ek-line);box-shadow:0 -16px 40px rgba(23,23,28,.10);padding:20px 40px;z-index:95;max-height:40vh;overflow-y:auto;transform:translateY(100%);transition:transform 300ms ease}
+.notes.active{transform:translateY(0)}
+.notes__header{font:800 11px var(--f-head);letter-spacing:.2em;text-transform:uppercase;color:var(--ek-violet-deep);margin-bottom:8px}
+.notes__body{font:500 15px/1.55 var(--f-body);color:#3C3C45}
+
+:focus-visible{outline:3px solid var(--ek-violet-soft);outline-offset:2px;border-radius:6px}
+::-webkit-scrollbar{width:8px;height:8px}
+::-webkit-scrollbar-track{background:transparent}
+::-webkit-scrollbar-thumb{background:rgba(23,23,28,.15);border-radius:4px}
+</style>
+</head>
+<body>
+
+<div class="progress"><div class="progress__fill" id="progress"></div></div>
+<div class="counter"><b id="current">1</b> / <span id="total">38</span></div>
+
+<main class="stage" id="deck">
+<section class="slide slide--violet active"
+  data-notes="Поприветствуйте. Сегодня соберём приложение погоды: программа спрашивает город, получает текущую погоду через внешний сервис OpenWeather, а нейросеть формулирует комментарий. Новое — работа с внешним сервером через API и безопасное хранение секретных ключей в файле .env. Это последний урок модуля 2.">
+<div class="sl-orbit">
+    <i class="sl-ring"></i>
+    <svg class="sl-ico" viewBox="0 0 100 100" style="left:75px;top:20px;width:150px;height:150px;transform:rotate(-10deg)"><use href="#ek-i-trophy"/></svg>
+    <i class="sl-letter" style="left:466px;top:13px;width:78px;height:78px;--fs:36px">A</i>
+    <svg class="sl-ico" viewBox="0 0 100 100" style="left:1040px;top:15px;width:130px;height:130px;transform:rotate(12deg)"><use href="#ek-i-heart"/></svg>
+    <i class="sl-letter" style="left:68px;top:268px;width:100px;height:100px;--fs:46px">P</i>
+    <i class="sl-letter" style="left:1137px;top:327px;width:95px;height:95px;--fs:44px">I</i>
+    <svg class="sl-ico" viewBox="0 0 100 100" style="left:102px;top:532px;width:125px;height:125px;transform:rotate(-15deg)"><use href="#ek-i-star"/></svg>
+    <i class="sl-letter" style="left:726px;top:613px;width:78px;height:78px;--fs:36px">W</i>
+    <svg class="sl-ico" viewBox="0 0 100 100" style="left:1045px;top:540px;width:110px;height:110px;transform:rotate(8deg)"><use href="#ek-i-gem"/></svg>
+  </div>
+  <div class="cover-center">
+    <div class="cover-card">
+      <div class="badge">Урок №8</div>
+      <div class="card-top"><span class="win-dots"><i></i><i></i><i></i></span><span class="win-close"></span></div>
+      <h1>Работа<br>с&nbsp;внешними API</h1>
+      <p class="cover-sub">Соберём приложение погоды: программа узнаёт текущую погоду в городе через OpenWeather, нейросеть формулирует комментарий, а секретные ключи хранятся в файле .env.</p>
+      <div class="cover-chips"><span class="chip">API</span><span class="chip chip--green">OpenWeather</span><span class="chip chip--gray">.env</span><span class="chip chip--gray">DeepSeek</span></div>
+    </div>
+  </div>
+</section>
+
+<section class="slide slide--content"
+  data-notes="План. Теории даём ровно столько, сколько нужно для практики: к 12-й минуте в терминале появляется реальная температура из интернета, к 30-й — каркас приложения погоды. Дальше — 5 последовательных правок, как на прошлых уроках. Это последнее занятие модуля 2.">
+<div class="sl-body">
+  <div>
+    <div class="q-label">Agenda · план занятия</div>
+    <h2>Как пройдут <span class="acc">60 минут</span></h2>
+  </div>
+  <div class="agenda">
+    <div class="agenda-row"><span class="t">0–5</span><div><div class="tt">Разбор ДЗ</div><div class="dd">Смотрим доработанные дневники: статистика по тегам, экспорт в Markdown, умный поиск.</div></div></div>
+    <div class="agenda-row"><span class="t">5–12</span><div><div class="tt">API и .env</div><div class="dd">Коротко разбираем только то, что нужно для приложения погоды.</div></div></div>
+    <div class="agenda-row"><span class="t">12–20</span><div><div class="tt">Промпт-разминка</div><div class="dd">warmup.py: живая погода Москвы из интернета через OpenWeather.</div></div></div>
+    <div class="agenda-row"><span class="t">20–30</span><div><div class="tt">Каркас weather.py</div><div class="dd">Ввод города, запрос к OpenWeather, ключи в .env.</div></div></div>
+    <div class="agenda-row"><span class="t">30–48</span><div><div class="tt">5 правок через диалог</div><div class="dd">Погода по городу → ключи в .env → AI-комментарий → совет и цикл → цвет и ошибки.</div></div></div>
+    <div class="agenda-row"><span class="t">48–55</span><div><div class="tt">Мини-вопросы и отладка</div><div class="dd">Читаем ошибки API, проверяем понимание.</div></div></div>
+    <div class="agenda-row"><span class="t">55–60</span><div><div class="tt">Демо в группе</div><div class="dd">Каждый узнаёт погоду в своём городе и получает комментарий нейросети.</div></div></div>
+  </div>
+</div>
+</section>
+
+<section class="slide slide--content"
+  data-notes="Откройте 1–2 доработанных дневника (на весь блок 5 минут). Разбирайте диалог с нейросетью, а не только результат. Подведите к главному: до сих пор данные создавали ученик, программа или нейросеть — записи, теги, историю. Сегодня программа впервые возьмёт реальные данные из интернета.">
+<div class="sl-body">
+  <div>
+    <div class="q-label">Разбор ДЗ урока 7</div>
+    <h2>Смотрим доработанные <span class="acc">дневники</span></h2>
+  </div>
+  <p>Открываем 2–3 присланных дневника и разбираем именно <span class="hl">диалог с нейросетью</span>: статистика по тегам, экспорт в <span class="code-chip">diary.md</span>, умный поиск по слову в тексте.</p>
+  <div class="grid-3" style="margin-top:8px">
+    <div class="info-card">
+      <h3>Что сработало</h3>
+      <p>Точечные правки: подсчёт тегов через словарь-счётчик, экспорт записей в Markdown, поиск по вхождению слова.</p>
+    </div>
+    <div class="info-card">
+      <h3>Что переделывали</h3>
+      <p>Где забыли «верни весь файл» — нейросеть присылала кусок, и терялись прежние функции дневника.</p>
+    </div>
+    <div class="info-card">
+      <h3>Вывод</h3>
+      <p>Данные для дневника <b>придумывали мы сами</b>. Сегодня программа впервые возьмёт <b>реальные данные из интернета</b>.</p>
+    </div>
+  </div>
+</div>
+</section>
+
+<section class="slide slide--content"
+  data-notes="Главная мысль: две новинки. Первая — программа впервые берёт актуальные данные из внешнего сервиса в интернете через API и передаёт их нейросети для комментария. Вторая — ключи переносим в файл .env, как обещали на уроке 7.">
+<div class="sl-body">
+  <div>
+    <div class="q-label">Идея урока</div>
+    <h2>Программа получает данные из <span class="acc">интернета</span></h2>
+  </div>
+  <p>Раньше данные придумывала сама программа или нейросеть — записи, историю, теги. Сегодня программа берёт <span class="hl">реальные данные из внешнего сервиса</span>: погоду прямо сейчас.</p>
+  <div class="ek-note" style="margin-top:6px">Программа впервые общается с внешним сервером через <b>API</b>: запрашивает у OpenWeather погоду в городе и <b>передаёт её нейросети</b> для комментария. Вторая новинка — секретные ключи храним <b>в файле .env</b>.</div>
+  <p>Идея урока 8: <b>берём актуальные данные</b> из интернета, <b>передаём их нейросети</b>, а ключи <b>держим в .env</b>.</p>
+</div>
+</section>
+
+<section class="slide slide--content"
+  data-notes="API — способ одной программы запросить данные у внешнего сервера. Аналогия: заказ по меню. Вы не идёте на кухню — выбираете позицию по меню и получаете готовое блюдо. Программа не работает внутри OpenWeather — отправляет запрос по правилам и получает JSON-ответ.">
+<div class="sl-body">
+  <div>
+    <div class="q-label">Новое понятие</div>
+    <h2>Что такое <span class="acc">API</span></h2>
+  </div>
+  <p>API — это <span class="hl">способ попросить данные у чужого сервера</span> по понятным обеим сторонам правилам. Программа отправляет <b>запрос с параметрами</b> — сервер возвращает <b>JSON-ответ</b>.</p>
+  <div class="ek-note" style="margin-top:6px">Как <b>заказ по меню</b>: вы не идёте на кухню, а выбираете позицию по меню и получаете готовое блюдо. Программа не работает внутри OpenWeather: отправляет запрос по правилам и получает готовые данные о погоде.</div>
+  <p>JSON-ответ вам уже знаком — точно такой формат разбирали на уроке 7 в дневнике.</p>
+</div>
+</section>
+
+<section class="slide slide--content"
+  data-notes="Показываем устройство запроса, не углубляясь. url — адрес сервиса погоды, params — что именно спрашиваем: q — город, appid — ключ, units — единицы, lang — язык ответа. Главное правило урока: units=metric, иначе придут Кельвины (296 вместо +23). requests.get сам собирает адрес — вручную URL не склеиваем.">
+<div class="sl-body">
+  <div>
+    <div class="q-label">Как устроен запрос</div>
+    <h2>Из чего состоит обращение к <span class="acc">API</span></h2>
+  </div>
+  <p>У запроса два куска: <span class="hl">url</span> — адрес сервиса погоды, и <span class="hl">params</span> — что именно спрашиваем.</p>
+  <div class="code-win">
+    <div class="code-head"><span class="win-dots"><i></i><i></i><i></i></span><span class="lang-badge">PYTHON</span></div>
+    <div class="code-body">url = <span class="st">"https://api.openweathermap.org/data/2.5/weather"</span>
+params = {<span class="st">"q"</span>: city, <span class="st">"appid"</span>: OW_KEY, <span class="st">"units"</span>: <span class="st">"metric"</span>, <span class="st">"lang"</span>: <span class="st">"ru"</span>}
+data = requests.get(url, params=params).json()</div>
+  </div>
+  <div class="kv" style="margin-top:12px">
+    <div class="kv-row"><div class="k">q</div><div class="v">Город, о котором спрашиваем.</div></div>
+    <div class="kv-row"><div class="k">appid</div><div class="v">Ключ — пропуск к сервису.</div></div>
+    <div class="kv-row"><div class="k">units=metric</div><div class="v">Градусы Цельсия, а не Кельвины.</div></div>
+    <div class="kv-row"><div class="k">lang=ru</div><div class="v">Описание погоды по-русски.</div></div>
+  </div>
+</div>
+</section>
+
+<section class="slide slide--content"
+  data-notes="Вторая линия урока. Ключ — это пароль к сервису, в коде строкой ему не место: если выложить код на GitHub, ключ могут украсть. Секреты кладём в отдельный файл .env рядом со скриптом, читаем через load_dotenv и os.getenv, а сам .env добавляем в .gitignore, чтобы он не попал в публичный репозиторий.">
+<div class="sl-body">
+  <div>
+    <div class="q-label">Прячем секреты</div>
+    <h2>Что такое файл <span class="acc">.env</span></h2>
+  </div>
+  <p>Ключ — это <span class="hl">пароль к сервису</span>. Держать его строкой прямо в коде опасно: выложите код в интернет — ключ украдут и исчерпают ваш лимит.</p>
+  <div class="vs" style="margin-top:6px">
+    <div class="vs-col vs-col--plain">
+      <h4>Ключ строкой в коде</h4>
+      <p>appid = "a1b2c3..." прямо в файле. Виден всем, кто увидит код.</p>
+    <p class="note">Так делать небезопасно.</p>
+    </div>
+    <div class="vs-col vs-col--win">
+      <h4>Ключ в файле .env</h4>
+      <p>Секреты лежат рядом со скриптом, в код не попадают. <span class="code-chip">load_dotenv()</span> и <span class="code-chip">os.getenv(...)</span> читают их из .env.</p>
+      <p class="note">.env добавляем в .gitignore — в интернет он не уходит.</p>
+    </div>
+  </div>
+  <p>В коде ключа строкой быть не должно — только чтение из <span class="code-chip">.env</span>.</p>
+</div>
+</section>
+
+<section class="slide slide--content"
+  data-notes="Без долгой подготовки: сразу просим у DeepSeek небольшой скрипт с запросом к OpenWeather и запускаем. Ключ на разминке пока строкой — перенос в .env будет в основном проекте. Ученики копируют промпт целиком. Ключ OpenWeather раздайте заранее — он активируется не мгновенно.">
+<div class="sl-body">
+  <div>
+    <div class="q-label">Промпт #1 · разминка</div>
+    <h2>warmup.py за <span class="acc">две минуты</span></h2>
+  </div>
+  <p>Начнём с короткого скрипта: попросим DeepSeek сделать запрос к OpenWeather и сразу запустим результат в терминале.</p>
+  <div class="prompt-card" style="margin-top:14px">
+    <span class="pc-tag">→ Новый чат DeepSeek</span>
+    <div class="pc-text">Ты — опытный Python-разработчик и наставник школьника. Напиши маленький скрипт warmup.py: он делает запрос к публичному API https://api.openweathermap.org/data/2.5/weather с параметрами q=Москва, appid=КЛЮЧ, units=metric, lang=ru через библиотеку requests, разбирает JSON-ответ и печатает температуру и описание погоды. Ключ пока впиши строкой. Только requests. Прокомментируй код, ответь одним блоком.</div>
+  </div>
+</div>
+</section>
+
+<section class="slide slide--content"
+  data-notes="Базовый шаг урока: дождитесь, пока у всех в терминале появится реальная температура из интернета. На рабочем коде показываем три вещи: requests.get(...).json(), поле data['main']['temp'] и data['weather'][0]['description']. Не переходите дальше, пока скрипт не запустился у каждого. Сначала результат, затем разбор.">
+<div class="sl-body">
+  <div>
+    <div class="q-label">Запуск и разбор</div>
+    <h2>Реальная погода из <span class="acc">интернета</span></h2>
+  </div>
+  <div class="grid-2">
+    <div class="col">
+      <ol class="steps steps--tight">
+        <li><div>В <span class="code-chip">vibe-coding</span> создайте папку <span class="code-chip">lesson-08</span></div></li>
+        <li><div>Создайте <span class="code-chip">warmup.py</span> и вставьте код из ответа</div></li>
+        <li><div>Впишите выданный ключ OpenWeather вместо <span class="code-chip">КЛЮЧ</span></div></li>
+        <li><div>Выполните <span class="code-chip">python warmup.py</span> и смотрите на температуру</div></li>
+      </ol>
+      <div class="ek-note ek-note--green" style="margin-top:14px;font-size:15px">В терминале реальная температура в Москве прямо сейчас? Внешний API работает — база приложения погоды готова.</div>
+    </div>
+    <div class="kv">
+      <div class="kv-row"><div class="k">requests.get(...)</div><div class="v">Отправил запрос на сервер OpenWeather.</div></div>
+      <div class="kv-row"><div class="k">.json()</div><div class="v">Разобрал ответ в словарь Python.</div></div>
+      <div class="kv-row"><div class="k">data["main"]["temp"]</div><div class="v">Достал температуру из ответа.</div></div>
+      <div class="kv-row"><div class="k">data["weather"][0]["description"]</div><div class="v">Достал описание погоды.</div></div>
+    </div>
+  </div>
+</div>
+</section>
+
+<section class="slide slide--content"
+  data-notes="Разберите три типичные проблемы запуска. Самая частая — 401: ключ ещё не активировался (до пары часов после регистрации), поэтому раздавайте ключи заранее. Исправьте ошибки у всех: этот же ключ и эта же папка нужны дальше для приложения.">
+<div class="sl-body">
+  <div>
+    <div class="q-label">Типичные ситуации запуска</div>
+    <h2>Если warmup.py <span class="acc">не запустился</span></h2>
+  </div>
+  <div class="grid-3" style="margin-top:8px">
+    <div class="ek-note ek-note--red"><b>401 Unauthorized</b><br>Ключ неверный или ещё не активировался (это до пары часов после регистрации). Проверьте, что вставили выданный ключ без пробелов.</div>
+    <div class="ek-note ek-note--red"><b>KeyError</b><br>В ответе нет ожидаемого поля — обычно город написан с ошибкой или сервер вернул ошибку вместо погоды. Проверьте название города.</div>
+    <div class="ek-note ek-note--red"><b>ConnectionError</b><br>Нет интернета или сервис недоступен. Проверьте соединение и запустите <span class="code-chip">python warmup.py</span> заново.</div>
+  </div>
+</div>
+</section>
+
+<section class="slide slide--content"
+  data-notes="Показываем, как устроен ответ OpenWeather. JSON знаком с урока 7. Главное — что достаём: temp лежит внутри main, а описание — в первом элементе списка weather.">
+<div class="sl-body">
+  <div>
+    <div class="q-label">Как это работает</div>
+    <h2>Ответ сервера — знакомый <span class="acc">JSON</span></h2>
+  </div>
+  <p>OpenWeather присылает <span class="hl">JSON</span> — тот самый формат из урока 7. Это словарь: внутри вложены другие словари и список. Достаём из него нужные поля.</p>
+  <div class="code-win">
+    <div class="code-head"><span class="win-dots"><i></i><i></i><i></i></span><span class="lang-badge">JSON</span></div>
+    <div class="code-body">{
+  <span class="st">"main"</span>: { <span class="st">"temp"</span>: 23.4, <span class="st">"humidity"</span>: 60 },
+  <span class="st">"weather"</span>: [ { <span class="st">"description"</span>: <span class="st">"ясно"</span> } ],
+  <span class="st">"name"</span>: <span class="st">"Москва"</span>
+}</div>
+  </div>
+  <div class="grid-2" style="margin-top:8px">
+    <div class="info-card">
+      <h3>Температура</h3>
+      <p>Лежит внутри словаря <span class="code-chip">main</span>: берём <span class="code-chip">data["main"]["temp"]</span>.</p>
+    </div>
+    <div class="info-card">
+      <h3>Описание</h3>
+      <p><span class="code-chip">weather</span> — это <b>список</b>, поэтому сначала <span class="code-chip">[0]</span>: <span class="code-chip">data["weather"][0]["description"]</span>.</p>
+    </div>
+  </div>
+</div>
+</section>
+
+<section class="slide slide--content"
+  data-notes="Разбираем params построчно. Ключевое правило урока: без units=metric OpenWeather отдаёт Кельвины. lang=ru — чтобы описание пришло по-русски. Имена параметров не меняем.">
+<div class="sl-body">
+  <div>
+    <div class="q-label">Устройство запроса</div>
+    <h2>Что мы пишем в <span class="acc">params</span></h2>
+  </div>
+  <p>Запрос — это адрес <span class="hl">плюс параметры</span>. В словаре <span class="code-chip">params</span> мы сообщаем серверу, что именно хотим узнать.</p>
+  <div class="code-win">
+    <div class="code-head"><span class="win-dots"><i></i><i></i><i></i></span><span class="lang-badge">PYTHON</span></div>
+    <div class="code-body">url = <span class="st">"https://api.openweathermap.org/data/2.5/weather"</span>
+params = {<span class="st">"q"</span>: city, <span class="st">"appid"</span>: OW_KEY, <span class="st">"units"</span>: <span class="st">"metric"</span>, <span class="st">"lang"</span>: <span class="st">"ru"</span>}</div>
+  </div>
+  <div class="kv" style="margin-top:8px">
+    <div class="kv-row"><div class="k">q</div><div class="v">город, о котором спрашиваем</div></div>
+    <div class="kv-row"><div class="k">appid</div><div class="v">ключ доступа к сервису</div></div>
+    <div class="kv-row"><div class="k">units=metric</div><div class="v">градусы Цельсия, а не Кельвины</div></div>
+    <div class="kv-row"><div class="k">lang=ru</div><div class="v">описание погоды по-русски</div></div>
+  </div>
+  <div class="ek-note ek-note--red">Без <span class="code-chip">units=metric</span> придёт <b>296</b> вместо <b>+23</b>: это температура в Кельвинах.</div>
+</div>
+</section>
+
+<section class="slide slide--content"
+  data-notes="Новая связка урока: внешний API даёт данные, DeepSeek формулирует комментарий. Роль DeepSeek задаёт стиль прогноза. Ключ DeepSeek теперь тоже берём из .env, а не из строки в коде.">
+<div class="sl-body">
+  <div>
+    <div class="q-label">Новая связка</div>
+    <h2>Нейросеть <span class="acc">комментирует</span> погоду</h2>
+  </div>
+  <p>OpenWeather выдаёт данные: <span class="code-chip">+23</span>, <span class="code-chip">ясно</span>. Мы передаём их <span class="hl">DeepSeek</span>, и он формулирует короткий прогноз человеческим языком.</p>
+  <div class="info-card" style="margin-top:6px">
+    <h3>Системная роль</h3>
+    <p>«Ты весёлый ведущий прогноза погоды, прокомментируй погоду одним бодрым абзацем».</p>
+  </div>
+  <div class="ek-note">Одна программа соединяет <b>два сервиса</b>: берёт актуальные данные у OpenWeather и передаёт их на комментарий DeepSeek. Ключ DeepSeek теперь тоже храним в <span class="code-chip">.env</span>.</div>
+</div>
+</section>
+
+<section class="slide slide--content"
+  data-notes="Прочитайте цель вслух. Подчеркните: данные впервые не придуманы программой, а взяты из интернета; секреты лежат в .env. Слева теория, справа практика.">
+<div class="sl-body">
+  <div>
+    <div class="q-label">Goal · что будет в конце</div>
+    <h2>Цель <span class="acc">урока</span></h2>
+  </div>
+  <div class="ek-note">К 55-й минуте у каждого — приложение погоды в терминале: вводите город, программа берёт текущую погоду у OpenWeather, нейросеть комментирует её и советует, что надеть, а секретные ключи хранятся в файле <span class="code-chip">.env</span>.</div>
+  <div class="grid-2" style="margin-top:8px">
+    <div class="info-card">
+      <h3>Узнаете</h3>
+      <ul class="clean">
+        <li>Что такое API и как программа просит данные у чужого сервера</li>
+        <li>Как разобрать JSON-ответ и достать нужные поля</li>
+        <li>Как хранить ключи в файле <span class="code-chip">.env</span></li>
+      </ul>
+    </div>
+    <div class="info-card">
+      <h3>Сделаете</h3>
+      <ul class="clean">
+        <li>Запросите текущую погоду у OpenWeather</li>
+        <li>Отдадите её на комментарий DeepSeek</li>
+        <li>Спрячете оба ключа в <span class="code-chip">.env</span></li>
+      </ul>
+    </div>
+  </div>
+</div>
+</section>
+
+<section class="slide slide--content"
+  data-notes="Покажите заранее собранное приложение. Введите город при группе, чтобы все увидели: погода приходит из OpenWeather, а нейросеть формулирует комментарий и совет по одежде.">
+<div class="sl-body">
+  <div>
+    <div class="q-label">Демо результата</div>
+    <h2>Что соберём <span class="acc">сегодня</span></h2>
+  </div>
+  <div class="term">
+    <div class="term-head"><span class="win-dots"><i></i><i></i><i></i></span><span class="lang-badge">ТЕРМИНАЛ</span></div>
+    <div class="term-body">🌦️ Погода с комментарием
+Какой город? <span class="usr">Москва</span>
+Москва: +23°, ясно
+Ведущий: Отличный день, чтобы гулять до самого вечера!
+Совет: футболка и кепка — солнце жарит вовсю.</div>
+  </div>
+  <p style="margin-top:10px">Температура — <span class="hl">настоящая, прямо сейчас</span> из OpenWeather; комментарий и совет придумала <span class="hl">нейросеть</span> по этим данным.</p>
+</div>
+</section>
+
+<section class="slide slide--content"
+  data-notes="Подготовка: weather.py рядом с warmup.py. requests мог остаться с уроков 5-7, python-dotenv — новая библиотека. Два ключа (OpenWeather и DeepSeek) раздаёт преподаватель.">
+<div class="sl-body">
+  <div>
+    <div class="q-label">Подготовка</div>
+    <h2>Папка <span class="acc">lesson-08</span></h2>
+  </div>
+  <div class="grid-2">
+    <div>
+      <ol class="steps">
+        <li>Папка <span class="code-chip">lesson-08</span> уже есть — в ней лежит <span class="code-chip">warmup.py</span></li>
+        <li>Создайте файл <span class="code-chip">weather.py</span></li>
+        <li>Поставьте библиотеки: <span class="code-chip">pip install requests python-dotenv</span></li>
+        <li>Возьмите у преподавателя <b>два ключа</b>: OpenWeather и DeepSeek</li>
+      </ol>
+    </div>
+    <div>
+      <div class="code-win">
+        <div class="code-head"><span class="win-dots"><i></i><i></i><i></i></span><span class="lang-badge">ПАПКА</span></div>
+        <div class="code-body">D:/vibe-coding/lesson-08/
+├── warmup.py
+└── weather.py</div>
+      </div>
+      <div class="ek-note ek-note--red"><span class="code-chip">requests</span> мог остаться с прошлых уроков, а <span class="code-chip">python-dotenv</span> — новый: он умеет читать файл <span class="code-chip">.env</span>.</div>
+    </div>
+  </div>
+</div>
+</section>
+
+<section class="slide slide--content"
+  data-notes="Собираем каркас приложения: ввод города и функция get_weather, которая пока возвращает учебные данные. Настоящий запрос к OpenWeather добавим на Правке 1. Разделение на функции важно: дальше правки привязаны именно к get_weather.">
+<div class="sl-body">
+  <div>
+    <div class="q-label">Промпт #2 · каркас weather.py</div>
+    <h2>Каркас <span class="acc">weather.py</span></h2>
+  </div>
+  <div class="prompt-card">
+    <span class="pc-tag">→ Новый чат DeepSeek</span>
+    <div class="pc-text">Ты — опытный Python-разработчик и наставник школьника. Напиши weather.py: спроси город через input, напечатай «Смотрю погоду для {city}…» и вызови функцию-заглушку get_weather(city), которая пока возвращает фиктивные данные (например temp=0, описание «скоро добавим»). Раздели на функции. Только стандартная библиотека. Верни одним блоком.</div>
+  </div>
+  <p style="margin-top:10px">Это <b>каркас</b> <span class="code-chip">weather.py</span>: ввод города есть, а <span class="code-chip">get_weather</span> пока возвращает учебные данные. Настоящий запрос к OpenWeather добавим на Правке 1.</p>
+</div>
+</section>
+
+<section class="slide slide--content"
+  data-notes="Запустите каркас. Настоящего ключа тут ещё нет — get_weather возвращает учебные данные. Дождитесь, пока у всех программа спрашивает город и печатает ответ. Запрос к OpenWeather добавим на Правке 1.">
+<div class="sl-body">
+  <div>
+    <div class="q-label">Запуск каркаса</div>
+    <h2>Вставляем каркас и <span class="acc">запускаем</span></h2>
+  </div>
+  <ol class="steps">
+    <li>Скопируйте код из ответа DeepSeek в <span class="code-chip">weather.py</span></li>
+    <li>Сохраните файл (<span class="code-chip">Ctrl+S</span>)</li>
+    <li>Выполните <span class="code-chip">python weather.py</span></li>
+    <li>Введите город — программа напечатает «Смотрю погоду для …»</li>
+    <li>Пока приходят учебные данные из <span class="code-chip">get_weather</span> — это нормально</li>
+  </ol>
+  <div class="ek-note ek-note--red">Настоящей погоды тут ещё нет: <span class="code-chip">get_weather</span> пока возвращает <b>учебные данные</b>. Заменим их запросом к OpenWeather на <b>Правке 1</b>.</div>
+</div>
+</section>
+
+<section class="slide slide--content"
+  data-notes="Зафиксируйте промежуточный результат: каркас приложения работает — есть ввод города и функция get_weather, готовая к доработке. Настоящая погода из интернета появится на Правке 1, когда учебные данные заменим запросом к OpenWeather.">
+<div class="sl-body">
+  <div>
+    <div class="q-label">Момент урока</div>
+    <h2>Каркас приложения <span class="acc">готов</span></h2>
+  </div>
+  <p>Приложение уже <span class="hl">спрашивает город</span> и вызывает функцию <span class="code-chip">get_weather</span> — но пока она возвращает учебные данные, а не настоящую погоду.</p>
+  <div class="ek-note ek-note--green">Основа на месте: <b>ввод города</b> и <b>отдельная функция</b> <span class="code-chip">get_weather</span>, к которой дальше привязаны все правки. Осталось подключить реальные данные.</div>
+  <div class="ek-note">На <b>Правке 1</b> заменим учебные данные запросом к OpenWeather, дальше — ключи в <span class="code-chip">.env</span> и комментарий от нейросети.</div>
+</div>
+</section>
+
+<section class="slide slide--content"
+  data-notes="Коротко разберите пять ситуаций. Чаще всего свежий ключ OpenWeather ещё не активировался (401) или файл .env лежит не рядом со скриптом. Тем, у кого не запускается, помогите лично; остальные сверяются со слайдом.">
+<div class="sl-body">
+  <div>
+    <div class="q-label">Если приложение не запустилось</div>
+    <h2>Типичные ситуации <span class="acc">запуска</span></h2>
+  </div>
+  <div class="kv" style="margin-top:6px">
+    <div class="kv-row"><div class="k">401 Unauthorized</div><div class="v">Ключ OpenWeather ещё не активировался — после регистрации до пары часов. Подождите или возьмите рабочий ключ у преподавателя.</div></div>
+    <div class="kv-row"><div class="k">KeyError</div><div class="v">Не пришло поле — например, ошиблись в названии города. Загляните в <span class="code-chip">data</span>: возможно, там сообщение об ошибке, а не погода.</div></div>
+    <div class="kv-row"><div class="k">ModuleNotFoundError</div><div class="v">Не установлены библиотеки. В терминале: <span class="code-chip">pip install requests python-dotenv</span> — и запускайте снова.</div></div>
+    <div class="kv-row"><div class="k">Нет интернета</div><div class="v"><span class="code-chip">requests</span> не достучался до сервера. Проверьте соединение — API живёт в интернете, без сети погоды не будет.</div></div>
+    <div class="kv-row"><div class="k">Ключ пустой (None)</div><div class="v">Файл <span class="code-chip">.env</span> лежит не рядом со скриптом или в нём опечатка в имени. Положите <span class="code-chip">.env</span> в ту же папку, что и <span class="code-chip">weather.py</span>.</div></div>
+  </div>
+</div>
+</section>
+
+<section class="slide slide--content"
+  data-notes="Первая правка идёт в тот же чат: заменяем учебные данные в get_weather настоящим запросом к OpenWeather. После неё программа печатает температуру из интернета по введённому городу. Дождитесь, пока у всех появилась погода по своему городу, потом переходите дальше.">
+<div class="sl-body">
+  <div>
+    <div class="q-label">Правка 1 · настоящая погода</div>
+    <h2>Подключаем запрос к <span class="acc">OpenWeather</span></h2>
+  </div>
+  <div class="prompt-card prompt-card--copy" style="margin-top:8px">
+    <span class="pc-tag">→ В тот же чат</span>
+    <div class="pc-text">Замени заглушку внутри get_weather(city) на настоящий запрос к OpenWeather, остальное не меняй:
+— запроси погоду через requests.get (url https://api.openweathermap.org/data/2.5/weather, параметры q=city, appid=КЛЮЧ, units=metric, lang=ru)
+— разбери JSON-ответ и верни настоящую температуру и описание погоды
+— распечатай их для введённого города
+
+Ключ пока впиши строкой. Верни весь файл целиком.</div>
+  </div>
+</div>
+</section>
+
+<section class="slide slide--content"
+  data-notes="Дайте минимум теории про API. Главное: параметры складываем в словарь params, requests сам собирает адрес, .json() превращает ответ в словарь. Покажите на экране, что URL не собирали вручную.">
+<div class="sl-body">
+  <div>
+    <div class="q-label">Разбор кода</div>
+    <h2>Как программа <span class="acc">спрашивает погоду</span></h2>
+  </div>
+  <div class="code-win" style="margin-top:6px">
+    <div class="code-head"><span class="win-dots"><i></i><i></i><i></i></span><span class="lang-badge">PYTHON</span></div>
+    <div class="code-body">url = <span class="st">"https://api.openweathermap.org/data/2.5/weather"</span>
+params = {<span class="st">"q"</span>: city, <span class="st">"appid"</span>: OW_KEY, <span class="st">"units"</span>: <span class="st">"metric"</span>, <span class="st">"lang"</span>: <span class="st">"ru"</span>}
+data = requests.get(url, params=params).json()   <span class="cm"># ответ сервера как словарь</span>
+temp = data[<span class="st">"main"</span>][<span class="st">"temp"</span>]
+desc = data[<span class="st">"weather"</span>][0][<span class="st">"description"</span>]</div>
+  </div>
+  <p>Параметры складываем в словарь <span class="code-chip">params</span>, а <span class="code-chip">requests.get</span> сам собирает из них адрес — вручную URL не склеиваем. <span class="code-chip">.json()</span> превращает ответ сервера в обычный <span class="hl">словарь Python</span>, и мы достаём из него нужные поля.</p>
+</div>
+</section>
+
+<section class="slide slide--content"
+  data-notes="Ключевая правка про безопасность: ключи переезжают из кода в файл .env. После неё в коде остаётся только чтение ключей через переменные окружения. Проверьте у каждого, что .env лежит рядом со скриптом и погода по-прежнему приходит. DEEPSEEK_KEY кладём в .env заранее вместе с ключом OpenWeather: он понадобится на следующей правке для AI-комментария.">
+<div class="sl-body">
+  <div>
+    <div class="q-label">Правка 2 · ключи в .env</div>
+    <h2>Переносим ключи в <span class="acc">.env</span></h2>
+  </div>
+  <p>Главный шаг к безопасности: секретные ключи переходят из кода в отдельный файл <span class="code-chip">.env</span> — как пароль, который не пишут в открытом тексте.</p>
+  <div class="prompt-card prompt-card--copy">
+    <span class="pc-tag">→ В тот же чат</span>
+    <div class="pc-text">Спрячь ключи. Создай рядом файл .env со строками OPENWEATHER_KEY=... и DEEPSEEK_KEY=..., а в коде читай их через библиотеку python-dotenv (load_dotenv, os.getenv). В коде не должно остаться ключей строкой.
+
+Верни весь файл целиком.</div>
+  </div>
+</div>
+</section>
+
+<section class="slide slide--content"
+  data-notes="Минимум теории про секреты. Главное: load_dotenv читает файл, os.getenv достаёт ключ по имени, в коде ключа строкой больше нет. Откройте .env в VS Code — покажите две строки с ключами. Напомните про .gitignore.">
+<div class="sl-body">
+  <div>
+    <div class="q-label">Разбор кода</div>
+    <h2>Как ключи попадают в код <span class="acc">из файла</span></h2>
+  </div>
+  <div class="code-win" style="margin-top:6px">
+    <div class="code-head"><span class="win-dots"><i></i><i></i><i></i></span><span class="lang-badge">PYTHON</span></div>
+    <div class="code-body"><span class="kw">from</span> dotenv <span class="kw">import</span> load_dotenv
+<span class="kw">import</span> os
+load_dotenv()                          <span class="cm"># прочитали файл .env</span>
+OW_KEY = os.getenv(<span class="st">"OPENWEATHER_KEY"</span>)  <span class="cm"># достали ключ по имени</span>
+DS_KEY = os.getenv(<span class="st">"DEEPSEEK_KEY"</span>)</div>
+  </div>
+  <div class="ek-note ek-note--green"><span class="code-chip">load_dotenv()</span> читает файл <span class="code-chip">.env</span>, а <span class="code-chip">os.getenv</span> достаёт ключ по имени. Теперь <b>ключа строкой в коде нет</b> — код можно показывать и выкладывать, а <span class="code-chip">.env</span> добавляют в <span class="code-chip">.gitignore</span> и держат только у себя.</div>
+</div>
+</section>
+
+<section class="slide slide--content"
+  data-notes="Зафиксируйте, зачем нужен units=metric. Уберите его в чьём-нибудь коде и покажите 296 вместо 23 — разница понятна сразу. Это частая ошибка, она вернётся в квизе.">
+<div class="sl-body">
+  <div>
+    <div class="q-label">Полезное знание</div>
+    <h2>Один параметр для <span class="acc">привычной температуры</span></h2>
+  </div>
+  <div class="vs" style="margin-top:6px">
+    <div class="vs-col vs-col--plain">
+      <h4>Без units=metric</h4>
+      <p>OpenWeather отдаёт градусы Кельвина: <span class="code-chip">temp = 296</span>.</p>
+      <p class="note">На улице +23, но без параметра приходит 296.</p>
+    </div>
+    <div class="vs-col vs-col--win">
+      <h4>С units=metric, lang=ru</h4>
+      <p>Приходят привычные градусы Цельсия: <span class="code-chip">temp = 23</span>.</p>
+      <p class="note">А <span class="code-chip">lang=ru</span> делает описание русским.</p>
+    </div>
+  </div>
+  <p>Кельвины — шкала физиков: <span class="code-chip">296 K − 273 ≈ 23 °C</span>. С параметром <span class="code-chip">units=metric</span> температура приходит в привычном виде.</p>
+</div>
+</section>
+
+<section class="slide slide--content"
+  data-notes="Ключевая правка урока: погода уходит в DeepSeek, а нейросеть формулирует комментарий. Это видимый результат: под числовыми данными появляется текстовое объяснение. Раздайте ключи заранее и проверьте интернет.">
+<div class="sl-body">
+  <div>
+    <div class="q-label">Правка 3 · AI-комментарий</div>
+    <h2>Нейросеть <span class="acc">комментирует погоду</span></h2>
+  </div>
+  <p>Программа берёт текущую погоду и передаёт её нейросети, чтобы получить короткий комментарий к данным.</p>
+  <div class="prompt-card prompt-card--copy">
+    <span class="pc-tag">→ В тот же чат</span>
+    <div class="pc-text">Отправь погоду в DeepSeek с системной ролью «Ты весёлый ведущий прогноза погоды, прокомментируй погоду одним бодрым абзацем» и распечатай ответ нейросети под данными о погоде. Ключ DeepSeek бери из .env.
+
+Верни весь файл целиком.</div>
+  </div>
+</div>
+</section>
+
+<section class="slide slide--content"
+  data-notes="Свяжите с уроками 5-7: тот же запрос к DeepSeek, но в user-сообщение подставляем текущую погоду. Системная роль задаёт стиль ответа. Ответ печатаем под данными. Не углубляйтесь в каждое поле.">
+<div class="sl-body">
+  <div>
+    <div class="q-label">Разбор кода</div>
+    <h2>Передаём погоду <span class="acc">нейросети</span></h2>
+  </div>
+  <div class="code-win" style="margin-top:6px">
+    <div class="code-head"><span class="win-dots"><i></i><i></i><i></i></span><span class="lang-badge">PYTHON</span></div>
+    <div class="code-body">data = {
+    <span class="st">"model"</span>: <span class="st">"deepseek-chat"</span>,
+    <span class="st">"messages"</span>: [
+        {<span class="st">"role"</span>: <span class="st">"system"</span>, <span class="st">"content"</span>: <span class="st">"Ты весёлый ведущий прогноза погоды, прокомментируй погоду одним бодрым абзацем."</span>},
+        {<span class="st">"role"</span>: <span class="st">"user"</span>, <span class="st">"content"</span>: <span class="st">f"Город {city}: {temp} градусов, {desc}."</span>},
+    ],
+}
+response = requests.post(url, headers=headers, json=data)
+answer = response.json()[<span class="st">"choices"</span>][0][<span class="st">"message"</span>][<span class="st">"content"</span>]</div>
+  </div>
+  <p>Системная роль задаёт стиль ответа — <span class="hl">ведущий прогноза</span>. В <span class="code-chip">user</span>-сообщение подставляем текущую погоду: город, температуру и описание. Нейросеть возвращает короткий комментарий, и мы печатаем его под данными.</p>
+</div>
+</section>
+
+<section class="slide slide--content"
+  data-notes="Правка 4 превращает разовый запуск в приложение с циклом: город спрашивается по кругу, а к каждой погоде нейросеть советует, что надеть. Дайте ученикам проверить разные города и выйти по слову «выход».">
+<div class="sl-body">
+  <div>
+    <div class="q-label">Правка 4 · совет и цикл</div>
+    <h2>Спрашиваем город <span class="acc">по кругу</span></h2>
+  </div>
+  <p>Разовый запуск превращаем в приложение: город спрашивается снова и снова, а к каждой погоде нейросеть советует, что надеть.</p>
+  <div class="prompt-card prompt-card--copy">
+    <span class="pc-tag">→ В тот же чат</span>
+    <div class="pc-text">Спрашивай город по кругу, пока не введут «выход». К каждой погоде проси у нейросети короткий совет, что надеть.
+
+Верни весь файл целиком.</div>
+  </div>
+</div>
+</section>
+
+<section class="slide slide--content"
+  data-notes="Главная мысль урока: программа работает в цикле с внешним API. Цикл while идёт до слова «выход», второй запрос к DeepSeek даёт совет. Дайте сфотографировать. Если группа отстаёт, правку 5 можно перенести в ДЗ.">
+<div class="sl-body">
+  <div>
+    <div class="q-label">Разбор кода</div>
+    <h2>Круг вопросов и <span class="acc">совет от нейросети</span></h2>
+  </div>
+  <div class="code-win" style="margin-top:6px">
+    <div class="code-head"><span class="win-dots"><i></i><i></i><i></i></span><span class="lang-badge">PYTHON</span></div>
+    <div class="code-body"><span class="kw">while</span> <span class="kw">True</span>:
+    city = input(<span class="st">"Город (или «выход»): "</span>)
+    <span class="kw">if</span> city == <span class="st">"выход"</span>:
+        <span class="kw">break</span>
+    <span class="cm"># ... запросили погоду и комментарий ...</span>
+    advice = ask_ai(<span class="st">f"Погода {temp} градусов, {desc}. Что надеть? Коротко."</span>)
+    print(advice)</div>
+  </div>
+  <div class="ek-note">Цикл <span class="code-chip">while True</span> спрашивает город снова и снова, пока не введут <span class="code-chip">«выход»</span> — тогда <span class="code-chip">break</span> выходит. Для совета делаем <b>второй запрос</b> к нейросети: погода уходит к DeepSeek уже с вопросом, что надеть.</div>
+</div>
+</section>
+
+<section class="slide slide--content"
+  data-notes="Финальная правка делает приложение удобнее и надёжнее: цветной вывод и корректная обработка несуществующего города. Это заметный пользовательский результат. Правка сложная: ANSI-цвета требуют аккуратности, а обработка ошибки — проверки ответа сервера. Если группа отстаёт, оставьте только обработку 404, а раскраску отдайте в ДЗ.">
+<div class="sl-body">
+  <div>
+    <div class="q-label">Правка 5 · цвет и ошибки</div>
+    <h2>Цвет и защита от <span class="acc">ошибок</span></h2>
+  </div>
+  <p>Финальная правка: делаем вывод цветным и учим приложение не падать на несуществующем городе.</p>
+  <div class="prompt-card prompt-card--copy" style="margin-top:10px">
+    <span class="pc-tag">→ В тот же чат</span>
+    <div class="pc-text">Финальная правка. Раскрась вывод ANSI-кодами, без сторонних библиотек:
+- город — голубым
+- температуру — жёлтым
+- комментарий нейросети — зелёным
+
+И сделай приложение устойчивым: если такого города нет (OpenWeather вернул 404) — вежливо скажи «город не найден» и продолжи работу, без падения программы. Верни весь файл.</div>
+  </div>
+</div>
+</section>
+
+<section class="slide slide--content"
+  data-notes="Ключевой слайд урока про надёжность. Подчеркните: сервер сообщает, как прошёл запрос, числом в поле cod. 200 — всё хорошо, 404 — города нет, 401 — ключ не активирован. Ответ проверяем до обращения к data['main'] — это базовое правило при работе с сетью.">
+<div class="sl-body">
+  <div>
+    <div class="q-label">Разбор кода</div>
+    <h2>Проверяем <span class="acc">ответ сервера</span></h2>
+  </div>
+  <p>OpenWeather в каждом ответе кладёт числовой код в поле <span class="code-chip">cod</span> — прошёл запрос или нет. Проверяем его <b>до</b> того, как достаём температуру:</p>
+  <div class="code-win">
+    <div class="code-head"><span class="win-dots"><i></i><i></i><i></i></span><span class="lang-badge">PYTHON</span></div>
+    <div class="code-body">data = requests.get(url, params=params).json()
+<span class="kw">if</span> str(data[<span class="st">"cod"</span>]) != <span class="st">"200"</span>:     <span class="cm"># 200 — всё хорошо</span>
+    print(<span class="st">"Город не найден"</span>)      <span class="cm"># 404 — города нет</span>
+<span class="kw">else</span>:
+    temp = data[<span class="st">"main"</span>][<span class="st">"temp"</span>]   <span class="cm"># только теперь читаем погоду</span>
+    desc = data[<span class="st">"weather"</span>][<span class="st">0</span>][<span class="st">"description"</span>]</div>
+  </div>
+  <div class="ek-note ek-note--red">Если полезть в <span class="code-chip">data["main"]</span> сразу, а города нет — программа упадёт с <span class="code-chip">KeyError</span>. Сначала проверяем <span class="code-chip">cod</span>, потом читаем данные. Это общее правило для любого API.</div>
+</div>
+</section>
+
+<section class="slide slide--content"
+  data-notes="Вопрос про .env на GitHub — главная тема безопасности урока. Дайте 10–15 секунд, потом раскройте ответ. Свяжите с правилом: .env всегда в .gitignore, ключ не выкладываем.">
+<div class="sl-body">
+  <div>
+    <div class="q-label">Проверка · вопрос 1</div>
+    <h2>Изучите ситуацию и <span class="acc">ответьте</span></h2>
+  </div>
+  <div class="quiz-box">
+    <span class="q-num">Вопрос 1</span>
+    <p class="q-text">Петя выложил свой <span class="code-chip">weather.py</span> на GitHub вместе с файлом <span class="code-chip">.env</span>. На следующий день его ключ OpenWeather перестал работать: кто-то исчерпал лимит запросов. Что он сделал не так?</p>
+    <div class="quiz-answer">
+      <button class="quiz-btn" type="button">Показать ответ</button>
+      <div class="quiz-reveal">
+        <p>Файл <span class="code-chip">.env</span> с секретными ключами <b>не выкладывают</b> в публичный репозиторий — ключи могут украсть.</p>
+        <p><span class="code-chip">.env</span> добавляют в <span class="code-chip">.gitignore</span> и держат только на своём компьютере. Ключ пришлось перевыпустить.</p>
+      </div>
+    </div>
+  </div>
+</div>
+</section>
+
+<section class="slide slide--content"
+  data-notes="Вопрос про Кельвины и units=metric — вторая частая ошибка с OpenWeather. Свяжите с правилом: без units=metric придут Кельвины, поэтому параметр нужен всегда.">
+<div class="sl-body">
+  <div>
+    <div class="q-label">Проверка · вопрос 2</div>
+    <h2>Изучите ситуацию и <span class="acc">ответьте</span></h2>
+  </div>
+  <div class="quiz-box">
+    <span class="q-num">Вопрос 2</span>
+    <p class="q-text">Аня запросила погоду и получила <span class="code-chip">temp = 296</span>. «На улице +20, а тут 296!» — удивилась она. Что не так и как починить?</p>
+    <div class="quiz-answer">
+      <button class="quiz-btn" type="button">Показать ответ</button>
+      <div class="quiz-reveal">
+        <p>Без <b>units=metric</b> OpenWeather отдаёт температуру в <b>Кельвинах</b> (296 K — это примерно 23 °C).</p>
+        <p>Нужно добавить в параметры <span class="code-chip">units=metric</span> — тогда придут привычные градусы Цельсия.</p>
+      </div>
+    </div>
+  </div>
+</div>
+</section>
+
+<section class="slide slide--content"
+  data-notes="Научите читать traceback снизу вверх — это пригодится на всех уроках Python. Напомните правило: непонятную ошибку целиком копируем в DeepSeek. Три проверки справа — самые частые при работе с внешним API.">
+<div class="sl-body">
+  <div>
+    <div class="q-label">Отладка</div>
+    <h2>Читаем <span class="acc">ошибки</span> API</h2>
+  </div>
+  <div class="grid-2">
+    <div class="col">
+      <p><span class="hl">Traceback — снизу вверх.</span> Последняя строка — <b>что</b> случилось, строкой выше — <b>где</b>.</p>
+      <div class="term" style="margin-top:14px">
+        <div class="term-head"><span class="win-dots"><i></i><i></i><i></i></span><span class="lang-badge">ТЕРМИНАЛ</span></div>
+        <div class="term-body"><span class="dim">Traceback (most recent call last):
+  File "weather.py", line 12, in &lt;module&gt;
+    temp = data["main"]["temp"]</span>
+<span class="usr">KeyError: 'main'</span></div>
+      </div>
+      <p style="margin-top:12px;font-size:15px"><span class="code-chip">KeyError: 'main'</span> значит: в ответе нет погоды — скорее всего города не нашли или ключ не активен.</p>
+    </div>
+    <div class="info-card">
+      <h3>Если застряли</h3>
+      <ul class="clean">
+        <li>Скопируйте <b>traceback целиком</b> в чат DeepSeek — попросите объяснить и починить</li>
+        <li>Код <span class="code-chip">401</span> — ключ ещё не активирован, подождите; <span class="code-chip">404</span> — проверьте название города</li>
+        <li>Распечатайте весь <span class="code-chip">data</span> и посмотрите, что реально прислал сервер</li>
+      </ul>
+      <p style="margin-top:12px;font-size:14px;color:var(--ek-gray)">Тот же подход к отладке, что <span class="code-chip">console.log</span> в «Змейке» и print-метки на уроке 5.</p>
+    </div>
+  </div>
+</div>
+</section>
+
+<section class="slide slide--content"
+  data-notes="5 правил урока. Дайте сфотографировать слайд. Особо подчеркните третье и четвёртое: секреты в .env, .env в .gitignore — это базовое правило безопасности.">
+<div class="sl-body">
+  <div>
+    <div class="q-label">Запомните</div>
+    <h2>Правила работы с <span class="acc">API</span></h2>
+  </div>
+  <div class="kv">
+    <div class="kv-row"><div class="k">01 · Запрос с параметрами</div><div class="v">Программа шлёт запрос на <span class="code-chip">url</span> с <span class="code-chip">params</span> и получает <b>JSON-ответ</b> — данные от чужого сервера.</div></div>
+    <div class="kv-row"><div class="k">02 · units=metric</div><div class="v">Всегда для погоды, иначе OpenWeather отдаёт температуру в <b>Кельвинах</b>, а не в градусах Цельсия.</div></div>
+    <div class="kv-row"><div class="k">03 · Секреты — в .env</div><div class="v">Ключи читаем через <span class="code-chip">load_dotenv</span> и <span class="code-chip">os.getenv</span>. В коде ключа строкой быть не должно.</div></div>
+    <div class="kv-row"><div class="k">04 · .env — в .gitignore</div><div class="v">Файл с ключами не выкладываем в публичный репозиторий: украдут — придётся перевыпускать.</div></div>
+    <div class="kv-row"><div class="k">05 · Проверяй код ответа</div><div class="v">Смотрим <span class="code-chip">cod</span>: <span class="code-chip">200</span> — данные есть, <span class="code-chip">404</span> — города нет. Читаем данные только после проверки.</div></div>
+  </div>
+</div>
+</section>
+
+<section class="slide slide--content"
+  data-notes="Чек-лист завершения приложения погоды. Кто отметил всё, пусть проверит два-три города и один несуществующий. Это проверяет, что запрос и обработка ошибки работают. Обязательный минимум к 55-й минуте — Правки 1–3 (город+погода, .env, AI-комментарий). При отставании Правки 4–5 (совет и цикл, цвет и обработка 404) уходят в ДЗ.">
+<div class="sl-body">
+  <div>
+    <div class="q-label">Чек-лист</div>
+    <h2>Готовность <span class="acc">к 55-й минуте</span></h2>
+  </div>
+  <div class="grid-2">
+    <div class="info-card">
+      <h3 style="color:var(--ek-green-deep)">Готово</h3>
+      <ul class="clean">
+        <li><span class="code-chip">weather.py</span> запускается командой <span class="code-chip">python weather.py</span></li>
+        <li>Ввёл город — пришла текущая погода из интернета</li>
+        <li>Ключи лежат в <span class="code-chip">.env</span>, в коде их нет</li>
+        <li>Нейросеть комментирует погоду</li>
+      </ul>
+    </div>
+    <div class="info-card">
+      <h3 style="color:var(--ek-violet-deep)">Работает</h3>
+      <ul class="clean">
+        <li>Программа спрашивает город по кругу до «выход»</li>
+        <li>Нейросеть советует, что надеть</li>
+        <li>Вывод цветной</li>
+        <li>Несуществующий город — «город не найден», без падения</li>
+      </ul>
+    </div>
+  </div>
+  <div class="ek-note ek-note--green">Всё отмечено? Проверьте три реальных города и один выдуманный — приложение погоды готово.</div>
+</div>
+</section>
+
+<section class="slide slide--content"
+  data-notes="ДЗ — доработать приложение погоды, примерно 30 минут. Каждое улучшение — отдельный диалог с DeepSeek, не всё сразу. Напомните про ключи на скриншотах.">
+<div class="sl-body">
+  <div>
+    <div class="q-label">Домашнее задание · около 30 минут</div>
+    <h2>Доработайте <span class="acc">приложение погоды</span></h2>
+  </div>
+  <p>Три улучшения — каждое через отдельный диалог с DeepSeek:</p>
+  <div class="grid-3">
+    <div class="info-card">
+      <h3>Прогноз на завтра</h3>
+      <p>Через диалог с DeepSeek подключите <span class="code-chip">forecast</span>-эндпоинт OpenWeather и покажите погоду не только сейчас, но и на завтра.</p>
+    </div>
+    <div class="info-card">
+      <h3>Эмодзи погоды</h3>
+      <p>Пусть программа рисует эмодзи по погоде: ☀️ ясно, 🌧️ дождь, ❄️ снег — по описанию из ответа API.</p>
+    </div>
+    <div class="info-card">
+      <h3>Битва городов</h3>
+      <p>Сравните погоду в двух городах и попросите нейросеть решить, где сегодня приятнее.</p>
+    </div>
+  </div>
+  <div class="ek-note ek-note--red">Пришлите скриншот приложения с погодой — <b>ключи скройте!</b> Ваш самый удачный промпт — отдельным сообщением.</div>
+</div>
+</section>
+
+<section class="slide slide--green"
+  data-notes="Закройте урок и весь модуль 2. Сегодня программа впервые взяла реальные данные из интернета и перенесла ключи в .env. На уроке 9 (модуль 3) добавим интерфейс в Telegram: соберём бота, который отвечает через нейросеть.">
+<div class="sl-orbit">
+    <i class="sl-ring"></i>
+    <svg class="sl-ico" viewBox="0 0 100 100" style="left:75px;top:20px;width:150px;height:150px;transform:rotate(-10deg)"><use href="#ek-i-trophy"/></svg>
+    <i class="sl-letter" style="left:466px;top:13px;width:78px;height:78px;--fs:36px">A</i>
+    <svg class="sl-ico" viewBox="0 0 100 100" style="left:1040px;top:15px;width:130px;height:130px;transform:rotate(12deg)"><use href="#ek-i-heart"/></svg>
+    <i class="sl-letter" style="left:68px;top:268px;width:100px;height:100px;--fs:46px">P</i>
+    <i class="sl-letter" style="left:1137px;top:327px;width:95px;height:95px;--fs:44px">I</i>
+    <svg class="sl-ico" viewBox="0 0 100 100" style="left:102px;top:532px;width:125px;height:125px;transform:rotate(-15deg)"><use href="#ek-i-star"/></svg>
+    <i class="sl-letter" style="left:726px;top:613px;width:78px;height:78px;--fs:36px">E</i>
+    <svg class="sl-ico" viewBox="0 0 100 100" style="left:1045px;top:540px;width:110px;height:110px;transform:rotate(8deg)"><use href="#ek-i-gem"/></svg>
+  </div>
+  <div class="cover-center">
+    <div class="bubble">
+      <h1>До встречи<br>на уроке 9!</h1>
+      <p>Модуль 2 закрыт: сегодня программа впервые взяла реальные данные из интернета через API и перенесла ключи в <span class="code-chip">.env</span>. На уроке 9 добавим интерфейс в мессенджере — соберём Telegram-бота, который отвечает через нейросеть.</p>
+    </div>
+  </div>
+</section>
+</main>
+
+<div class="notes" id="notes">
+  <div class="notes__header">Заметки преподавателя &middot; N — скрыть</div>
+  <div class="notes__body" id="notesBody">—</div>
+</div>
+
+<div class="hint"><kbd>←</kbd><kbd>→</kbd> слайды &middot; <kbd>N</kbd> заметки &middot; <kbd>F</kbd> весь экран</div>
+
+<svg width="0" height="0" style="position:absolute" aria-hidden="true"><defs>
+<symbol id="ek-i-trophy" viewBox="0 0 100 100"><path fill="currentColor" d="M24 16h52v12h8c6 0 10 4 10 10 0 15-11 25-23 27-3 5-8 9-14 10v8h14c4 0 7 3 7 7v4H22v-4c0-4 3-7 7-7h14v-8c-6-1-11-5-14-10C17 63 6 53 6 38c0-6 4-10 10-10h8V16zM24 36h-7c-2 0-4 2-4 4 0 8 5 15 12 18-1-5-1-10-1-16v-6zM76 36v6c0 6 0 11-1 16 7-3 12-10 12-18 0-2-2-4-4-4h-7z"/></symbol>
+<symbol id="ek-i-heart" viewBox="0 0 100 100"><path fill="currentColor" d="M50 88C28 72 10 56 10 38 10 24 21 14 34 14c6 0 12 3 16 8 4-5 10-8 16-8 13 0 24 10 24 24 0 18-18 34-40 50z"/></symbol>
+<symbol id="ek-i-star" viewBox="0 0 100 100"><path fill="currentColor" d="M50 8l12 27 29 3-22 20 6 29-25-15-25 15 6-29L9 38l29-3z"/></symbol>
+<symbol id="ek-i-gem" viewBox="0 0 100 100"><path fill="currentColor" d="M30 12h40l18 24-38 52L12 36zM36 20l-12 16h20zM64 20l-8 16h20zM50 22l-9 14h18zM26 44l20 30-8-30zM62 44l-8 30 20-30zM46 44h8l-4 26z"/></symbol>
+</defs></svg>
+
+<script>
+/* ============ Автомасштаб сцены ============ */
+(function(){
+  'use strict';
+  var stage = document.getElementById('deck');
+  function fit(){
+    var w = window.innerWidth, h = window.innerHeight;
+    if (!w || !h) return;
+    var s = Math.min(w / 1320, h / 780);
+    if (document.fullscreenElement) s = Math.min(w / 1280, h / 720);
+    stage.style.transform = 'translate(-50%,-50%) scale(' + s + ')';
+    stage.style.borderRadius = document.fullscreenElement ? '0' : '18px';
+  }
+  window.addEventListener('resize', fit);
+  document.addEventListener('fullscreenchange', fit);
+  fit();
+})();
+
+/* ============ Навигация по слайдам ============ */
+(function(){
+  'use strict';
+  var slides = Array.prototype.slice.call(document.querySelectorAll('.slide'));
+  var total = slides.length;
+  var idx = 0;
+  document.getElementById('total').textContent = total;
+
+  var progressEl = document.getElementById('progress');
+  var currentEl = document.getElementById('current');
+  var notesPanel = document.getElementById('notes');
+  var notesBody = document.getElementById('notesBody');
+
+  slides.forEach(function(s, i){
+    if (s.classList.contains('slide--content')) s.setAttribute('data-page', i + 1);
+  });
+
+  function render(){
+    slides.forEach(function(s, i){
+      s.classList.remove('active', 'prev');
+      if (i === idx) s.classList.add('active');
+      else if (i < idx) s.classList.add('prev');
+    });
+    progressEl.style.width = ((idx + 1) / total * 100).toFixed(2) + '%';
+    currentEl.textContent = idx + 1;
+    notesBody.textContent = slides[idx].getAttribute('data-notes') || '—';
+  }
+
+  function go(n){ idx = Math.max(0, Math.min(total - 1, n)); render(); }
+  function next(){ go(idx + 1); }
+  function prev(){ go(idx - 1); }
+
+  document.addEventListener('keydown', function(e){
+    var active = document.activeElement;
+    if (active && (active.isContentEditable || active.tagName === 'TEXTAREA' || active.tagName === 'INPUT')) return;
+    switch (e.key){
+      case 'ArrowRight': case 'PageDown': case ' ':
+        e.preventDefault(); next(); break;
+      case 'ArrowLeft': case 'PageUp':
+        e.preventDefault(); prev(); break;
+      case 'Home': e.preventDefault(); go(0); break;
+      case 'End': e.preventDefault(); go(total - 1); break;
+      case 'f': case 'F': case 'а': case 'А':
+        e.preventDefault();
+        if (!document.fullscreenElement){ if (document.documentElement.requestFullscreen) document.documentElement.requestFullscreen(); }
+        else if (document.exitFullscreen) document.exitFullscreen();
+        break;
+      case 'n': case 'N': case 'т': case 'Т':
+        e.preventDefault(); notesPanel.classList.toggle('active'); break;
+      case 'Escape':
+        if (document.fullscreenElement && document.exitFullscreen) document.exitFullscreen();
+        notesPanel.classList.remove('active'); break;
+    }
+  });
+
+  var tx = 0, ty = 0;
+  document.addEventListener('touchstart', function(e){ tx = e.changedTouches[0].screenX; ty = e.changedTouches[0].screenY; }, { passive: true });
+  document.addEventListener('touchend', function(e){
+    var dx = e.changedTouches[0].screenX - tx, dy = e.changedTouches[0].screenY - ty;
+    if (Math.abs(dx) > 60 && Math.abs(dx) > Math.abs(dy)){ if (dx < 0) next(); else prev(); }
+  }, { passive: true });
+
+  document.addEventListener('click', function(e){
+    if (e.target.closest('a,button,input,textarea,code,pre,[contenteditable],.code-win,.term,.prompt-card,.quiz-box,.notes')) return;
+    var x = e.clientX, w = window.innerWidth;
+    if (x < w * 0.25) prev();
+    else if (x > w * 0.75) next();
+  });
+
+  render();
+})();
+
+/* ============ Квизы: показать ответ ============ */
+(function(){
+  'use strict';
+  Array.prototype.slice.call(document.querySelectorAll('.quiz-btn')).forEach(function(btn){
+    btn.addEventListener('click', function(e){
+      e.stopPropagation();
+      var box = btn.closest('.quiz-box');
+      var reveal = box && box.querySelector('.quiz-reveal');
+      if (!reveal) return;
+      var shown = reveal.classList.toggle('show');
+      btn.textContent = shown ? 'Скрыть ответ' : 'Показать ответ';
+    });
+  });
+})();
+</script>
+</body>
+</html>

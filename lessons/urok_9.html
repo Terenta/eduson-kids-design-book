@@ -1,0 +1,1118 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Урок 9 — Telegram-бот с языковой моделью | Eduson Kids</title>
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter+Tight:wght@600;700;800;900&family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;700&display=swap">
+
+<style>
+/* ============ Дизайн-токены Eduson Kids ============ */
+:root{
+  --ek-violet:#8C7FF6; --ek-violet-soft:#A79EF9; --ek-violet-deep:#6F61E8; --ek-violet-bg:#F0EEFE;
+  --ek-green:#3DF79D; --ek-green-soft:#7BF9BD; --ek-green-mint:#C9F7E3; --ek-green-pale:#E7FDF2; --ek-green-deep:#0FBF6E;
+  --ek-ink:#17171C; --ek-gray:#8F8F98; --ek-gray-light:#EFEFF2; --ek-line:#E3E3EA;
+  --ek-red:#FF6B6B; --ek-red-soft:#FF8A8A; --ek-red-deep:#E04848; --ek-red-pale:#FFECEC;
+  --f-head:'Inter Tight','Inter','Segoe UI',system-ui,sans-serif;
+  --f-body:'Inter','Segoe UI',system-ui,sans-serif;
+  --f-mono:'JetBrains Mono','Cascadia Mono','Consolas',monospace;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{height:100%;overflow:hidden}
+body{font-family:var(--f-body);background:#E9E9F1;color:var(--ek-ink);-webkit-font-smoothing:antialiased}
+
+/* ============ Хром: прогресс, счётчик, подсказка ============ */
+.progress{position:fixed;top:0;left:0;right:0;height:4px;background:rgba(23,23,28,.08);z-index:100}
+.progress__fill{height:100%;width:0%;background:var(--ek-violet);transition:width 300ms ease}
+.counter{position:fixed;top:14px;right:18px;z-index:90;font:600 13px var(--f-body);color:var(--ek-gray);background:#fff;border:1px solid var(--ek-line);padding:6px 14px;border-radius:999px;font-variant-numeric:tabular-nums}
+.counter b{color:var(--ek-ink)}
+.hint{position:fixed;bottom:12px;left:50%;transform:translateX(-50%);z-index:90;font:500 11px var(--f-body);color:var(--ek-gray);background:#fff;border:1px solid var(--ek-line);padding:6px 14px;border-radius:999px;letter-spacing:.03em}
+.hint kbd{font-family:var(--f-mono);background:var(--ek-gray-light);padding:1px 6px;border-radius:4px;font-size:10px;margin:0 2px;color:var(--ek-ink)}
+
+/* ============ Сцена 1280×720 ============ */
+.stage{position:absolute;left:50%;top:50%;width:1280px;height:720px;transform:translate(-50%,-50%);border-radius:18px;overflow:hidden;box-shadow:0 30px 90px rgba(23,23,28,.18);background:#fff}
+.slide{position:absolute;inset:0;background:#fff;opacity:0;transform:translateY(26px);transition:opacity 280ms ease,transform 280ms ease;pointer-events:none;font-family:var(--f-head)}
+.slide.active{opacity:1;transform:none;pointer-events:auto}
+.slide.prev{transform:translateY(-26px)}
+.slide--violet{background:var(--ek-violet)}
+.slide--green{background:var(--ek-green)}
+
+/* Номер страницы на контентных слайдах */
+.slide--content::after{content:attr(data-page);position:absolute;right:54px;bottom:30px;font:800 30px/1 var(--f-head);color:var(--ek-ink);opacity:.5}
+
+/* ============ Декор «Орбита» ============ */
+.sl-orbit{position:absolute;inset:0;pointer-events:none}
+.slide--violet .sl-orbit{--decor:#A79EF9;--letter:#C4BEFA}
+.slide--green .sl-orbit{--decor:#7BF9BD;--letter:#C4FCE0}
+.sl-ring{position:absolute;left:50%;top:50%;width:1040px;height:660px;transform:translate(-50%,-50%);border:3px solid var(--decor);border-radius:50%;opacity:.9}
+.sl-ico{position:absolute;color:var(--decor)}
+.sl-letter{position:absolute;border-radius:50%;background:var(--decor);color:var(--letter);display:flex;align-items:center;justify-content:center;font:800 var(--fs,40px)/1 var(--f-head);font-style:normal}
+
+/* ============ Каверы: карточка-окно и спич-бабл ============ */
+.cover-center{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);z-index:2}
+.cover-card{position:relative;width:860px;background:#fff;border-radius:28px;box-shadow:0 30px 80px rgba(23,23,28,.18)}
+.card-top{display:flex;justify-content:space-between;align-items:center;padding:24px 30px 0}
+.win-dots{display:flex;gap:9px}
+.win-dots i{width:13px;height:13px;border-radius:50%;background:var(--ek-violet)}
+.win-close{position:relative;width:22px;height:22px}
+.win-close::before,.win-close::after{content:"";position:absolute;left:-1px;top:9px;width:24px;height:4px;border-radius:2px;background:var(--ek-violet)}
+.win-close::before{transform:rotate(45deg)}
+.win-close::after{transform:rotate(-45deg)}
+.cover-card .badge{position:absolute;left:50%;top:-30px;transform:translateX(-50%) rotate(-4deg)}
+.cover-card h1{padding:26px 64px 30px;text-align:center;font:800 50px/1.14 var(--f-head);letter-spacing:-.015em;color:var(--ek-ink)}
+.cover-card .cover-sub{padding:0 80px 34px;text-align:center;font:500 19px/1.5 var(--f-body);color:#3C3C45}
+.cover-card .cover-chips{display:flex;justify-content:center;gap:10px;flex-wrap:wrap;padding:0 40px 40px}
+.bubble{position:relative;width:660px;background:#EFEFF1;border-radius:30px;padding:56px 70px;text-align:center}
+.bubble::after{content:"";position:absolute;right:56px;bottom:-24px;width:0;height:0;border-left:38px solid transparent;border-top:28px solid #EFEFF1}
+.bubble h1{font:800 42px/1.25 var(--f-head);letter-spacing:-.01em;color:var(--ek-ink)}
+.bubble p{margin-top:16px;font:500 18px/1.5 var(--f-body);color:#3C3C45}
+
+/* ============ Стикер-бейдж и чипы ============ */
+.badge{display:inline-block;background:var(--ek-green);color:var(--ek-ink);font:800 24px/1 var(--f-head);padding:13px 22px;border-radius:13px;transform:rotate(-3deg);box-shadow:0 10px 24px rgba(23,23,28,.10)}
+.badge--violet{background:var(--ek-violet);color:#fff}
+.badge--sm{font-size:16px;padding:9px 16px;border-radius:10px}
+.chip{display:inline-block;font:700 14px/1 var(--f-body);padding:8px 14px;border-radius:999px;background:var(--ek-violet-bg);color:var(--ek-violet-deep)}
+.chip--green{background:var(--ek-green-pale);color:var(--ek-green-deep)}
+.chip--gray{background:var(--ek-gray-light);color:#3C3C45}
+
+/* ============ Контентные слайды ============ */
+.sl-body{position:absolute;inset:0;padding:56px 80px 62px;display:flex;flex-direction:column;gap:16px;overflow:hidden}
+h2{font:800 38px/1.16 var(--f-head);letter-spacing:-.01em;color:var(--ek-ink)}
+.acc{color:var(--ek-violet-deep)}
+.sl-body>p, .col p{font:500 18px/1.5 var(--f-body);color:#3C3C45}
+.code-chip{font-family:var(--f-mono);font-weight:700;font-size:.88em;background:var(--ek-violet-bg);color:var(--ek-violet-deep);padding:2px 8px;border-radius:8px;white-space:nowrap}
+.hl{color:var(--ek-violet-deep);font-weight:700}
+.out-chip{font-family:var(--f-mono);font-weight:700;font-size:.88em;background:var(--ek-green-pale);color:#0B7A48;padding:2px 8px;border-radius:8px;white-space:nowrap}
+
+.grid-2{display:grid;grid-template-columns:1fr 1fr;gap:22px;align-items:start}
+.grid-3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:18px;align-items:stretch}
+
+.info-card{background:#F5F5F9;border-radius:18px;padding:18px 22px;font:500 16px/1.55 var(--f-body);color:#3C3C45}
+.info-card h3{font:800 19px/1.3 var(--f-head);color:var(--ek-ink);margin-bottom:8px}
+.ek-note{background:var(--ek-violet-bg);border-left:4px solid var(--ek-violet);border-radius:0 14px 14px 0;padding:14px 20px;font:600 17px/1.5 var(--f-body);color:#3C3560}
+.ek-note--green{background:var(--ek-green-pale);border-left-color:var(--ek-green-deep);color:#0B5B39}
+.ek-note--red{background:var(--ek-red-pale);border-left-color:var(--ek-red);color:#7A2E2E}
+
+ul.clean{list-style:none;display:flex;flex-direction:column;gap:10px}
+ul.clean li{display:flex;gap:14px;align-items:flex-start;font:500 17.5px/1.5 var(--f-body);color:#3C3C45}
+ul.clean li::before{content:'—';flex:0 0 auto;color:var(--ek-violet-deep);font-weight:800}
+
+ol.steps{list-style:none;counter-reset:step;display:flex;flex-direction:column;gap:12px}
+ol.steps li{counter-increment:step;display:flex;gap:16px;align-items:center;padding:14px 20px;background:#F5F5F9;border-radius:16px;font:500 17.5px/1.45 var(--f-body);color:#2E2E36}
+ol.steps li::before{content:counter(step);flex:0 0 40px;height:40px;display:flex;align-items:center;justify-content:center;border-radius:50%;background:var(--ek-violet);font:800 18px var(--f-head);color:#fff}
+ol.steps li:last-child::before{background:var(--ek-green);color:var(--ek-ink)}
+ol.steps.steps--tight{gap:8px}
+ol.steps.steps--tight li{padding:9px 16px;font-size:15.5px;gap:12px}
+ol.steps.steps--tight li::before{flex-basis:32px;height:32px;font-size:14px}
+
+.q-label{font:700 13px/1 var(--f-head);letter-spacing:.08em;text-transform:uppercase;color:var(--ek-gray)}
+
+/* ============ План занятия (agenda) ============ */
+.agenda{display:flex;flex-direction:column;gap:8px}
+.agenda-row{display:flex;gap:16px;align-items:center;padding:10px 18px;background:#F5F5F9;border-radius:14px}
+.agenda-row .t{flex:0 0 84px;text-align:center;font:800 14px/1 var(--f-mono);color:var(--ek-ink);background:var(--ek-green);border-radius:999px;padding:8px 0}
+.agenda-row .tt{font:700 16.5px/1.3 var(--f-head);color:var(--ek-ink)}
+.agenda-row .dd{font:500 14px/1.4 var(--f-body);color:var(--ek-gray)}
+
+/* ============ Ключ-значение (привычки, шпаргалки) ============ */
+.kv{display:flex;flex-direction:column}
+.kv-row{display:grid;grid-template-columns:250px 1fr;gap:18px;align-items:start;padding:11px 4px;border-bottom:1.5px solid var(--ek-line)}
+.kv-row:last-child{border-bottom:none}
+.kv-row .k{font:800 14px/1.35 var(--f-head);letter-spacing:.05em;text-transform:uppercase;color:var(--ek-violet-deep);padding-top:2px}
+.kv-row .v{font:500 16.5px/1.5 var(--f-body);color:#3C3C45}
+
+/* ============ Окно кода (статичное) ============ */
+.code-win{background:#fff;border:2.5px solid var(--ek-ink);border-radius:16px;overflow:hidden;font-family:var(--f-mono);box-shadow:10px 10px 0 rgba(140,127,246,.14)}
+.code-head{display:flex;align-items:center;justify-content:space-between;padding:9px 16px;border-bottom:2px solid var(--ek-ink)}
+.code-head .win-dots i{width:11px;height:11px}
+.lang-badge{font:700 11px var(--f-mono);letter-spacing:.14em;color:var(--ek-gray)}
+.code-body{padding:14px 20px;font:500 14.5px/1.6 var(--f-mono);color:var(--ek-ink);white-space:pre;overflow:auto;max-height:400px;tab-size:4}
+.code-body .cm{color:var(--ek-gray)}
+.code-body .st{color:var(--ek-green-deep)}
+.code-body .kw{color:var(--ek-violet-deep);font-weight:700}
+
+/* ============ Терминал (тёмное окно) ============ */
+.term{background:var(--ek-ink);border-radius:16px;overflow:hidden;font-family:var(--f-mono);box-shadow:10px 10px 0 rgba(23,23,28,.12)}
+.term-head{display:flex;align-items:center;justify-content:space-between;padding:9px 16px;border-bottom:1px solid rgba(255,255,255,.14)}
+.term-head .win-dots i{width:11px;height:11px;background:var(--ek-green)}
+.term-head .lang-badge{color:rgba(255,255,255,.5)}
+.term-body{padding:14px 20px;font:500 14.5px/1.62 var(--f-mono);color:var(--ek-green);white-space:pre-wrap;word-break:break-word;overflow:auto;max-height:420px}
+.term-body .usr{color:#fff}
+.term-body .dim{color:rgba(255,255,255,.55)}
+
+/* ============ Промпт-карточка (диалог с DeepSeek) ============ */
+.prompt-card{position:relative;background:var(--ek-violet-bg);border:2.5px solid var(--ek-violet);border-radius:18px;padding:20px 26px 18px;box-shadow:10px 10px 0 rgba(140,127,246,.18)}
+.prompt-card .pc-tag{position:absolute;top:-16px;left:22px;background:var(--ek-violet);color:#fff;font:800 14px/1 var(--f-head);padding:9px 16px;border-radius:10px;transform:rotate(-2deg);box-shadow:0 8px 18px rgba(23,23,28,.12)}
+.prompt-card .pc-text{margin-top:6px;font:500 15px/1.62 var(--f-mono);color:#2E2A52;white-space:pre-wrap}
+.prompt-card .pc-text .hl{color:var(--ek-violet-deep)}
+.prompt-card--copy .pc-tag{background:var(--ek-green);color:var(--ek-ink)}
+
+/* ============ Сравнение (vs) ============ */
+.vs{display:grid;grid-template-columns:1fr 1fr;gap:20px;align-items:stretch}
+.vs-col{border-radius:18px;padding:20px 24px}
+.vs-col h4{font:800 15px/1 var(--f-head);letter-spacing:.08em;text-transform:uppercase;margin-bottom:12px}
+.vs-col p{font:500 16px/1.55 var(--f-body)}
+.vs-col .note{margin-top:12px;font:500 13.5px/1.4 var(--f-body);opacity:.75}
+.vs-col--plain{background:var(--ek-gray-light);color:#3C3C45}
+.vs-col--plain h4{color:var(--ek-gray)}
+.vs-col--win{background:var(--ek-green-pale);color:#124F35;border:2px solid var(--ek-green-soft)}
+.vs-col--win h4{color:var(--ek-green-deep)}
+
+/* ============ Квиз с раскрытием ответа ============ */
+.quiz-box{background:#F5F5F9;border:2.5px solid var(--ek-ink);border-radius:18px;padding:22px 26px;box-shadow:10px 10px 0 rgba(61,247,157,.25)}
+.quiz-box .q-num{display:inline-block;background:var(--ek-green);color:var(--ek-ink);font:800 13px/1 var(--f-head);letter-spacing:.08em;text-transform:uppercase;padding:8px 14px;border-radius:999px;margin-bottom:14px}
+.quiz-box .q-text{font:700 21px/1.42 var(--f-head);color:var(--ek-ink)}
+.quiz-answer{margin-top:16px}
+.quiz-btn{border:0;border-radius:12px;padding:12px 22px;font:800 15px/1 var(--f-head);cursor:pointer;background:var(--ek-violet);color:#fff;transition:background .15s}
+.quiz-btn:hover{background:var(--ek-violet-deep)}
+.quiz-reveal{display:none;margin-top:14px;background:var(--ek-green-pale);border-left:4px solid var(--ek-green-deep);border-radius:0 14px 14px 0;padding:14px 20px;font:500 16.5px/1.55 var(--f-body);color:#0B5B39}
+.quiz-reveal.show{display:block}
+.quiz-reveal p+p{margin-top:8px}
+
+/* Появление контента */
+.slide.active .info-card,.slide.active ul.clean li,.slide.active ol.steps li,.slide.active .grid-2>*,.slide.active .grid-3>*,.slide.active .agenda-row,.slide.active .kv-row{animation:reveal 450ms ease backwards}
+.slide.active .info-card:nth-child(2),.slide.active ul.clean li:nth-child(2),.slide.active ol.steps li:nth-child(2),.slide.active .grid-2>*:nth-child(2),.slide.active .grid-3>*:nth-child(2),.slide.active .agenda-row:nth-child(2),.slide.active .kv-row:nth-child(2){animation-delay:80ms}
+.slide.active ul.clean li:nth-child(3),.slide.active ol.steps li:nth-child(3),.slide.active .grid-3>*:nth-child(3),.slide.active .agenda-row:nth-child(3),.slide.active .kv-row:nth-child(3){animation-delay:160ms}
+.slide.active ol.steps li:nth-child(4),.slide.active .agenda-row:nth-child(4),.slide.active .kv-row:nth-child(4){animation-delay:240ms}
+.slide.active ol.steps li:nth-child(5),.slide.active .agenda-row:nth-child(5),.slide.active .kv-row:nth-child(5){animation-delay:320ms}
+.slide.active .agenda-row:nth-child(6),.slide.active ol.steps li:nth-child(6),.slide.active .kv-row:nth-child(6){animation-delay:400ms}
+.slide.active .agenda-row:nth-child(7),.slide.active ol.steps li:nth-child(7),.slide.active .kv-row:nth-child(7){animation-delay:480ms}
+@keyframes reveal{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:translateY(0)}}
+@media (prefers-reduced-motion:reduce){.slide.active .info-card,.slide.active ul.clean li,.slide.active ol.steps li,.slide.active .grid-2>*,.slide.active .grid-3>*,.slide.active .agenda-row,.slide.active .kv-row{animation:none}}
+
+/* ============ Заметки преподавателя ============ */
+.notes{position:fixed;bottom:0;left:0;right:0;background:#fff;border-top:1px solid var(--ek-line);box-shadow:0 -16px 40px rgba(23,23,28,.10);padding:20px 40px;z-index:95;max-height:40vh;overflow-y:auto;transform:translateY(100%);transition:transform 300ms ease}
+.notes.active{transform:translateY(0)}
+.notes__header{font:800 11px var(--f-head);letter-spacing:.2em;text-transform:uppercase;color:var(--ek-violet-deep);margin-bottom:8px}
+.notes__body{font:500 15px/1.55 var(--f-body);color:#3C3C45}
+
+:focus-visible{outline:3px solid var(--ek-violet-soft);outline-offset:2px;border-radius:6px}
+::-webkit-scrollbar{width:8px;height:8px}
+::-webkit-scrollbar-track{background:transparent}
+::-webkit-scrollbar-thumb{background:rgba(23,23,28,.15);border-radius:4px}
+</style>
+</head>
+<body>
+
+<div class="progress"><div class="progress__fill" id="progress"></div></div>
+<div class="counter"><b id="current">1</b> / <span id="total">38</span></div>
+
+<main class="stage" id="deck">
+<section class="slide slide--violet active"
+  data-notes="Поприветствуйте. Сегодня добавим к Python-программе интерфейс в Telegram: соберём бота, который принимает сообщения от пользователей и отвечает через нейросеть. Бота зарегистрируем у @BotFather, токен положим в .env. К концу урока у каждого будет рабочий бот в Telegram, которым можно поделиться с друзьями. Нужен телефон с Telegram у каждого или веб-версия web.telegram.org.">
+<div class="sl-orbit">
+    <i class="sl-ring"></i>
+    <svg class="sl-ico" viewBox="0 0 100 100" style="left:75px;top:20px;width:150px;height:150px;transform:rotate(-10deg)"><use href="#ek-i-trophy"/></svg>
+    <i class="sl-letter" style="left:466px;top:13px;width:78px;height:78px;--fs:36px">B</i>
+    <svg class="sl-ico" viewBox="0 0 100 100" style="left:1040px;top:15px;width:130px;height:130px;transform:rotate(12deg)"><use href="#ek-i-heart"/></svg>
+    <i class="sl-letter" style="left:68px;top:268px;width:100px;height:100px;--fs:46px">A</i>
+    <i class="sl-letter" style="left:1137px;top:327px;width:95px;height:95px;--fs:44px">I</i>
+    <svg class="sl-ico" viewBox="0 0 100 100" style="left:102px;top:532px;width:125px;height:125px;transform:rotate(-15deg)"><use href="#ek-i-star"/></svg>
+    <i class="sl-letter" style="left:726px;top:613px;width:78px;height:78px;--fs:36px">T</i>
+    <svg class="sl-ico" viewBox="0 0 100 100" style="left:1045px;top:540px;width:110px;height:110px;transform:rotate(8deg)"><use href="#ek-i-gem"/></svg>
+  </div>
+  <div class="cover-center">
+    <div class="cover-card">
+      <div class="badge">Урок №9 · Модуль 3</div>
+      <div class="card-top"><span class="win-dots"><i></i><i></i><i></i></span><span class="win-close"></span></div>
+      <h1>Telegram-бот<br>с&nbsp;нейросетью</h1>
+      <p class="cover-sub">Соберём бота, который принимает сообщения в Telegram и отвечает через DeepSeek. Зарегистрируем его у @BotFather, токен положим в .env — и бот будет доступен другим пользователям.</p>
+      <div class="cover-chips"><span class="chip">Python</span><span class="chip chip--green">DeepSeek API</span><span class="chip chip--gray">@BotFather</span><span class="chip chip--gray">Telegram Bot API</span></div>
+    </div>
+  </div>
+</section>
+
+<section class="slide slide--content"
+  data-notes="План. Теории даём минимум: уже на 8-й минуте просим у DeepSeek бота-эхо, а первый ответ бота в Telegram ожидаем к 18–20 минуте (регистрация у @BotFather и установка библиотеки занимают время). Дальше — 5 правок через диалог с нейросетью, каждая меняет поведение бота в чате. КРИТИЧНО заранее: поставьте python-telegram-bot (версия 20+) и зарегистрируйте бота у @BotFather ДО урока, чтобы к 12-й минуте у детей уже был токен на руках — иначе первый ответ сдвинется за 25-ю минуту.">
+<div class="sl-body">
+  <div>
+    <div class="q-label">Agenda · план занятия</div>
+    <h2>Как пройдут <span class="acc">60 минут</span></h2>
+  </div>
+  <div class="agenda">
+    <div class="agenda-row"><span class="t">0–5</span><div><div class="tt">Разбор ДЗ</div><div class="dd">Смотрим доработанное приложение с погодой: прогноз на завтра, эмодзи, сравнение городов.</div></div></div>
+    <div class="agenda-row"><span class="t">5–8</span><div><div class="tt">Как устроен бот</div><div class="dd">Коротко разбираем только то, что нужно для сборки: три звена и long polling.</div></div></div>
+    <div class="agenda-row"><span class="t">8–12</span><div><div class="tt">Промпт-разминка</div><div class="dd">bot.py: бот-эхо, который отвечает тем же текстом.</div></div></div>
+    <div class="agenda-row"><span class="t">12–20</span><div><div class="tt">Регистрация и запуск</div><div class="dd">@BotFather, токен в код, установка библиотеки — к 18–20 минуте бот отвечает в телефоне.</div></div></div>
+    <div class="agenda-row"><span class="t">20–48</span><div><div class="tt">5 правок через диалог</div><div class="dd">Токен в .env → нейросеть → команды → характер → память и «печатает…».</div></div></div>
+    <div class="agenda-row"><span class="t">48–55</span><div><div class="tt">Мини-вопросы и отладка</div><div class="dd">Почему run_polling не закрывается, что делать с утёкшим токеном.</div></div></div>
+    <div class="agenda-row"><span class="t">55–60</span><div><div class="tt">Демо в группе</div><div class="dd">Каждый пишет своему боту и получает ответ через нейросеть.</div></div></div>
+  </div>
+</div>
+</section>
+
+<section class="slide slide--content"
+  data-notes="Откройте 1–2 доработанных приложения (на весь блок 5 минут). Разбирайте диалог с нейросетью, а не только результат. Подведите к главному: weather.py работал в терминале, поэтому результат видел только автор. Сегодня программа получит интерфейс в Telegram и сможет отвечать другим пользователям.">
+<div class="sl-body">
+  <div>
+    <div class="q-label">Разбор ДЗ урока 8</div>
+    <h2>Смотрим приложение с <span class="acc">погодой</span></h2>
+  </div>
+  <p>Открываем 2–3 присланных <span class="code-chip">weather.py</span> и разбираем именно <span class="hl">диалог с нейросетью</span>: прогноз на завтра, эмодзи погоды, сравнение двух городов.</p>
+  <div class="grid-3" style="margin-top:8px">
+    <div class="info-card">
+      <h3>Что сработало</h3>
+      <p>Точечные промпты: эмодзи по коду погоды, а сравнение городов — через два запроса к <span class="hl">одному</span> API.</p>
+    </div>
+    <div class="info-card">
+      <h3>Что переделывали</h3>
+      <p>Где ключ OpenWeather забыли перенести в <span class="code-chip">.env</span> — он остался прямо в коде.</p>
+    </div>
+    <div class="info-card">
+      <h3>Вывод</h3>
+      <p>Всё это работало в <span class="hl">терминале</span> — результат видел только автор. Сегодня программа будет отвечать пользователям в <b>Telegram</b>.</p>
+    </div>
+  </div>
+</div>
+</section>
+
+<section class="slide slide--content"
+  data-notes="Главная мысль урока: у Python-программы появляется интерфейс в Telegram. Это первый проект, которым можно поделиться с друзьями. Две линии: бот получает сообщения через run_polling, а на каждое сообщение отвечает DeepSeek — как на уроках 5–8.">
+<div class="sl-body">
+  <div>
+    <div class="q-label">Идея урока</div>
+    <h2>У программы появляется <span class="acc">интерфейс в Telegram</span></h2>
+  </div>
+  <p>До сих пор программы работали в <span class="hl">терминале</span> — их видел только автор. Прогноз погоды, дневник и советчик работали локально, но ими было трудно поделиться.</p>
+  <div class="ek-note" style="margin-top:6px">Сегодня программа получает <b>интерфейс в Telegram</b>: бот принимает сообщения пользователей и отвечает через нейросеть. Это <b>первый проект, которым можно поделиться</b> с другим человеком.</div>
+  <p>Две линии: бот <b>говорит с Telegram</b> через <span class="code-chip">run_polling</span>, а на каждое сообщение <b>отвечает DeepSeek</b> — как на уроках 5–8.</p>
+</div>
+</section>
+
+<section class="slide slide--content"
+  data-notes="Короткий recap, минимум теории. Бот — обычная программа, которая общается с людьми в мессенджере. Telegram даёт для этого Bot API — набор правил, по которым программа получает сообщения и отправляет ответы. Ваш bot.py будет работать с Telegram через готовую библиотеку.">
+<div class="sl-body">
+  <div>
+    <div class="q-label">Вспоминаем</div>
+    <h2>Что такое бот и <span class="acc">Bot API</span></h2>
+  </div>
+  <p><b>Бот</b> — это обычная программа, которая <span class="hl">общается с людьми в мессенджере</span>: получает их сообщения и отправляет ответы. За ботом всегда стоит код — сегодня это будет ваш <span class="code-chip">bot.py</span>.</p>
+  <div class="grid-2" style="margin-top:8px">
+    <div class="info-card">
+      <h3>Bot API</h3>
+      <p>Telegram даёт <span class="hl">Bot API</span> — набор правил, по которым программа получает сообщения и отправляет ответы. Обращаться к нему напрямую сложно.</p>
+    </div>
+    <div class="ek-note ek-note--green" style="font-size:16px"><b>Библиотека делает это за вас</b><br><span class="code-chip">python-telegram-bot</span> берёт на себя технические детали: вы описываете реакцию на сообщение, а библиотека работает с Telegram.</div>
+  </div>
+</div>
+</section>
+
+<section class="slide slide--content"
+  data-notes="Покажите разницу на примере: программу в терминале запускает и видит только автор на своём компьютере. Чтобы показать её другу, пришлось бы дать доступ к своему ноутбуку. Бот в Telegram доступен любому, у кого есть его @username. Это мотивация всего урока.">
+<div class="sl-body">
+  <div>
+    <div class="q-label">Зачем нам новое</div>
+    <h2>Чем плох <span class="acc">терминал</span></h2>
+  </div>
+  <div class="vs" style="margin-top:6px">
+    <div class="vs-col vs-col--plain">
+      <h4>Программа в терминале</h4>
+      <p>Запускается на <span class="hl">вашем</span> компьютере, и результат видите только вы. Чтобы показать другу, пришлось бы посадить его за свой ноутбук.</p>
+      <p class="note">Так работали все прошлые проекты.</p>
+    </div>
+    <div class="vs-col vs-col--win">
+      <h4>Бот в Telegram</h4>
+      <p>Любой, кому вы дали <b>@username</b> бота, пишет ему из своего телефона и получает ответ. Программа стала общей.</p>
+      <p class="note">Это соберём сегодня.</p>
+    </div>
+  </div>
+  <p>Как только код выходит <b>в мессенджер</b>, им можно <span class="hl">поделиться</span> — и это работает у каждого в телефоне.</p>
+</div>
+</section>
+
+<section class="slide slide--content"
+  data-notes="Одна схема на весь урок: три звена — пользователь, Telegram, ваш bot.py. Ключевая мысль про long polling: бот не ждёт отдельного запуска на каждое сообщение, а сам постоянно спрашивает у Telegram «есть новые сообщения?». Это делает функция run_polling. Больше про устройство пока знать не нужно.">
+<div class="sl-body">
+  <div>
+    <div class="q-label">Как это работает</div>
+    <h2>Три звена и <span class="acc">long polling</span></h2>
+  </div>
+  <p>Между вами и ботом всегда три звена: <span class="hl">пользователь</span> пишет в <span class="hl">Telegram</span>, а ваш <span class="code-chip">bot.py</span> забирает сообщение и отправляет ответ обратно.</p>
+  <div class="grid-3" style="margin-top:8px">
+    <div class="info-card"><h3>1 · Пользователь</h3><p>Пишет боту в Telegram со своего телефона.</p></div>
+    <div class="info-card"><h3>2 · Telegram</h3><p>Хранит сообщение и ждёт, пока программа его заберёт.</p></div>
+    <div class="info-card"><h3>3 · Ваш bot.py</h3><p>Забирает сообщение, готовит ответ и шлёт назад.</p></div>
+  </div>
+  <div class="ek-note"><b>Long polling</b>: бот сам постоянно спрашивает у Telegram «есть новые сообщения?». Это делает одна строчка — <span class="code-chip">run_polling()</span>. Пока она работает — бот в сети.</div>
+</div>
+</section>
+
+<section class="slide slide--content"
+  data-notes="Без долгой подготовки: сразу просим у DeepSeek минимального бота-эхо и готовимся запустить. Промпт с ролью и точным заданием — техники прошлых уроков работают и здесь. Ученики копируют промпт целиком в новый чат DeepSeek. Токен пока подставим прямо в константу TOKEN, перенесём в .env следующей правкой.">
+<div class="sl-body">
+  <div>
+    <div class="q-label">Промпт #1 · разминка</div>
+    <h2>Бот-эхо за <span class="acc">две минуты</span></h2>
+  </div>
+  <p>Начнём с минимального бота: попросим DeepSeek написать эхо-бота, который отвечает <span class="hl">тем же текстом</span>, что ему написали. Токен пока подставим прямо в код.</p>
+  <div class="prompt-card" style="margin-top:14px">
+    <span class="pc-tag">→ Новый чат DeepSeek</span>
+    <div class="pc-text">Ты — опытный Python-разработчик и наставник школьника. Напиши минимального Telegram-бота-эхо bot.py на библиотеке python-telegram-bot (версия 20+, async): бот принимает любое текстовое сообщение и отвечает тем же текстом. Токен возьми из константы TOKEN. Используй Application, MessageHandler, filters.TEXT и run_polling. Прокомментируй код для новичка, ответь одним блоком.</div>
+  </div>
+</div>
+</section>
+
+<section class="slide slide--content"
+  data-notes="Базовый шаг урока: дождитесь, пока бот-эхо ответит в Telegram у каждого. На рабочем коде показываем три вещи: обработчик на async def с await, фильтр текст-но-не-команды и run_polling как бесконечный цикл. Токен пока в константе TOKEN — перенесём в .env следующей правкой. Бота регистрируют у @BotFather (следующий слайд), запускают локально; run_polling удерживает терминал — это норма, остановка через Ctrl+C.">
+<div class="sl-body">
+  <div>
+    <div class="q-label">Запуск и разбор</div>
+    <h2>Бот-эхо отвечает в <span class="acc">Telegram</span></h2>
+  </div>
+  <div class="grid-2" style="margin-top:6px;align-items:start">
+    <div class="code-win">
+      <div class="code-head"><span class="win-dots"><i></i><i></i><i></i></span><span class="lang-badge">PYTHON</span></div>
+      <div class="code-body"><span class="kw">import</span> os
+<span class="kw">from</span> telegram <span class="kw">import</span> Update
+<span class="kw">from</span> telegram.ext <span class="kw">import</span> (Application,
+    MessageHandler, filters, ContextTypes)
+
+TOKEN = <span class="st">"123456:ABC-DEF..."</span>   <span class="cm"># пока прямо здесь</span>
+
+<span class="kw">async def</span> on_message(update: Update,
+        context: ContextTypes.DEFAULT_TYPE):
+    text = update.message.text
+    <span class="kw">await</span> update.message.reply_text(text)
+
+app = Application.builder().token(TOKEN).build()
+app.add_handler(MessageHandler(
+    filters.TEXT &amp; ~filters.COMMAND, on_message))
+app.run_polling()   <span class="cm"># бот спрашивает Telegram</span></div>
+    </div>
+    <div class="kv">
+      <div class="kv-row"><div class="k">async def</div><div class="v">Обработчик асинхронный, перед reply_text — await.</div></div>
+      <div class="kv-row"><div class="k">filters.TEXT &amp; ~COMMAND</div><div class="v">Ловим обычный текст, но не команды.</div></div>
+      <div class="kv-row"><div class="k">run_polling()</div><div class="v">Бесконечный цикл: бот сам спрашивает про сообщения.</div></div>
+      <div class="ek-note ek-note--green" style="margin-top:12px">Бот повторил ваше сообщение в Telegram? Каркас готов — дальше подключим ответы через нейросеть.</div>
+    </div>
+  </div>
+</div>
+</section>
+
+<section class="slide slide--content"
+  data-notes="Разберите три типичные проблемы запуска бота-эхо. Исправьте ошибки у всех: этот же bot.py нужен дальше для всех пяти правок. Напомните: заранее проверьте, что python-telegram-bot ставится именно версии 20+ (в старом синтаксисе всё иначе).">
+<div class="sl-body">
+  <div>
+    <div class="q-label">Типичные ситуации запуска</div>
+    <h2>Если бот-эхо <span class="acc">не запустился</span></h2>
+  </div>
+  <div class="grid-3" style="margin-top:8px">
+    <div class="ek-note ek-note--red">
+      <h3>Unauthorized</h3>
+      <p>Токен неверный или скопирован с лишним пробелом. Возьмите токен у <span class="code-chip">@BotFather</span> заново и вставьте целиком.</p>
+    </div>
+    <div class="ek-note ek-note--red">
+      <h3>Старый синтаксис</h3>
+      <p>Ошибки на <span class="code-chip">Application</span> или <span class="code-chip">async</span> — стоит старая библиотека. Нужна <span class="code-chip">python-telegram-bot</span> версии 20+.</p>
+    </div>
+    <div class="ek-note ek-note--red">
+      <h3>Бот молчит</h3>
+      <p>Пишете <span class="hl">не тому</span> боту. Проверьте, что открыли чат именно со своим <span class="code-chip">@username</span>, и что <span class="code-chip">run_polling</span> запущен.</p>
+    </div>
+  </div>
+</div>
+</section>
+
+<section class="slide slide--content"
+  data-notes="Бота регистрирует сам ученик у @BotFather, не преподаватель. Проверьте заранее, что @BotFather доступен. @username обязан заканчиваться на bot, иначе имя не примут.">
+<div class="sl-body">
+  <div>
+    <div class="q-label">Регистрация бота</div>
+    <h2>Заводим бота у <span class="acc">@BotFather</span></h2>
+  </div>
+  <p>Бота создаёт Telegram через официального бота <span class="code-chip">@BotFather</span>. Пять коротких шагов — и у вас есть токен.</p>
+  <ol class="steps steps--tight" style="margin-top:8px">
+    <li><b>Найдите @BotFather</b> — в поиске Telegram, официальный, с синей галочкой. Откройте чат.</li>
+    <li><b>Отправьте <span class="code-chip">/newbot</span></b> — команда запускает создание нового бота.</li>
+    <li><b>Имя бота</b> — как он подписан в чате, любое, например «Мой AI-помощник».</li>
+        <li><b>@username</b> — заканчивается на <span class="code-chip">bot</span>, например <span class="code-chip">my_ai_helper_bot</span>.</li>
+  </ol>
+  <div class="ek-note ek-note--green">Шаг 5: <span class="code-chip">@BotFather</span> присылает <b>токен</b> вида <span class="code-chip">123456:ABC-DEF1234...</span> — ключ от вашего бота. На первом запуске положим его в код, а затем перенесём в <span class="code-chip">.env</span>.</div>
+</div>
+</section>
+
+<section class="slide slide--content"
+  data-notes="Ключевое правило безопасности урока. Токен = пароль от бота: по нему любой управляет ботом от вашего имени. Утёк — немедленно /revoke у @BotFather. На скриншотах ДЗ токен замазывать.">
+<div class="sl-body">
+  <div>
+    <div class="q-label">Безопасность</div>
+    <h2>Токен — это <span class="acc">пароль</span> от бота</h2>
+  </div>
+  <p>Токен даёт <span class="hl">полный контроль</span> над ботом. Кто получил токен — управляет ботом от вашего имени: читает сообщения, отвечает, меняет настройки.</p>
+  <div class="grid-2" style="margin-top:8px">
+    <div class="ek-note ek-note--red">
+      <h3>Никогда</h3>
+      <p>Не выкладывайте токен в общий чат, не пишите прямо в коде на скриншотах, не отправляйте в мессенджере. На скриншотах для домашки — <b>замазывать</b>.</p>
+    </div>
+    <div class="ek-note ek-note--green">
+      <h3>Если утёк</h3>
+      <p>Немедленно перевыпустите у <span class="code-chip">@BotFather</span> командой <span class="code-chip">/revoke</span> или <span class="code-chip">/token</span>. Старый токен сразу перестанет работать.</p>
+    </div>
+  </div>
+  <div class="ek-note">Поэтому токен хранят так же, как ключ DeepSeek на уроке 8 — в файле <span class="code-chip">.env</span>, который не попадает в репозиторий.</div>
+</div>
+</section>
+
+<section class="slide slide--content"
+  data-notes="Recap с урока 8: load_dotenv + os.getenv читают секреты из .env. Функция ask_deepseek — та же, что на уроках 5-8, её тело сегодня не переписываем, а переиспользуем.">
+<div class="sl-body">
+  <div>
+    <div class="q-label">Recap · уроки 5-8</div>
+    <h2>Секреты из .env и знакомый <span class="acc">DeepSeek</span></h2>
+  </div>
+  <p>Два секрета — токен бота и ключ нейросети — читаем из <span class="code-chip">.env</span>, как ключ на уроке 8. А запрос к DeepSeek берём готовый с уроков 5-8.</p>
+  <div class="code-win">
+    <div class="code-head"><span class="win-dots"><i></i><i></i><i></i></span><span class="lang-badge">PYTHON</span></div>
+    <div class="code-body"><span class="kw">import</span> os
+<span class="kw">from</span> dotenv <span class="kw">import</span> load_dotenv
+load_dotenv()
+TOKEN = os.getenv(<span class="st">"BOT_TOKEN"</span>)           <span class="cm"># токен бота — как пароль</span>
+API_KEY = os.getenv(<span class="st">"DEEPSEEK_KEY"</span>)      <span class="cm"># ключ нейросети — как на уроке 8</span></div>
+  </div>
+  <div class="ek-note"><span class="code-chip">ask_deepseek(text)</span> — <b>та же функция</b>, что раньше: <span class="code-chip">requests.post</span> к <span class="code-chip">api.deepseek.com</span>, модель <span class="code-chip">deepseek-chat</span>, ключ из <span class="code-chip">.env</span>. Её тело сегодня не пишем заново — переиспользуем.</div>
+</div>
+</section>
+
+<section class="slide slide--content"
+  data-notes="Прочитайте цель вслух. Главное — программа получает интерфейс в Telegram и отвечает другим пользователям. Слева теория, справа практика.">
+<div class="sl-body">
+  <div>
+    <div class="q-label">Goal · что будет в конце</div>
+    <h2>Цель <span class="acc">урока</span></h2>
+  </div>
+  <div class="ek-note">К концу урока у каждого — свой Telegram-бот: он принимает сообщение, отправляет его в DeepSeek и присылает ответ обратно в чат. Бот доступен другим пользователям, помнит контекст и показывает «печатает…».</div>
+  <div class="grid-2" style="margin-top:8px">
+    <div class="info-card">
+      <h3>Узнаете</h3>
+      <ul class="clean">
+        <li>Как программа получает интерфейс в мессенджере через Bot API</li>
+        <li>Что такое long polling и почему <span class="code-chip">run_polling</span> не закрывается</li>
+        <li>Почему обработчик — <span class="code-chip">async def</span>, а перед ответом — <span class="code-chip">await</span></li>
+      </ul>
+    </div>
+    <div class="info-card">
+      <h3>Сделаете</h3>
+      <ul class="clean">
+        <li>Зарегистрируете бота у <span class="code-chip">@BotFather</span></li>
+        <li>Подключите к нему DeepSeek</li>
+        <li>Добавите команды, характер и память</li>
+      </ul>
+    </div>
+  </div>
+</div>
+</section>
+
+<section class="slide slide--content"
+  data-notes="Покажите заранее собранного бота на реальном телефоне. Напишите боту при группе: пусть все увидят «печатает…» и ответ нейросети прямо в Telegram. Нужен телефон с Telegram у каждого.">
+<div class="sl-body">
+  <div>
+    <div class="q-label">Демо результата</div>
+    <h2>Что соберём <span class="acc">сегодня</span></h2>
+  </div>
+  <div class="term">
+    <div class="term-head"><span class="win-dots"><i></i><i></i><i></i></span><span class="lang-badge">TELEGRAM</span></div>
+    <div class="term-body">🤖 Мой AI-помощник · чат в Telegram
+
+<span class="usr">Вы:  Привет! Посоветуй книгу про космос</span>
+Бот: <span class="dim">печатает…</span>
+Бот: Держи: «Краткая история времени» Стивена Хокинга —
+     объясняет космос простым языком. Ещё варианты?
+
+<span class="usr">Вы:  А что-нибудь для подростка?</span>
+Бот: Тогда «Астрофизика с космической скоростью» —
+     та же тема, но легче и с юмором.</div>
+  </div>
+  <div class="ek-note">Отвечает <span class="hl">нейросеть</span>, бот помнит предыдущий вопрос и показывает «печатает…». Всё это происходит прямо в <b>Telegram</b>, а не в терминале.</div>
+</div>
+</section>
+
+<section class="slide slide--content"
+  data-notes="Подготовка: bot.py в новой папке lesson-09. requests стоит с уроков 5-8, python-dotenv — с урока 8. Новая только python-telegram-bot версии 20+. Проверьте заранее, что библиотека ставится.">
+<div class="sl-body">
+  <div>
+    <div class="q-label">Подготовка</div>
+    <h2>Папка <span class="acc">lesson-09</span> и библиотека</h2>
+  </div>
+  <div class="grid-2" style="margin-top:6px">
+    <div>
+      <ol class="steps steps--tight">
+        <li>Создайте папку <span class="code-chip">lesson-09</span> в <span class="code-chip">vibe-coding</span></li>
+        <li>Создайте в ней файл <span class="code-chip">bot.py</span> и файл <span class="code-chip">.env</span></li>
+        <li>Установите библиотеки одной командой (см. справа)</li>
+      </ol>
+      <div class="ek-note"><span class="code-chip">requests</span> уже стоит с уроков 5-8, <span class="code-chip">python-dotenv</span> — с урока 8. Новая — только <span class="code-chip">python-telegram-bot</span>, версия <b>20+</b>.</div>
+    </div>
+    <div>
+      <div class="term">
+        <div class="term-head"><span class="win-dots"><i></i><i></i><i></i></span><span class="lang-badge">ТЕРМИНАЛ</span></div>
+        <div class="term-body">vibe-coding/lesson-09/
+├── bot.py
+└── .env
+
+<span class="usr">pip install python-telegram-bot requests python-dotenv</span></div>
+      </div>
+      <div class="ek-note ek-note--red">Версия <b>20+</b> важна: в старой библиотеке синтаксис без <span class="code-chip">async</span> — весь код будет другим.</div>
+    </div>
+  </div>
+</div>
+</section>
+
+<section class="slide slide--content"
+  data-notes="Мостик к правкам. Сейчас у учеников уже работает бот-эхо из части 1: повторяет текст. Дальше пять правок превратят его в AI-бота. Каждая правка — через диалог с DeepSeek, каждая меняет поведение в чате.">
+<div class="sl-body">
+  <div>
+    <div class="q-label">Момент урока · мостик</div>
+    <h2>От эха — к нейросети за <span class="acc">пять правок</span></h2>
+  </div>
+  <p>Сейчас бот-эхо пока <span class="hl">повторяет</span> ваше сообщение. Ядро уже собрано: <span class="code-chip">MessageHandler</span> ловит текст, <span class="code-chip">run_polling</span> держит бота в сети. Осталось поменять одну строчку — <span class="hl">что</span> бот отвечает.</p>
+  <div class="code-win">
+    <div class="code-head"><span class="win-dots"><i></i><i></i><i></i></span><span class="lang-badge">PYTHON</span></div>
+    <div class="code-body"><span class="kw">async def</span> on_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    text = update.message.text
+    answer = ask_deepseek(text)        <span class="cm"># раньше здесь было text — теперь ответ DeepSeek</span>
+    <span class="kw">await</span> update.message.reply_text(answer)</div>
+  </div>
+  <div class="ek-note ek-note--green">Каждая из <b>пяти правок</b> — отдельный запрос к DeepSeek в тот же чат, и после каждой бот в Telegram меняет поведение: отвечает нейросетью, знает команды, получает характер и память.</div>
+</div>
+</section>
+
+<section class="slide slide--content"
+  data-notes="Запуск бота-эхо с токеном прямо в константе TOKEN — как в каркасе на слайде 9. Про .env здесь ещё не говорим: перенос токена в .env будет отдельной Правкой 1. Вставьте токен от @BotFather в строку TOKEN, запустите python bot.py. run_polling удерживает терминал — это штатная работа. Дождитесь, пока у всех бот в сети.">
+<div class="sl-body">
+  <div>
+    <div class="q-label">Запуск бота</div>
+    <h2>Запускаем бота-эхо: <span class="acc">python bot.py</span></h2>
+  </div>
+  <ol class="steps steps--tight">
+    <li>Вставьте токен от <span class="code-chip">@BotFather</span> прямо в строку <span class="code-chip">TOKEN = "..."</span> в <span class="code-chip">bot.py</span></li>
+    <li>Сохраните файл (<span class="code-chip">Ctrl+S</span>)</li>
+    <li>В терминале выполните <span class="code-chip">python bot.py</span></li>
+    <li>Терминал занят и не возвращает приглашение — <b>это ожидаемо</b>: бот в сети</li>
+  </ol>
+  <div class="code-win">
+    <div class="code-head"><span class="win-dots"><i></i><i></i><i></i></span><span class="lang-badge">PYTHON</span></div>
+    <div class="code-body">TOKEN = <span class="st">"123456:ABC-DEF..."</span>   <span class="cm"># токен от @BotFather, пока прямо в коде</span></div>
+  </div>
+  <div class="ek-note"><span class="code-chip">run_polling()</span> — <b>бесконечный цикл</b> long polling: бот сам постоянно спрашивает Telegram «есть новые сообщения?». Пока он запущен — бот работает. Остановить — <span class="code-chip">Ctrl+C</span>. Токен спрячем в <span class="code-chip">.env</span> следующей правкой.</div>
+</div>
+</section>
+
+<section class="slide slide--content"
+  data-notes="Промежуточный результат: каждый пишет своему боту в Telegram и получает эхо-ответ. Проверьте, что ученики пишут именно своему боту (правильный @username), а не соседнему. Это первый раз, когда их код отвечает через мессенджер.">
+<div class="sl-body">
+  <div>
+    <div class="q-label">Момент урока</div>
+    <h2>Пишем боту <span class="acc">первое сообщение</span></h2>
+  </div>
+  <p>Найдите своего бота в Telegram по <span class="hl">@username</span>, откройте чат и отправьте любое сообщение. Бот-эхо <span class="hl">вернёт тот же текст</span> — значит, связь работает.</p>
+  <div class="ek-note ek-note--green">Это <b>первый раз</b>, когда ваш код отвечает не в терминале, а человеку в мессенджере. Пока он только повторяет — но канал до Telegram уже открыт.</div>
+  <div class="ek-note ek-note--red">Бот молчит? Проверьте, что пишете <b>своему</b> боту (тот самый <span class="code-chip">@username</span>), что токен в <span class="code-chip">TOKEN</span> вставлен целиком без пробелов и что <span class="code-chip">python bot.py</span> запущен и не остановлен.</div>
+</div>
+</section>
+
+<section class="slide slide--content"
+  data-notes="Коротко разберите четыре ситуации. Чаще всего не поставлена библиотека или ученик пишет не тому боту. Тем, у кого бот молчит, помогите лично; остальные сверяются со слайдом. Напомните: run_polling удерживает терминал — это штатная работа.">
+<div class="sl-body">
+  <div>
+    <div class="q-label">Если бот не отвечает</div>
+    <h2>Типичные ситуации <span class="acc">запуска</span></h2>
+  </div>
+  <div class="kv" style="margin-top:6px">
+    <div class="kv-row"><div class="k">ModuleNotFoundError</div><div class="v">Библиотека не установлена. В терминале: <span class="code-chip">pip install python-telegram-bot</span> (версия 20+) — и запускайте снова.</div></div>
+    <div class="kv-row"><div class="k">Unauthorized</div><div class="v">Токен неверный или не тот. Скопируйте <span class="code-chip">BOT_TOKEN</span> от <span class="code-chip">@BotFather</span> заново: целиком, без пробелов, с двоеточием внутри.</div></div>
+    <div class="kv-row"><div class="k">Бот молчит</div><div class="v">Программа запущена, а ответа нет — скорее всего вы пишете <b>не тому боту</b>. Откройте бота по его <span class="code-chip">@username</span> из <span class="code-chip">@BotFather</span>.</div></div>
+    <div class="kv-row"><div class="k">Терминал занят</div><div class="v"><span class="code-chip">run_polling()</span> не возвращает приглашение — это <b>норма</b>: пока программа работает, бот в сети. Остановить — <span class="code-chip">Ctrl+C</span>.</div></div>
+  </div>
+</div>
+</section>
+
+<section class="slide slide--content"
+  data-notes="Первая правка идёт в тот же чат. После неё токен переносится из константы в .env — правило с урока 8. Дождитесь, пока у всех бот-эхо снова отвечает в Telegram уже с токеном из .env, потом переходите дальше.">
+<div class="sl-body">
+  <div>
+    <div class="q-label">Правка 1 · токен в .env</div>
+    <h2>Токен переносим в <span class="acc">.env</span></h2>
+  </div>
+  <p>Секрет уходит из кода в отдельный файл — как ключ DeepSeek на уроке 8. В коде читаем токен через <span class="code-chip">python-dotenv</span>.</p>
+  <div class="prompt-card prompt-card--copy" style="margin-top:12px">
+    <span class="pc-tag">→ В тот же чат</span>
+    <div class="pc-text">Заведи бота у @BotFather и получи токен. Положи токен в файл .env строкой BOT_TOKEN=..., а в коде читай через python-dotenv. Проверь, что бот-эхо отвечает в Telegram. Верни весь файл.</div>
+  </div>
+</div>
+</section>
+
+<section class="slide slide--content"
+  data-notes="Дайте минимум теории. Главное: токен больше не в коде, а в .env — как ключ DeepSeek на уроке 8. load_dotenv читает файл, os.getenv достаёт значение по имени. Откройте .env в VS Code и покажите строку BOT_TOKEN. Ключ DEEPSEEK_KEY добавим в .env позже, на Правке 2, когда подключим нейросеть.">
+<div class="sl-body">
+  <div>
+    <div class="q-label">Разбор кода</div>
+    <h2>Как токен попадает в код из <span class="acc">.env</span></h2>
+  </div>
+  <div class="code-win" style="margin-top:6px">
+    <div class="code-head"><span class="win-dots"><i></i><i></i><i></i></span><span class="lang-badge">PYTHON</span></div>
+    <div class="code-body"><span class="kw">from</span> dotenv <span class="kw">import</span> load_dotenv
+<span class="kw">import</span> os
+
+load_dotenv()                       <span class="cm"># прочитали файл .env рядом с bot.py</span>
+TOKEN = os.getenv(<span class="st">"BOT_TOKEN"</span>)      <span class="cm"># достали токен по имени</span></div>
+  </div>
+  <p><span class="code-chip">load_dotenv()</span> читает файл <span class="code-chip">.env</span>, который лежит рядом с <span class="code-chip">bot.py</span>. <span class="code-chip">os.getenv("BOT_TOKEN")</span> достаёт значение по имени — ровно та же привычка, что с ключом DeepSeek на уроке 8. Токена в самом коде больше нет.</p>
+</div>
+</section>
+
+<section class="slide slide--content"
+  data-notes="Ключевая правка урока: бот перестаёт повторять и начинает отвечать через нейросеть. Проверьте интернет и ключ DeepSeek в .env заранее. Это главный видимый результат: ученик пишет боту, бот возвращает ответ по смыслу.">
+<div class="sl-body">
+  <div>
+    <div class="q-label">Правка 2 · отвечает нейросеть</div>
+    <h2>Бот отвечает через <span class="acc">нейросеть</span></h2>
+  </div>
+  <p>Главный шаг урока: на каждое сообщение бот отправляет текст в <span class="hl">DeepSeek</span> и возвращает ответ нейросети — эхо превращается в AI-собеседника.</p>
+  <div class="prompt-card prompt-card--copy" style="margin-top:12px">
+    <span class="pc-tag">→ В тот же чат</span>
+    <div class="pc-text">Подключи DeepSeek: на любое сообщение бот отправляет его текст в нейросеть и отвечает её ответом. Ключ DeepSeek положи в .env строкой DEEPSEEK_KEY=... и читай через python-dotenv. Верни весь файл.</div>
+  </div>
+</div>
+</section>
+
+<section class="slide slide--content"
+  data-notes="Покажите путь сообщения тремя строчками: взяли текст из update, отдали в ask_deepseek, ответ вернули через reply_text. Функция ask_deepseek — та же, что на уроках 5-8, её не переписываем. Дайте написать боту пару фраз и убедиться, что отвечает по смыслу.">
+<div class="sl-body">
+  <div>
+    <div class="q-label">Разбор кода</div>
+    <h2>Путь сообщения: Telegram → <span class="acc">DeepSeek</span> → назад</h2>
+  </div>
+  <div class="code-win" style="margin-top:6px">
+    <div class="code-head"><span class="win-dots"><i></i><i></i><i></i></span><span class="lang-badge">PYTHON</span></div>
+    <div class="code-body"><span class="kw">async def</span> on_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    text = update.message.text          <span class="cm"># что написал человек</span>
+    answer = ask_deepseek(text)         <span class="cm"># та же функция, что на уроках 5-8</span>
+    <span class="kw">await</span> update.message.reply_text(answer)   <span class="cm"># ответ нейросети — в чат</span></div>
+  </div>
+  <div class="ek-note ek-note--green">Три шага: берём текст из <span class="code-chip">update.message.text</span>, отдаём его в <span class="code-chip">ask_deepseek(text)</span> — ту самую функцию с уроков 5-8, её не переписываем, — и возвращаем ответ через <span class="code-chip">reply_text</span>. Пишете боту любую фразу — он отвечает <b>по смыслу</b>, а не повтором.</div>
+</div>
+</section>
+
+<section class="slide slide--content"
+  data-notes="Зафиксируйте два слова: async у обработчика и await перед reply_text. Идея простая: пока бот ждёт ответ от DeepSeek для одного человека, он не блокирует обработку других сообщений. Без await ответ не дойдёт — это частая ошибка.">
+<div class="sl-body">
+  <div>
+    <div class="q-label">Полезное знание</div>
+    <h2>Два слова: <span class="acc">async</span> и await</h2>
+  </div>
+  <div class="vs" style="margin-top:6px">
+    <div class="vs-col vs-col--plain">
+      <h4>Обычная функция</h4>
+      <p>Бот занят одним человеком — остальные ждут в очереди, пока придёт ответ.</p>
+      <p class="note">Один медленный запрос блокирует остальных.</p>
+    </div>
+    <div class="vs-col vs-col--win">
+      <h4>async def и await</h4>
+      <p>Пока бот ждёт ответ DeepSeek для одного — он принимает сообщения от других.</p>
+      <p class="note"><span class="code-chip">await</span> перед <span class="code-chip">reply_text</span> обязателен.</p>
+    </div>
+  </div>
+  <p>Обработчик — это <span class="code-chip">async def</span>, а перед отправкой ответа стоит <span class="code-chip">await</span>. Так бот не блокируется на одном пользователе и остаётся доступным для всех.</p>
+</div>
+</section>
+
+<section class="slide slide--content"
+  data-notes="Правка 3 добавляет команды /start и /help — то, что видит человек, впервые открывший бота. Дождитесь, пока у всех по /start приходит приветствие, потом дальше. Напомните: команды начинаются со слэша и обрабатываются отдельно от обычного текста.">
+<div class="sl-body">
+  <div>
+    <div class="q-label">Правка 3 · /start и /help</div>
+    <h2>Первое, что видит <span class="acc">новый собеседник</span></h2>
+  </div>
+  <p>Команды со слэшем — то, с чего человек начинает знакомство с ботом. Их ловит отдельный обработчик.</p>
+  <div class="prompt-card prompt-card--copy" style="margin-top:12px">
+    <span class="pc-tag">→ В тот же чат</span>
+    <div class="pc-text">Добавь команды: /start — приветствие «Привет! Я бот на нейросети, спроси что угодно», /help — короткая подсказка. Используй CommandHandler. Верни весь файл.</div>
+  </div>
+</div>
+</section>
+
+<section class="slide slide--content"
+  data-notes="Свяжите с обработчиком текста: обычный текст ловит MessageHandler, команды со слэшем — CommandHandler. Вот зачем в фильтре стоит ~filters.COMMAND: чтобы /start не улетел в нейросеть. Не углубляйтесь в каждый аргумент.">
+<div class="sl-body">
+  <div>
+    <div class="q-label">Разбор кода</div>
+    <h2>Команды идут отдельно от <span class="acc">обычного текста</span></h2>
+  </div>
+  <div class="code-win" style="margin-top:6px">
+    <div class="code-head"><span class="win-dots"><i></i><i></i><i></i></span><span class="lang-badge">PYTHON</span></div>
+    <div class="code-body"><span class="kw">async def</span> start(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    <span class="kw">await</span> update.message.reply_text(<span class="st">"Привет! Я бот на нейросети, спроси что угодно"</span>)
+
+app.add_handler(CommandHandler(<span class="st">"start"</span>, start))
+app.add_handler(MessageHandler(filters.TEXT &amp; ~filters.COMMAND, on_message))</div>
+  </div>
+  <p>Команды со слэшем (<span class="code-chip">/start</span>, <span class="code-chip">/help</span>) ловит <span class="code-chip">CommandHandler</span>, а обычный текст — <span class="code-chip">MessageHandler</span>. Вот зачем в фильтре стоит <span class="code-chip">~filters.COMMAND</span>: чтобы <span class="code-chip">/start</span> не улетел в нейросеть, а попал в свой обработчик.</p>
+</div>
+</section>
+
+<section class="slide slide--content"
+  data-notes="Правка 4 задаёт боту характер через системную роль, как на уроках 6-7. Дайте ученикам придумать свою роль и сравнить ответы на один и тот же вопрос. Видимый результат — тон ответов меняется сразу.">
+<div class="sl-body">
+  <div>
+    <div class="q-label">Правка 4 · характер бота</div>
+    <h2>Бот получает <span class="acc">характер</span></h2>
+  </div>
+  <p>Тон ответов задаёт системная роль — приём с уроков 6-7. Придумайте боту свою личность и сравните, как меняются ответы на один вопрос.</p>
+  <div class="prompt-card prompt-card--copy" style="margin-top:12px">
+    <span class="pc-tag">→ В тот же чат</span>
+    <div class="pc-text">Задай боту характер через системную роль (например, дружелюбный помощник-подросток). Ответы должны звучать в этом характере. Верни весь файл.</div>
+  </div>
+</div>
+</section>
+
+<section class="slide slide--content"
+  data-notes="Главная мысль: характер задаётся системной ролью, как на уроках 6-7. Один и тот же вопрос при разных ролях даёт разные по тону ответы. Дайте сфотографировать. Если группа отстаёт — правку 5 (память и «печатает…») можно перенести в ДЗ.">
+<div class="sl-body">
+  <div>
+    <div class="q-label">Разбор кода</div>
+    <h2>Характер живёт в <span class="acc">системной роли</span></h2>
+  </div>
+  <div class="code-win" style="margin-top:6px">
+    <div class="code-head"><span class="win-dots"><i></i><i></i><i></i></span><span class="lang-badge">PYTHON</span></div>
+    <div class="code-body">messages = [
+    {<span class="st">"role"</span>: <span class="st">"system"</span>, <span class="st">"content"</span>: <span class="st">"Ты дружелюбный помощник-подросток"</span>},
+    {<span class="st">"role"</span>: <span class="st">"user"</span>, <span class="st">"content"</span>: text},
+]</div>
+  </div>
+  <div class="ek-note">Характер задаёт первое сообщение с ролью <span class="code-chip">system</span> — ровно как на уроках 6-7. Меняете одну строку роли — и на <b>один и тот же вопрос</b> бот отвечает другим тоном. Сам вопрос при этом не трогаем.</div>
+</div>
+</section>
+
+<section class="slide slide--content"
+  data-notes="Финальная правка собирает бота в законченный вид: появляется память по пользователям и статус «печатает…». Это заметный пользовательский результат: бот отвечает с учётом контекста. Правка сложная: словарь по user_id хранит историю каждого, а send_chat_action требует правильного порядка вызова. Если группа отстаёт, оставьте только память, а «печатает…» отдайте в ДЗ. После правки попросите написать боту два-три сообщения подряд и убедиться, что он помнит начало разговора.">
+<div class="sl-body">
+  <div>
+    <div class="q-label">Правка 5 · память и «печатает…»</div>
+    <h2>Память и <span class="acc">«печатает…»</span></h2>
+  </div>
+  <p>Финальная правка собирает бота в законченный вид: он помнит контекст разговора и показывает статус, пока думает над ответом.</p>
+  <div class="prompt-card prompt-card--copy" style="margin-top:12px">
+    <span class="pc-tag">→ В тот же чат</span>
+    <div class="pc-text">Финальная правка. Пусть бот <span class="hl">помнит несколько последних сообщений каждого пользователя</span>: заведи словарь по <span class="hl">user_id</span> со списком messages и передавай эту историю в DeepSeek, чтобы он понимал контекст разговора.
+
+И пока бот думает над ответом, пусть показывает статус <span class="hl">«печатает…»</span> через send_chat_action. Верни весь файл.</div>
+  </div>
+</div>
+</section>
+
+<section class="slide slide--content"
+  data-notes="Ключевой слайд урока. Подчеркните главное: у бота один код, но много собеседников, поэтому история хранится не в одной переменной, а в словаре по user_id — у каждого свой список сообщений. Если это не учесть, бот будет смешивать разговоры разных людей.">
+<div class="sl-body">
+  <div>
+    <div class="q-label">Разбор кода</div>
+    <h2>Почему память — словарь по <span class="acc">user_id</span></h2>
+  </div>
+  <p>Бот один, а собеседников много. У каждого своя история, поэтому храним её в словаре по <span class="code-chip">user_id</span> — список сообщений с ролями, тот самый формат, что уходит в DeepSeek на уроках 5-8.</p>
+  <div class="code-win">
+    <div class="code-head"><span class="win-dots"><i></i><i></i><i></i></span><span class="lang-badge">PYTHON</span></div>
+    <div class="code-body">history = {}                       <span class="cm"># user_id -&gt; список сообщений с ролями</span>
+
+<span class="kw">async def</span> on_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    user_id = update.message.from_user.id
+    msgs = history.setdefault(user_id, [])          <span class="cm"># своя история для каждого</span>
+    msgs.append({<span class="st">"role"</span>: <span class="st">"user"</span>, <span class="st">"content"</span>: text})  <span class="cm"># запомнили вопрос</span>
+    answer = ask_deepseek(msgs)                      <span class="cm"># весь список — в DeepSeek</span>
+    msgs.append({<span class="st">"role"</span>: <span class="st">"assistant"</span>, <span class="st">"content"</span>: answer})  <span class="cm"># и ответ бота</span></div>
+  </div>
+  <div class="ek-note">Одна общая переменная не подошла бы: сообщения Вани и Насти смешались бы. Ключ словаря <span class="code-chip">user_id</span> разделяет истории — у каждого <b>свой контекст</b>.</div>
+</div>
+</section>
+
+<section class="slide slide--content"
+  data-notes="Вопрос про run_polling — прямое следствие того, что бот работает не закрываясь. Дайте 10-15 секунд, потом раскройте ответ. Свяжите с правилом: run_polling удерживает терминал — это штатная работа.">
+<div class="sl-body">
+  <div>
+    <div class="q-label">Проверка · вопрос 1</div>
+    <h2>Изучите ситуацию и <span class="acc">ответьте</span></h2>
+  </div>
+  <div class="quiz-box">
+    <span class="q-num">Вопрос 1</span>
+    <p class="q-text">Ваня написал бота, запустил, но окно программы не закрывается и не возвращает приглашение терминала. Он думает, что программа не работает. Так ли это?</p>
+    <div class="quiz-answer">
+      <button class="quiz-btn" type="button">Показать ответ</button>
+      <div class="quiz-reveal">
+        <p>Нет. <span class="code-chip">run_polling()</span> запускает <b>бесконечный цикл</b> long polling: бот сам постоянно спрашивает у Telegram «есть новые сообщения?». Программа работает не закрываясь — пока она запущена, бот в сети.</p>
+        <p>Остановить бота — <span class="code-chip">Ctrl+C</span> в терминале.</p>
+      </div>
+    </div>
+  </div>
+</div>
+</section>
+
+<section class="slide slide--content"
+  data-notes="Вопрос про утёкший токен — вторая частая проблема. Свяжите с правилом: токен = пароль, хранится только в .env, на скриншотах скрыт. Напомните, что перевыпуск сразу отключает старый токен.">
+<div class="sl-body">
+  <div>
+    <div class="q-label">Проверка · вопрос 2</div>
+    <h2>Изучите ситуацию и <span class="acc">ответьте</span></h2>
+  </div>
+  <div class="quiz-box">
+    <span class="q-num">Вопрос 2</span>
+    <p class="q-text">Катя случайно выложила токен бота в чат класса. Что теперь может любой из одноклассников и что делать?</p>
+    <div class="quiz-answer">
+      <button class="quiz-btn" type="button">Показать ответ</button>
+      <div class="quiz-reveal">
+        <p>По токену любой может <b>полностью управлять ботом</b> от её имени — читать сообщения и отвечать за неё.</p>
+        <p>Токен нужно немедленно перевыпустить у <span class="code-chip">@BotFather</span> (<span class="code-chip">/revoke</span> или <span class="code-chip">/token</span>) — старый сразу перестанет работать. Хранить токен только в <span class="code-chip">.env</span>.</p>
+      </div>
+    </div>
+  </div>
+</div>
+</section>
+
+<section class="slide slide--content"
+  data-notes="Научите читать traceback снизу вверх — это пригодится на всех уроках Python. Напомните правило: непонятную ошибку целиком копируем в DeepSeek. Три проверки справа — самые частые именно с ботом: не тот бот, не запущен run_polling, не поставлена библиотека.">
+<div class="sl-body">
+  <div>
+    <div class="q-label">Отладка</div>
+    <h2>Читаем <span class="acc">ошибки бота</span></h2>
+  </div>
+  <div class="grid-2" style="margin-top:6px">
+    <div>
+      <div class="term">
+        <div class="term-head"><span class="win-dots"><i></i><i></i><i></i></span><span class="lang-badge">ТЕРМИНАЛ</span></div>
+        <div class="term-body">Traceback (most recent call last):
+  File <span class="st">"bot.py"</span>, line 12, in &lt;module&gt;
+    app.run_polling()
+telegram.error.InvalidToken: <span class="usr">Unauthorized</span></div>
+      </div>
+      <p style="font-size:14px;margin-top:10px;color:#3C3C45">Последняя строка — <b>что</b> случилось, строкой выше — <b>где</b>. <span class="code-chip">Unauthorized</span> значит: токен неверный или не тот.</p>
+    </div>
+    <div>
+      <h3 style="margin-bottom:8px">Если бот молчит</h3>
+      <ul class="clean">
+        <li>Скопируйте <b>traceback целиком</b> в чат DeepSeek — попросите объяснить и починить</li>
+        <li>Проверьте, что программа запущена и <span class="code-chip">run_polling</span> удерживает терминал</li>
+        <li>Убедитесь, что пишете <b>тому же боту</b> — сверьте <span class="code-chip">@username</span></li>
+      </ul>
+      <div class="ek-note" style="margin-top:10px"><span class="code-chip">ModuleNotFoundError</span> значит, что не поставлена библиотека <span class="code-chip">python-telegram-bot</span>.</div>
+    </div>
+  </div>
+</div>
+</section>
+
+<section class="slide slide--content"
+  data-notes="5 правил урока. Дайте сфотографировать слайд. Особо подчеркните второе и третье: run_polling удерживает терминал — это норма, а токен = пароль и хранится только в .env.">
+<div class="sl-body">
+  <div>
+    <div class="q-label">Запомните</div>
+    <h2>Правила работы с <span class="acc">ботом</span></h2>
+  </div>
+  <div class="kv">
+    <div class="kv-row"><div class="k">01 · Интерфейс в мессенджере</div><div class="v">Программа отвечает людям прямо в <b>Telegram</b>, а не только в локальном терминале.</div></div>
+    <div class="kv-row"><div class="k">02 · run_polling — это норма</div><div class="v">Программа работает и не закрывается — значит бот в сети. Это штатная работа. Остановить — <span class="code-chip">Ctrl+C</span>.</div></div>
+    <div class="kv-row"><div class="k">03 · Токен — это пароль</div><div class="v">Не публикуем, на скриншотах скрываем, храним только в <span class="code-chip">.env</span>. Утёк — перевыпускаем у <span class="code-chip">@BotFather</span>.</div></div>
+    <div class="kv-row"><div class="k">04 · Обработчик — async и await</div><div class="v">Ловим сообщения через <span class="code-chip">async def</span>, а перед <span class="code-chip">reply_text</span> ставим <span class="code-chip">await</span> — тогда бот не блокируется на одном пользователе.</div></div>
+    <div class="kv-row"><div class="k">05 · Характер и память</div><div class="v">Характер задаём системной ролью, а память — словарём по <span class="code-chip">user_id</span>: у каждого свой разговор.</div></div>
+  </div>
+</div>
+</section>
+
+<section class="slide slide--content"
+  data-notes="Чек-лист завершения бота. Кто отметил всё, пусть даст ссылку на бота соседу и проверит, что тот тоже получает ответы нейросети. Это проверяет, что бот доступен другим пользователям.">
+<div class="sl-body">
+  <div>
+    <div class="q-label">Чек-лист</div>
+    <h2>Готовность <span class="acc">к 55-й минуте</span></h2>
+  </div>
+  <div class="grid-2" style="margin-top:6px">
+    <div class="info-card">
+      <h3>Готово</h3>
+      <ul class="clean">
+        <li><span class="code-chip">bot.py</span> запускается командой <span class="code-chip">python bot.py</span></li>
+        <li>Токен лежит в <span class="code-chip">.env</span> строкой <span class="code-chip">BOT_TOKEN</span></li>
+        <li>Бот отвечает нейросетью в <b>Telegram</b></li>
+        <li>Есть команды <span class="code-chip">/start</span> и <span class="code-chip">/help</span></li>
+      </ul>
+    </div>
+    <div class="info-card">
+      <h3>Работает</h3>
+      <ul class="clean">
+        <li>У бота свой характер через системную роль</li>
+        <li>Бот помнит несколько последних сообщений</li>
+        <li>Пока думает — показывает «печатает…»</li>
+        <li>Бот отвечает не только вам, но и другому пользователю</li>
+      </ul>
+    </div>
+  </div>
+  <div class="ek-note ek-note--green">Всё отмечено? Дайте ссылку на бота соседу — пусть напишет и получит ответ нейросети. Бот доступен другому пользователю.</div>
+</div>
+</section>
+
+<section class="slide slide--content"
+  data-notes="ДЗ — доработать бота, примерно 30 минут. Каждое улучшение — отдельный диалог с DeepSeek, не всё сразу. Напомните про токен и ключ на скриншотах: их нужно скрыть.">
+<div class="sl-body">
+  <div>
+    <div class="q-label">Домашнее задание · около 30 минут</div>
+    <h2>Доработайте <span class="acc">бота</span></h2>
+  </div>
+  <p>Три улучшения — каждое через отдельный диалог с DeepSeek:</p>
+  <div class="grid-3" style="margin-top:6px">
+    <div class="info-card">
+      <h3>Команда /joke</h3>
+      <p>Добавьте команду <span class="code-chip">/joke</span> — бот просит у нейросети свежую шутку и присылает её.</p>
+    </div>
+    <div class="info-card">
+      <h3>Свой характер</h3>
+      <p>Придумайте боту яркую личность через системную роль и проверьте, как меняются ответы.</p>
+    </div>
+    <div class="info-card">
+      <h3>Кнопки</h3>
+      <p>Добавьте боту кнопки (<span class="code-chip">ReplyKeyboardMarkup</span>) с готовыми вопросами.</p>
+    </div>
+  </div>
+  <div class="ek-note ek-note--red">Пришлите скриншот диалога с ботом — <b>токен и ключ скройте!</b> Ваш самый удачный промпт — отдельным сообщением.</div>
+</div>
+</section>
+
+<section class="slide slide--green"
+  data-notes="Закройте урок. Сегодня программа получила интерфейс в Telegram и начала отвечать другим пользователям. На уроке 10 — веб-приложение на Streamlit: тот же AI-помощник, но со ссылкой в браузере, которую можно открыть с любого устройства.">
+<div class="sl-orbit">
+    <i class="sl-ring"></i>
+    <svg class="sl-ico" viewBox="0 0 100 100" style="left:75px;top:20px;width:150px;height:150px;transform:rotate(-10deg)"><use href="#ek-i-trophy"/></svg>
+    <i class="sl-letter" style="left:466px;top:13px;width:78px;height:78px;--fs:36px">B</i>
+    <svg class="sl-ico" viewBox="0 0 100 100" style="left:1040px;top:15px;width:130px;height:130px;transform:rotate(12deg)"><use href="#ek-i-heart"/></svg>
+    <i class="sl-letter" style="left:68px;top:268px;width:100px;height:100px;--fs:46px">O</i>
+    <i class="sl-letter" style="left:1137px;top:327px;width:95px;height:95px;--fs:44px">T</i>
+    <svg class="sl-ico" viewBox="0 0 100 100" style="left:102px;top:532px;width:125px;height:125px;transform:rotate(-15deg)"><use href="#ek-i-star"/></svg>
+    <i class="sl-letter" style="left:726px;top:613px;width:78px;height:78px;--fs:36px">G</i>
+    <svg class="sl-ico" viewBox="0 0 100 100" style="left:1045px;top:540px;width:110px;height:110px;transform:rotate(8deg)"><use href="#ek-i-gem"/></svg>
+  </div>
+  <div class="cover-center">
+    <div class="bubble">
+      <h1>До встречи<br>на уроке 10!</h1>
+      <p>Сегодня программа получила интерфейс в Telegram: бот принимает сообщения от друзей и отвечает через нейросеть. На уроке 10 сделаем второй публичный проект — веб-приложение на Streamlit: тот же AI-помощник, но со ссылкой в браузере, которую можно открыть с любого устройства.</p>
+    </div>
+  </div>
+</section>
+</main>
+
+<div class="notes" id="notes">
+  <div class="notes__header">Заметки преподавателя &middot; N — скрыть</div>
+  <div class="notes__body" id="notesBody">—</div>
+</div>
+
+<div class="hint"><kbd>←</kbd><kbd>→</kbd> слайды &middot; <kbd>N</kbd> заметки &middot; <kbd>F</kbd> весь экран</div>
+
+<svg width="0" height="0" style="position:absolute" aria-hidden="true"><defs>
+<symbol id="ek-i-trophy" viewBox="0 0 100 100"><path fill="currentColor" d="M24 16h52v12h8c6 0 10 4 10 10 0 15-11 25-23 27-3 5-8 9-14 10v8h14c4 0 7 3 7 7v4H22v-4c0-4 3-7 7-7h14v-8c-6-1-11-5-14-10C17 63 6 53 6 38c0-6 4-10 10-10h8V16zM24 36h-7c-2 0-4 2-4 4 0 8 5 15 12 18-1-5-1-10-1-16v-6zM76 36v6c0 6 0 11-1 16 7-3 12-10 12-18 0-2-2-4-4-4h-7z"/></symbol>
+<symbol id="ek-i-heart" viewBox="0 0 100 100"><path fill="currentColor" d="M50 88C28 72 10 56 10 38 10 24 21 14 34 14c6 0 12 3 16 8 4-5 10-8 16-8 13 0 24 10 24 24 0 18-18 34-40 50z"/></symbol>
+<symbol id="ek-i-star" viewBox="0 0 100 100"><path fill="currentColor" d="M50 8l12 27 29 3-22 20 6 29-25-15-25 15 6-29L9 38l29-3z"/></symbol>
+<symbol id="ek-i-gem" viewBox="0 0 100 100"><path fill="currentColor" d="M30 12h40l18 24-38 52L12 36zM36 20l-12 16h20zM64 20l-8 16h20zM50 22l-9 14h18zM26 44l20 30-8-30zM62 44l-8 30 20-30zM46 44h8l-4 26z"/></symbol>
+</defs></svg>
+
+<script>
+/* ============ Автомасштаб сцены ============ */
+(function(){
+  'use strict';
+  var stage = document.getElementById('deck');
+  function fit(){
+    var w = window.innerWidth, h = window.innerHeight;
+    if (!w || !h) return;
+    var s = Math.min(w / 1320, h / 780);
+    if (document.fullscreenElement) s = Math.min(w / 1280, h / 720);
+    stage.style.transform = 'translate(-50%,-50%) scale(' + s + ')';
+    stage.style.borderRadius = document.fullscreenElement ? '0' : '18px';
+  }
+  window.addEventListener('resize', fit);
+  document.addEventListener('fullscreenchange', fit);
+  fit();
+})();
+
+/* ============ Навигация по слайдам ============ */
+(function(){
+  'use strict';
+  var slides = Array.prototype.slice.call(document.querySelectorAll('.slide'));
+  var total = slides.length;
+  var idx = 0;
+  document.getElementById('total').textContent = total;
+
+  var progressEl = document.getElementById('progress');
+  var currentEl = document.getElementById('current');
+  var notesPanel = document.getElementById('notes');
+  var notesBody = document.getElementById('notesBody');
+
+  slides.forEach(function(s, i){
+    if (s.classList.contains('slide--content')) s.setAttribute('data-page', i + 1);
+  });
+
+  function render(){
+    slides.forEach(function(s, i){
+      s.classList.remove('active', 'prev');
+      if (i === idx) s.classList.add('active');
+      else if (i < idx) s.classList.add('prev');
+    });
+    progressEl.style.width = ((idx + 1) / total * 100).toFixed(2) + '%';
+    currentEl.textContent = idx + 1;
+    notesBody.textContent = slides[idx].getAttribute('data-notes') || '—';
+  }
+
+  function go(n){ idx = Math.max(0, Math.min(total - 1, n)); render(); }
+  function next(){ go(idx + 1); }
+  function prev(){ go(idx - 1); }
+
+  document.addEventListener('keydown', function(e){
+    var active = document.activeElement;
+    if (active && (active.isContentEditable || active.tagName === 'TEXTAREA' || active.tagName === 'INPUT')) return;
+    switch (e.key){
+      case 'ArrowRight': case 'PageDown': case ' ':
+        e.preventDefault(); next(); break;
+      case 'ArrowLeft': case 'PageUp':
+        e.preventDefault(); prev(); break;
+      case 'Home': e.preventDefault(); go(0); break;
+      case 'End': e.preventDefault(); go(total - 1); break;
+      case 'f': case 'F': case 'а': case 'А':
+        e.preventDefault();
+        if (!document.fullscreenElement){ if (document.documentElement.requestFullscreen) document.documentElement.requestFullscreen(); }
+        else if (document.exitFullscreen) document.exitFullscreen();
+        break;
+      case 'n': case 'N': case 'т': case 'Т':
+        e.preventDefault(); notesPanel.classList.toggle('active'); break;
+      case 'Escape':
+        if (document.fullscreenElement && document.exitFullscreen) document.exitFullscreen();
+        notesPanel.classList.remove('active'); break;
+    }
+  });
+
+  var tx = 0, ty = 0;
+  document.addEventListener('touchstart', function(e){ tx = e.changedTouches[0].screenX; ty = e.changedTouches[0].screenY; }, { passive: true });
+  document.addEventListener('touchend', function(e){
+    var dx = e.changedTouches[0].screenX - tx, dy = e.changedTouches[0].screenY - ty;
+    if (Math.abs(dx) > 60 && Math.abs(dx) > Math.abs(dy)){ if (dx < 0) next(); else prev(); }
+  }, { passive: true });
+
+  document.addEventListener('click', function(e){
+    if (e.target.closest('a,button,input,textarea,code,pre,[contenteditable],.code-win,.term,.prompt-card,.quiz-box,.notes')) return;
+    var x = e.clientX, w = window.innerWidth;
+    if (x < w * 0.25) prev();
+    else if (x > w * 0.75) next();
+  });
+
+  render();
+})();
+
+/* ============ Квизы: показать ответ ============ */
+(function(){
+  'use strict';
+  Array.prototype.slice.call(document.querySelectorAll('.quiz-btn')).forEach(function(btn){
+    btn.addEventListener('click', function(e){
+      e.stopPropagation();
+      var box = btn.closest('.quiz-box');
+      var reveal = box && box.querySelector('.quiz-reveal');
+      if (!reveal) return;
+      var shown = reveal.classList.toggle('show');
+      btn.textContent = shown ? 'Скрыть ответ' : 'Показать ответ';
+    });
+  });
+})();
+</script>
+</body>
+</html>

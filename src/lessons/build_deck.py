@@ -16,21 +16,40 @@ sys.path.insert(0, HERE)
 from deck_template import render_deck
 
 TITLES = {
+    1: "Установка инструментов и первая веб-страница",
+    2: "Сайт из трёх файлов и техники работы с AI",
+    3: "Интерактивность: события и DOM",
+    4: "Своя браузерная игра на Canvas",
+    5: "Первая программа на Python с AI",
+    6: "Циклы, функции и коллекции",
+    7: "Работа с файлами и формат JSON",
+    8: "Работа с внешними API",
+    9: "Telegram-бот с языковой моделью",
     10: "Своё веб-приложение в интернете",
     11: "Как программы общаются с нейросетью",
     12: "Чат с AI, как в ChatGPT",
 }
 
+# Сколько частей и ожидаемое число слайдов у каждого урока (1–2 короткие, остальные 38).
+EXPECT = {1: 22, 2: 22}
+
 def main():
     n = int(sys.argv[1])
     slides = []
-    for k in range(1, 5):
-        mod = importlib.import_module('l%d_part%d' % (n, k))
+    k = 1
+    while True:
+        try:
+            mod = importlib.import_module('l%d_part%d' % (n, k))
+        except ModuleNotFoundError:
+            break
         importlib.reload(mod)
         slides.extend(mod.SLIDES)
         print('  part%d: %d слайдов' % (k, len(mod.SLIDES)))
+        k += 1
+    assert slides, 'не найдено ни одной части l%d_partK.py' % n
 
-    assert len(slides) == 38, 'ожидалось 38 слайдов, получено %d' % len(slides)
+    exp = EXPECT.get(n, 38)
+    assert len(slides) == exp, 'ожидалось %d слайдов, получено %d' % (exp, len(slides))
     covers = sum(1 for s in slides if s.get('cls') == 'slide--violet')
     finals = sum(1 for s in slides if s.get('cls') == 'slide--green')
     assert covers >= 1, 'нет титульного слайда (cls slide--violet)'

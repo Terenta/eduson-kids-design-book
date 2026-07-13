@@ -1,0 +1,829 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Урок 2 — Сайт из трёх файлов и техники работы с AI | Eduson Kids</title>
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter+Tight:wght@600;700;800;900&family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;700&display=swap">
+
+<style>
+/* ============ Дизайн-токены Eduson Kids ============ */
+:root{
+  --ek-violet:#8C7FF6; --ek-violet-soft:#A79EF9; --ek-violet-deep:#6F61E8; --ek-violet-bg:#F0EEFE;
+  --ek-green:#3DF79D; --ek-green-soft:#7BF9BD; --ek-green-mint:#C9F7E3; --ek-green-pale:#E7FDF2; --ek-green-deep:#0FBF6E;
+  --ek-ink:#17171C; --ek-gray:#8F8F98; --ek-gray-light:#EFEFF2; --ek-line:#E3E3EA;
+  --ek-red:#FF6B6B; --ek-red-soft:#FF8A8A; --ek-red-deep:#E04848; --ek-red-pale:#FFECEC;
+  --f-head:'Inter Tight','Inter','Segoe UI',system-ui,sans-serif;
+  --f-body:'Inter','Segoe UI',system-ui,sans-serif;
+  --f-mono:'JetBrains Mono','Cascadia Mono','Consolas',monospace;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{height:100%;overflow:hidden}
+body{font-family:var(--f-body);background:#E9E9F1;color:var(--ek-ink);-webkit-font-smoothing:antialiased}
+
+/* ============ Хром: прогресс, счётчик, подсказка ============ */
+.progress{position:fixed;top:0;left:0;right:0;height:4px;background:rgba(23,23,28,.08);z-index:100}
+.progress__fill{height:100%;width:0%;background:var(--ek-violet);transition:width 300ms ease}
+.counter{position:fixed;top:14px;right:18px;z-index:90;font:600 13px var(--f-body);color:var(--ek-gray);background:#fff;border:1px solid var(--ek-line);padding:6px 14px;border-radius:999px;font-variant-numeric:tabular-nums}
+.counter b{color:var(--ek-ink)}
+.hint{position:fixed;bottom:12px;left:50%;transform:translateX(-50%);z-index:90;font:500 11px var(--f-body);color:var(--ek-gray);background:#fff;border:1px solid var(--ek-line);padding:6px 14px;border-radius:999px;letter-spacing:.03em}
+.hint kbd{font-family:var(--f-mono);background:var(--ek-gray-light);padding:1px 6px;border-radius:4px;font-size:10px;margin:0 2px;color:var(--ek-ink)}
+
+/* ============ Сцена 1280×720 ============ */
+.stage{position:absolute;left:50%;top:50%;width:1280px;height:720px;transform:translate(-50%,-50%);border-radius:18px;overflow:hidden;box-shadow:0 30px 90px rgba(23,23,28,.18);background:#fff}
+.slide{position:absolute;inset:0;background:#fff;opacity:0;transform:translateY(26px);transition:opacity 280ms ease,transform 280ms ease;pointer-events:none;font-family:var(--f-head)}
+.slide.active{opacity:1;transform:none;pointer-events:auto}
+.slide.prev{transform:translateY(-26px)}
+.slide--violet{background:var(--ek-violet)}
+.slide--green{background:var(--ek-green)}
+
+/* Номер страницы на контентных слайдах */
+.slide--content::after{content:attr(data-page);position:absolute;right:54px;bottom:30px;font:800 30px/1 var(--f-head);color:var(--ek-ink);opacity:.5}
+
+/* ============ Декор «Орбита» ============ */
+.sl-orbit{position:absolute;inset:0;pointer-events:none}
+.slide--violet .sl-orbit{--decor:#A79EF9;--letter:#C4BEFA}
+.slide--green .sl-orbit{--decor:#7BF9BD;--letter:#C4FCE0}
+.sl-ring{position:absolute;left:50%;top:50%;width:1040px;height:660px;transform:translate(-50%,-50%);border:3px solid var(--decor);border-radius:50%;opacity:.9}
+.sl-ico{position:absolute;color:var(--decor)}
+.sl-letter{position:absolute;border-radius:50%;background:var(--decor);color:var(--letter);display:flex;align-items:center;justify-content:center;font:800 var(--fs,40px)/1 var(--f-head);font-style:normal}
+
+/* ============ Каверы: карточка-окно и спич-бабл ============ */
+.cover-center{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);z-index:2}
+.cover-card{position:relative;width:860px;background:#fff;border-radius:28px;box-shadow:0 30px 80px rgba(23,23,28,.18)}
+.card-top{display:flex;justify-content:space-between;align-items:center;padding:24px 30px 0}
+.win-dots{display:flex;gap:9px}
+.win-dots i{width:13px;height:13px;border-radius:50%;background:var(--ek-violet)}
+.win-close{position:relative;width:22px;height:22px}
+.win-close::before,.win-close::after{content:"";position:absolute;left:-1px;top:9px;width:24px;height:4px;border-radius:2px;background:var(--ek-violet)}
+.win-close::before{transform:rotate(45deg)}
+.win-close::after{transform:rotate(-45deg)}
+.cover-card .badge{position:absolute;left:50%;top:-30px;transform:translateX(-50%) rotate(-4deg)}
+.cover-card h1{padding:26px 64px 30px;text-align:center;font:800 50px/1.14 var(--f-head);letter-spacing:-.015em;color:var(--ek-ink)}
+.cover-card .cover-sub{padding:0 80px 34px;text-align:center;font:500 19px/1.5 var(--f-body);color:#3C3C45}
+.cover-card .cover-chips{display:flex;justify-content:center;gap:10px;flex-wrap:wrap;padding:0 40px 40px}
+.bubble{position:relative;width:660px;background:#EFEFF1;border-radius:30px;padding:56px 70px;text-align:center}
+.bubble::after{content:"";position:absolute;right:56px;bottom:-24px;width:0;height:0;border-left:38px solid transparent;border-top:28px solid #EFEFF1}
+.bubble h1{font:800 42px/1.25 var(--f-head);letter-spacing:-.01em;color:var(--ek-ink)}
+.bubble p{margin-top:16px;font:500 18px/1.5 var(--f-body);color:#3C3C45}
+
+/* ============ Стикер-бейдж и чипы ============ */
+.badge{display:inline-block;background:var(--ek-green);color:var(--ek-ink);font:800 24px/1 var(--f-head);padding:13px 22px;border-radius:13px;transform:rotate(-3deg);box-shadow:0 10px 24px rgba(23,23,28,.10)}
+.badge--violet{background:var(--ek-violet);color:#fff}
+.badge--sm{font-size:16px;padding:9px 16px;border-radius:10px}
+.chip{display:inline-block;font:700 14px/1 var(--f-body);padding:8px 14px;border-radius:999px;background:var(--ek-violet-bg);color:var(--ek-violet-deep)}
+.chip--green{background:var(--ek-green-pale);color:var(--ek-green-deep)}
+.chip--gray{background:var(--ek-gray-light);color:#3C3C45}
+
+/* ============ Контентные слайды ============ */
+.sl-body{position:absolute;inset:0;padding:56px 80px 62px;display:flex;flex-direction:column;gap:16px;overflow:hidden}
+h2{font:800 38px/1.16 var(--f-head);letter-spacing:-.01em;color:var(--ek-ink)}
+.acc{color:var(--ek-violet-deep)}
+.sl-body>p, .col p{font:500 18px/1.5 var(--f-body);color:#3C3C45}
+.code-chip{font-family:var(--f-mono);font-weight:700;font-size:.88em;background:var(--ek-violet-bg);color:var(--ek-violet-deep);padding:2px 8px;border-radius:8px;white-space:nowrap}
+.hl{color:var(--ek-violet-deep);font-weight:700}
+.out-chip{font-family:var(--f-mono);font-weight:700;font-size:.88em;background:var(--ek-green-pale);color:#0B7A48;padding:2px 8px;border-radius:8px;white-space:nowrap}
+
+.grid-2{display:grid;grid-template-columns:1fr 1fr;gap:22px;align-items:start}
+.grid-3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:18px;align-items:stretch}
+
+.info-card{background:#F5F5F9;border-radius:18px;padding:18px 22px;font:500 16px/1.55 var(--f-body);color:#3C3C45}
+.info-card h3{font:800 19px/1.3 var(--f-head);color:var(--ek-ink);margin-bottom:8px}
+.ek-note{background:var(--ek-violet-bg);border-left:4px solid var(--ek-violet);border-radius:0 14px 14px 0;padding:14px 20px;font:600 17px/1.5 var(--f-body);color:#3C3560}
+.ek-note--green{background:var(--ek-green-pale);border-left-color:var(--ek-green-deep);color:#0B5B39}
+.ek-note--red{background:var(--ek-red-pale);border-left-color:var(--ek-red);color:#7A2E2E}
+
+ul.clean{list-style:none;display:flex;flex-direction:column;gap:10px}
+ul.clean li{display:flex;gap:14px;align-items:flex-start;font:500 17.5px/1.5 var(--f-body);color:#3C3C45}
+ul.clean li::before{content:'—';flex:0 0 auto;color:var(--ek-violet-deep);font-weight:800}
+
+ol.steps{list-style:none;counter-reset:step;display:flex;flex-direction:column;gap:12px}
+ol.steps li{counter-increment:step;display:flex;gap:16px;align-items:center;padding:14px 20px;background:#F5F5F9;border-radius:16px;font:500 17.5px/1.45 var(--f-body);color:#2E2E36}
+ol.steps li::before{content:counter(step);flex:0 0 40px;height:40px;display:flex;align-items:center;justify-content:center;border-radius:50%;background:var(--ek-violet);font:800 18px var(--f-head);color:#fff}
+ol.steps li:last-child::before{background:var(--ek-green);color:var(--ek-ink)}
+ol.steps.steps--tight{gap:8px}
+ol.steps.steps--tight li{padding:9px 16px;font-size:15.5px;gap:12px}
+ol.steps.steps--tight li::before{flex-basis:32px;height:32px;font-size:14px}
+
+.q-label{font:700 13px/1 var(--f-head);letter-spacing:.08em;text-transform:uppercase;color:var(--ek-gray)}
+
+/* ============ План занятия (agenda) ============ */
+.agenda{display:flex;flex-direction:column;gap:8px}
+.agenda-row{display:flex;gap:16px;align-items:center;padding:10px 18px;background:#F5F5F9;border-radius:14px}
+.agenda-row .t{flex:0 0 84px;text-align:center;font:800 14px/1 var(--f-mono);color:var(--ek-ink);background:var(--ek-green);border-radius:999px;padding:8px 0}
+.agenda-row .tt{font:700 16.5px/1.3 var(--f-head);color:var(--ek-ink)}
+.agenda-row .dd{font:500 14px/1.4 var(--f-body);color:var(--ek-gray)}
+
+/* ============ Ключ-значение (привычки, шпаргалки) ============ */
+.kv{display:flex;flex-direction:column}
+.kv-row{display:grid;grid-template-columns:250px 1fr;gap:18px;align-items:start;padding:11px 4px;border-bottom:1.5px solid var(--ek-line)}
+.kv-row:last-child{border-bottom:none}
+.kv-row .k{font:800 14px/1.35 var(--f-head);letter-spacing:.05em;text-transform:uppercase;color:var(--ek-violet-deep);padding-top:2px}
+.kv-row .v{font:500 16.5px/1.5 var(--f-body);color:#3C3C45}
+
+/* ============ Окно кода (статичное) ============ */
+.code-win{background:#fff;border:2.5px solid var(--ek-ink);border-radius:16px;overflow:hidden;font-family:var(--f-mono);box-shadow:10px 10px 0 rgba(140,127,246,.14)}
+.code-head{display:flex;align-items:center;justify-content:space-between;padding:9px 16px;border-bottom:2px solid var(--ek-ink)}
+.code-head .win-dots i{width:11px;height:11px}
+.lang-badge{font:700 11px var(--f-mono);letter-spacing:.14em;color:var(--ek-gray)}
+.code-body{padding:14px 20px;font:500 14.5px/1.6 var(--f-mono);color:var(--ek-ink);white-space:pre;overflow:auto;max-height:400px;tab-size:4}
+.code-body .cm{color:var(--ek-gray)}
+.code-body .st{color:var(--ek-green-deep)}
+.code-body .kw{color:var(--ek-violet-deep);font-weight:700}
+
+/* ============ Терминал (тёмное окно) ============ */
+.term{background:var(--ek-ink);border-radius:16px;overflow:hidden;font-family:var(--f-mono);box-shadow:10px 10px 0 rgba(23,23,28,.12)}
+.term-head{display:flex;align-items:center;justify-content:space-between;padding:9px 16px;border-bottom:1px solid rgba(255,255,255,.14)}
+.term-head .win-dots i{width:11px;height:11px;background:var(--ek-green)}
+.term-head .lang-badge{color:rgba(255,255,255,.5)}
+.term-body{padding:14px 20px;font:500 14.5px/1.62 var(--f-mono);color:var(--ek-green);white-space:pre-wrap;word-break:break-word;overflow:auto;max-height:420px}
+.term-body .usr{color:#fff}
+.term-body .dim{color:rgba(255,255,255,.55)}
+
+/* ============ Промпт-карточка (диалог с DeepSeek) ============ */
+.prompt-card{position:relative;background:var(--ek-violet-bg);border:2.5px solid var(--ek-violet);border-radius:18px;padding:20px 26px 18px;box-shadow:10px 10px 0 rgba(140,127,246,.18)}
+.prompt-card .pc-tag{position:absolute;top:-16px;left:22px;background:var(--ek-violet);color:#fff;font:800 14px/1 var(--f-head);padding:9px 16px;border-radius:10px;transform:rotate(-2deg);box-shadow:0 8px 18px rgba(23,23,28,.12)}
+.prompt-card .pc-text{margin-top:6px;font:500 15px/1.62 var(--f-mono);color:#2E2A52;white-space:pre-wrap}
+.prompt-card .pc-text .hl{color:var(--ek-violet-deep)}
+.prompt-card--copy .pc-tag{background:var(--ek-green);color:var(--ek-ink)}
+
+/* ============ Сравнение (vs) ============ */
+.vs{display:grid;grid-template-columns:1fr 1fr;gap:20px;align-items:stretch}
+.vs-col{border-radius:18px;padding:20px 24px}
+.vs-col h4{font:800 15px/1 var(--f-head);letter-spacing:.08em;text-transform:uppercase;margin-bottom:12px}
+.vs-col p{font:500 16px/1.55 var(--f-body)}
+.vs-col .note{margin-top:12px;font:500 13.5px/1.4 var(--f-body);opacity:.75}
+.vs-col--plain{background:var(--ek-gray-light);color:#3C3C45}
+.vs-col--plain h4{color:var(--ek-gray)}
+.vs-col--win{background:var(--ek-green-pale);color:#124F35;border:2px solid var(--ek-green-soft)}
+.vs-col--win h4{color:var(--ek-green-deep)}
+
+/* ============ Квиз с раскрытием ответа ============ */
+.quiz-box{background:#F5F5F9;border:2.5px solid var(--ek-ink);border-radius:18px;padding:22px 26px;box-shadow:10px 10px 0 rgba(61,247,157,.25)}
+.quiz-box .q-num{display:inline-block;background:var(--ek-green);color:var(--ek-ink);font:800 13px/1 var(--f-head);letter-spacing:.08em;text-transform:uppercase;padding:8px 14px;border-radius:999px;margin-bottom:14px}
+.quiz-box .q-text{font:700 21px/1.42 var(--f-head);color:var(--ek-ink)}
+.quiz-answer{margin-top:16px}
+.quiz-btn{border:0;border-radius:12px;padding:12px 22px;font:800 15px/1 var(--f-head);cursor:pointer;background:var(--ek-violet);color:#fff;transition:background .15s}
+.quiz-btn:hover{background:var(--ek-violet-deep)}
+.quiz-reveal{display:none;margin-top:14px;background:var(--ek-green-pale);border-left:4px solid var(--ek-green-deep);border-radius:0 14px 14px 0;padding:14px 20px;font:500 16.5px/1.55 var(--f-body);color:#0B5B39}
+.quiz-reveal.show{display:block}
+.quiz-reveal p+p{margin-top:8px}
+
+/* Появление контента */
+.slide.active .info-card,.slide.active ul.clean li,.slide.active ol.steps li,.slide.active .grid-2>*,.slide.active .grid-3>*,.slide.active .agenda-row,.slide.active .kv-row{animation:reveal 450ms ease backwards}
+.slide.active .info-card:nth-child(2),.slide.active ul.clean li:nth-child(2),.slide.active ol.steps li:nth-child(2),.slide.active .grid-2>*:nth-child(2),.slide.active .grid-3>*:nth-child(2),.slide.active .agenda-row:nth-child(2),.slide.active .kv-row:nth-child(2){animation-delay:80ms}
+.slide.active ul.clean li:nth-child(3),.slide.active ol.steps li:nth-child(3),.slide.active .grid-3>*:nth-child(3),.slide.active .agenda-row:nth-child(3),.slide.active .kv-row:nth-child(3){animation-delay:160ms}
+.slide.active ol.steps li:nth-child(4),.slide.active .agenda-row:nth-child(4),.slide.active .kv-row:nth-child(4){animation-delay:240ms}
+.slide.active ol.steps li:nth-child(5),.slide.active .agenda-row:nth-child(5),.slide.active .kv-row:nth-child(5){animation-delay:320ms}
+.slide.active .agenda-row:nth-child(6),.slide.active ol.steps li:nth-child(6),.slide.active .kv-row:nth-child(6){animation-delay:400ms}
+.slide.active .agenda-row:nth-child(7),.slide.active ol.steps li:nth-child(7),.slide.active .kv-row:nth-child(7){animation-delay:480ms}
+@keyframes reveal{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:translateY(0)}}
+@media (prefers-reduced-motion:reduce){.slide.active .info-card,.slide.active ul.clean li,.slide.active ol.steps li,.slide.active .grid-2>*,.slide.active .grid-3>*,.slide.active .agenda-row,.slide.active .kv-row{animation:none}}
+
+/* ============ Заметки преподавателя ============ */
+.notes{position:fixed;bottom:0;left:0;right:0;background:#fff;border-top:1px solid var(--ek-line);box-shadow:0 -16px 40px rgba(23,23,28,.10);padding:20px 40px;z-index:95;max-height:40vh;overflow-y:auto;transform:translateY(100%);transition:transform 300ms ease}
+.notes.active{transform:translateY(0)}
+.notes__header{font:800 11px var(--f-head);letter-spacing:.2em;text-transform:uppercase;color:var(--ek-violet-deep);margin-bottom:8px}
+.notes__body{font:500 15px/1.55 var(--f-body);color:#3C3C45}
+
+:focus-visible{outline:3px solid var(--ek-violet-soft);outline-offset:2px;border-radius:6px}
+::-webkit-scrollbar{width:8px;height:8px}
+::-webkit-scrollbar-track{background:transparent}
+::-webkit-scrollbar-thumb{background:rgba(23,23,28,.15);border-radius:4px}
+</style>
+</head>
+<body>
+
+<div class="progress"><div class="progress__fill" id="progress"></div></div>
+<div class="counter"><b id="current">1</b> / <span id="total">22</span></div>
+
+<main class="stage" id="deck">
+<section class="slide slide--violet active"
+  data-notes="Поприветствуйте группу. Скажите, что сегодня вы научитесь раскладывать проект на 3 файла и пользоваться 5 техниками промтинга. К концу урока у каждого будет интерактивная карточка любимого персонажа.">
+<div class="sl-orbit">
+    <i class="sl-ring"></i>
+    <svg class="sl-ico" viewBox="0 0 100 100" style="left:75px;top:20px;width:150px;height:150px;transform:rotate(-10deg)"><use href="#ek-i-trophy"/></svg>
+    <i class="sl-letter" style="left:466px;top:13px;width:78px;height:78px;--fs:36px">H</i>
+    <svg class="sl-ico" viewBox="0 0 100 100" style="left:1040px;top:15px;width:130px;height:130px;transform:rotate(12deg)"><use href="#ek-i-heart"/></svg>
+    <i class="sl-letter" style="left:68px;top:268px;width:100px;height:100px;--fs:46px">C</i>
+    <i class="sl-letter" style="left:1137px;top:327px;width:95px;height:95px;--fs:44px">S</i>
+    <svg class="sl-ico" viewBox="0 0 100 100" style="left:102px;top:532px;width:125px;height:125px;transform:rotate(-15deg)"><use href="#ek-i-star"/></svg>
+    <i class="sl-letter" style="left:726px;top:613px;width:78px;height:78px;--fs:36px">J</i>
+    <svg class="sl-ico" viewBox="0 0 100 100" style="left:1045px;top:540px;width:110px;height:110px;transform:rotate(8deg)"><use href="#ek-i-gem"/></svg>
+  </div>
+  <div class="cover-center">
+    <div class="cover-card">
+      <div class="badge">Урок №2</div>
+      <div class="card-top"><span class="win-dots"><i></i><i></i><i></i></span><span class="win-close"></span></div>
+      <h1>Сайт из трёх файлов<br>и техники работы с&nbsp;AI</h1>
+      <p class="cover-sub">Разделим проект на 3 файла, изучим 5 техник промтинга и соберём карточку любимого персонажа с интерактивными эффектами.</p>
+      <div class="cover-chips"><span class="chip">HTML</span><span class="chip chip--green">CSS</span><span class="chip chip--gray">JavaScript</span><span class="chip chip--gray">DeepSeek</span></div>
+    </div>
+  </div>
+</section>
+
+<section class="slide slide--content"
+  data-notes="План на 60 минут. Разбор ДЗ занимает 5 минут, после переходим к архитектуре.">
+<div class="sl-body">
+  <div>
+    <div class="q-label">Agenda · план занятия</div>
+    <h2>Как пройдут <span class="acc">60 минут</span></h2>
+  </div>
+  <div class="agenda">
+    <div class="agenda-row"><span class="t">0–5</span><div><div class="tt">Разбор домашнего задания</div><div class="dd">Открываем 2–3 чужих диалога, разбираем удачные формулировки.</div></div></div>
+    <div class="agenda-row"><span class="t">5–15</span><div><div class="tt">Архитектура простого сайта</div><div class="dd">Зачем 3 файла, что за что отвечает, как они связаны между собой.</div></div></div>
+    <div class="agenda-row"><span class="t">15–30</span><div><div class="tt">5 техник промтинга</div><div class="dd">Роль · Контекст · Формат · Ограничения · Итерация.</div></div></div>
+    <div class="agenda-row"><span class="t">30–50</span><div><div class="tt">Сборка карточки персонажа</div><div class="dd">3 файла, tilt-эффект, анимированные числа, биография по клику.</div></div></div>
+    <div class="agenda-row"><span class="t">50–55</span><div><div class="tt">Если правка ломает код</div><div class="dd">Главное правило — фиксируйте точку отката.</div></div></div>
+    <div class="agenda-row"><span class="t">55–60</span><div><div class="tt">Демо в группе</div><div class="dd">Скриншот карточки и один лучший промпт от каждого.</div></div></div>
+  </div>
+</div>
+</section>
+
+<section class="slide slide--content"
+  data-notes="Идея урока: на уроке 1 вы делали проект в одном файле. Сегодня учимся раскладывать его на 3 файла — это пригодится для всех следующих проектов курса.">
+<div class="sl-body">
+  <div>
+    <div class="q-label">Идея урока</div>
+    <h2>Что <span class="acc">нового</span> сегодня</h2>
+  </div>
+  <div class="grid-2" style="margin-top:6px">
+    <div class="info-card">
+      <h3>Архитектура проекта</h3>
+      <p>Когда страница состоит из нескольких блоков с разным поведением, разработчики обычно разделяют код на три файла. У каждого файла своя понятная роль.</p>
+    </div>
+    <div class="info-card">
+      <h3>Продвинутый промтинг</h3>
+      <p>На уроке 1 мы давали готовые промпты. Сегодня учимся сочинять их сами, используя 5 техник, которые помогают нейросети точнее понять задачу.</p>
+    </div>
+  </div>
+  <div class="ek-note">К концу урока вы соберёте карточку любимого персонажа — с <b>3D-наклоном</b>, анимированными числами и биографией, которая открывается по клику.</div>
+</div>
+</section>
+
+<section class="slide slide--content"
+  data-notes="Покажите диаграмму. Аналогия: HTML — скелет страницы, CSS — её внешний вид, JS — поведение при действиях пользователя. Простая, ясная, запоминается.">
+<div class="sl-body">
+  <div>
+    <div class="q-label">Архитектура любого сайта</div>
+    <h2>Три файла — <span class="acc">три роли</span></h2>
+  </div>
+  <div class="grid-3" style="margin-top:6px">
+    <div class="info-card">
+      <h3>index.html</h3>
+      <p><b>Структура</b> — скелет страницы: что на ней есть.</p>
+    </div>
+    <div class="info-card">
+      <h3>style.css</h3>
+      <p><b>Внешний вид</b> — оформление: как это выглядит.</p>
+    </div>
+    <div class="info-card">
+      <h3>script.js</h3>
+      <p><b>Поведение</b> — реакция: что происходит при клике.</p>
+    </div>
+  </div>
+  <div class="ek-note"><b>Зачем разделять.</b> Меняете цвет — открываете только <span class="code-chip">style.css</span>. Меняете логику — только <span class="code-chip">script.js</span>. Это экономит время и помогает не сломать работающие части проекта.</div>
+</div>
+</section>
+
+<section class="slide slide--content"
+  data-notes="Покажите: файлы лежат рядом, но «знают друг о друге» через теги link и script в index.html.">
+<div class="sl-body">
+  <div>
+    <div class="q-label">Как файлы связаны</div>
+    <h2>Связь через <span class="acc">index.html</span></h2>
+  </div>
+  <div class="grid-2" style="margin-top:6px">
+    <div class="term">
+      <div class="term-head"><span class="win-dots"><i></i><i></i><i></i></span><span class="lang-badge">СТРУКТУРА ПАПКИ</span></div>
+      <div class="term-body">lesson-02/
+├── index.html  <span class="dim">← главный файл</span>
+├── style.css   <span class="dim">← подключается через &lt;link&gt;</span>
+└── script.js   <span class="dim">← подключается через &lt;script&gt;</span></div>
+    </div>
+    <div class="code-win">
+      <div class="code-head"><span class="win-dots"><i></i><i></i><i></i></span><span class="lang-badge">INDEX.HTML</span></div>
+      <div class="code-body">&lt;!DOCTYPE html&gt;
+&lt;html&gt;
+&lt;head&gt;
+  &lt;link rel=<span class="st">"stylesheet"</span> href=<span class="st">"style.css"</span>&gt;
+&lt;/head&gt;
+&lt;body&gt;
+
+  <span class="cm">&lt;!-- весь контент здесь --&gt;</span>
+
+  &lt;script src=<span class="st">"script.js"</span>&gt;&lt;/script&gt;
+&lt;/body&gt;
+&lt;/html&gt;</div>
+    </div>
+  </div>
+  <div class="ek-note"><span class="code-chip">&lt;link&gt;</span> ставится в <span class="code-chip">head</span>, чтобы стили загрузились до контента. <span class="code-chip">&lt;script&gt;</span> — в конце <span class="code-chip">body</span>, чтобы JS запускался после построения страницы. Без подключения файлы лежат рядом, но не «общаются»: без &lt;link&gt; страница откроется без стилей — текст без цветов и отступов, а без &lt;script&gt; не заработают кнопки и эффекты.</div>
+</div>
+</section>
+
+<section class="slide slide--content"
+  data-notes="Меню. Это обзор, дальше каждая техника отдельным слайдом с примерами «без техники / с техникой». Дайте ученикам сфоткать.">
+<div class="sl-body">
+  <div>
+    <div class="q-label">Главная часть урока</div>
+    <h2>Пять техник <span class="acc">продвинутого промтинга</span></h2>
+  </div>
+  <div class="kv" style="margin-top:6px">
+    <div class="kv-row"><div class="k">1 · Роль</div><div class="v">Какую роль берёт нейросеть в этом ответе.</div></div>
+    <div class="kv-row"><div class="k">2 · Контекст</div><div class="v">Для кого и зачем вы делаете проект.</div></div>
+    <div class="kv-row"><div class="k">3 · Формат</div><div class="v">В каком виде нужен ответ.</div></div>
+    <div class="kv-row"><div class="k">4 · Ограничения</div><div class="v">Что использовать не нужно.</div></div>
+    <div class="kv-row"><div class="k">5 · Итерация</div><div class="v">Точечные правки.</div></div>
+  </div>
+  <div class="ek-note ek-note--red">Заведите файл <span class="code-chip">prompts.md</span> в папке курса. Записывайте удачные промпты — пригодится на следующих уроках.</div>
+</div>
+</section>
+
+<section class="slide slide--content"
+  data-notes="Роль задаёт стиль ответа. Если попросить «дизайнера Apple» — получится одно решение, если попросить «художника Ghibli» — другое.">
+<div class="sl-body">
+  <div>
+    <div class="q-label">Техника 1 · Роль</div>
+    <h2>Укажите <span class="acc">роль</span> нейросети</h2>
+  </div>
+  <div class="vs" style="margin-top:6px">
+    <div class="vs-col vs-col--plain">
+      <h4>Без роли</h4>
+      <p>«Напиши код для карточки.»</p>
+      <p class="note">Нейросеть выберет стиль на своё усмотрение.</p>
+    </div>
+    <div class="vs-col vs-col--win">
+      <h4>С ролью</h4>
+      <p>«Ты <b>senior фронтенд-разработчик</b> с опытом в Apple и Stripe. Напиши код для карточки <b>в стиле Apple</b>: минималистично, много воздуха, лёгкие тени.»</p>
+      <p class="note">Ответ будет в характерном стиле компании.</p>
+    </div>
+  </div>
+  <div class="ek-note"><b>Полезные роли:</b> senior-дизайнер Apple, principal-инженер Google, креативный директор Pixar, художник студии Ghibli, UX-дизайнер из Linear.</div>
+</div>
+</section>
+
+<section class="slide slide--content"
+  data-notes="Контекст — для кого делаете. Помогает выбрать стиль и тон.">
+<div class="sl-body">
+  <div>
+    <div class="q-label">Техника 2 · Контекст</div>
+    <h2>Расскажите, <span class="acc">для кого</span> делаете</h2>
+  </div>
+  <div class="vs" style="margin-top:6px">
+    <div class="vs-col vs-col--plain">
+      <h4>Без контекста</h4>
+      <p>«Сделай мне сайт.»</p>
+      <p class="note">Нейросеть не знает аудиторию и выбирает усреднённое решение.</p>
+    </div>
+    <div class="vs-col vs-col--win">
+      <h4>С контекстом</h4>
+      <p>«Я делаю сайт-визитку для <b>портфолио школьника 14 лет</b>. Зрители — <b>преподаватели колледжа</b>, в который я хочу поступить. Цель — впечатление аккуратности и вкуса.»</p>
+      <p class="note">Нейросеть подберёт стиль под конкретную аудиторию.</p>
+    </div>
+  </div>
+</div>
+</section>
+
+<section class="slide slide--content"
+  data-notes="Формат вывода — это вид ответа. Если не указать формат, нейросеть может выдать длинный текст с объяснениями.">
+<div class="sl-body">
+  <div>
+    <div class="q-label">Техника 3 · Формат</div>
+    <h2>Скажите, <span class="acc">как ответить</span></h2>
+  </div>
+  <div class="vs" style="margin-top:6px">
+    <div class="vs-col vs-col--plain">
+      <h4>Без формата</h4>
+      <p>«Расскажи, как сделать кнопку.»</p>
+      <p class="note">Ответ будет с объяснениями, придётся фильтровать.</p>
+    </div>
+    <div class="vs-col vs-col--win">
+      <h4>С форматом</h4>
+      <p>«Ответь <b>только готовым кодом</b>, без объяснений. Один блок <span class="code-chip">```html</span> — один файл. Если нужны три файла — <b>три блока с подписью имени файла сверху</b>.»</p>
+      <p class="note">Ответ компактный, готов к копированию.</p>
+    </div>
+  </div>
+  <div class="ek-note"><b>Полезные форматы:</b> «таблицей», «списком из N пунктов», «JSON», «псевдокодом», «диаграммой через ASCII-арт».</div>
+</div>
+</section>
+
+<section class="slide slide--content"
+  data-notes="Ограничения — что использовать не нужно. Например, без библиотек, без emoji, не более N строк.">
+<div class="sl-body">
+  <div>
+    <div class="q-label">Техника 4 · Ограничения</div>
+    <h2>Укажите, <span class="acc">чего не использовать</span></h2>
+  </div>
+  <div class="vs" style="margin-top:6px">
+    <div class="vs-col vs-col--plain">
+      <h4>Без ограничений</h4>
+      <p>«Сделай интерактивную карточку.»</p>
+      <p class="note">Нейросеть может подключить библиотеки, которые не нужны учебному проекту.</p>
+    </div>
+    <div class="vs-col vs-col--win">
+      <h4>С ограничениями</h4>
+      <p>«Сделай карточку. Ограничения: <b>без библиотек</b> (никаких jQuery, Bootstrap, React). Только чистый HTML/CSS/JS. <b>Не более 80 строк CSS</b>. <b>Не используй !important</b>.»</p>
+      <p class="note">Код будет компактный и понятный.</p>
+    </div>
+  </div>
+  <div class="ek-note"><b>Полезные ограничения:</b> «без сторонних библиотек», «без классов и фреймворков», «не более N строк», «работает в одном файле», «не используй устаревшие теги».</div>
+</div>
+</section>
+
+<section class="slide slide--content"
+  data-notes="Самая важная техника на курсе. Если хотите изменить деталь — явно скажите: «оставь всё как есть, измени только Х».">
+<div class="sl-body">
+  <div>
+    <div class="q-label">Техника 5 · Итерация</div>
+    <h2>Делайте <span class="acc">точечные правки</span></h2>
+  </div>
+  <div class="vs" style="margin-top:6px">
+    <div class="vs-col vs-col--plain">
+      <h4>Слишком общая правка</h4>
+      <p>«Перепиши всё, чтобы было лучше.»</p>
+      <p class="note">Нейросеть может переписать весь код, и работающие части перестанут работать.</p>
+    </div>
+    <div class="vs-col vs-col--win">
+      <h4>Точечная правка</h4>
+      <p>«<b>Оставь весь код как есть.</b> Измени <b>только одно</b>: в файле <span class="code-chip">style.css</span>, в селекторе <span class="code-chip">.button</span>, поменяй цвет фона с <span class="code-chip">#7C3AED</span> на <span class="code-chip">#06B6D4</span>. Верни мне <b>только этот изменённый кусок</b>.»</p>
+      <p class="note">Изменится только нужное место.</p>
+    </div>
+  </div>
+  <div class="ek-note ek-note--green"><b>Полезная формула:</b> «Оставь всё как есть. Измени только Х. Верни только изменённый кусок».</div>
+</div>
+</section>
+
+<section class="slide slide--content"
+  data-notes="Главный проект урока. Каждый выбирает любимого персонажа — Гарри Поттер, Месси, Доктор Стрэндж, кто угодно.">
+<div class="sl-body">
+  <div>
+    <div class="q-label">Практика · 20 минут</div>
+    <h2>Карточка любимого <span class="acc">персонажа</span></h2>
+  </div>
+  <div class="grid-2" style="margin-top:8px">
+    <div>
+      <h3>Состав карточки</h3>
+      <ul class="clean">
+        <li>Имя, аватар, краткое описание</li>
+        <li>3 характеристики: Сила, Ум, Харизма (числа 1–100)</li>
+        <li>При наведении — <span class="hl">3D-наклон</span> в сторону курсора</li>
+        <li>При клике — <span class="hl">раскрывается биография</span></li>
+        <li>Стеклянный эффект (backdrop blur)</li>
+      </ul>
+    </div>
+    <div class="ek-note">
+      <h3>Как соберём</h3>
+      <ul class="clean">
+        <li>3 файла: <span class="code-chip">index.html</span> · <span class="code-chip">style.css</span> · <span class="code-chip">script.js</span></li>
+        <li>Без библиотек — чистый HTML, CSS, JavaScript</li>
+        <li>Запускаем через Live Server</li>
+      </ul>
+      <p style="margin-top:12px">Персонажа выбирайте сами: Гарри Поттер, Лионель Месси, Капитан Америка, Кратос…</p>
+    </div>
+  </div>
+</div>
+</section>
+
+<section class="slide slide--content"
+  data-notes="Стартовый промпт собирает в себе все 5 техник: роль, контекст, формат, ограничения. Дайте ученикам скопировать целиком.">
+<div class="sl-body">
+  <div>
+    <div class="q-label">Промпт #1 · стартовый</div>
+    <h2>Промпт со всеми <span class="acc">пятью техниками</span></h2>
+  </div>
+  <div class="prompt-card" style="margin-top:10px">
+    <span class="pc-tag">→ Новый чат DeepSeek</span>
+    <div class="pc-text">Ты <span class="hl">senior фронтенд-разработчик в стиле Apple/Linear</span>.
+Я делаю карточку любимого персонажа — <span class="hl">Гарри Поттера</span> (замените на своего). Зрители — мои одноклассники в школьном чате.
+
+Требования:
+- <span class="hl">Три файла</span>: index.html, style.css, script.js
+- В index.html — структура: имя, аватар (placeholder div), описание, три характеристики (Сила, Ум, Харизма) с числами 1-100
+- В style.css — тёмная тема, акцент <span class="hl">золотой #D4AF37</span>, стеклянный эффект (backdrop-filter blur), tilt 3D при наведении
+- В script.js — при клике на карточку показывается всплывающий блок с биографией (3-5 предложений)
+- <span class="hl">Без библиотек</span>, чистый код, должно работать в браузере без сервера
+
+Ответь <span class="hl">тремя блоками кода</span>, по одному на каждый файл, с подписью имени файла сверху.</div>
+  </div>
+</div>
+</section>
+
+<section class="slide slide--content"
+  data-notes="Покажите на проекторе: создаём 3 файла, копируем 3 блока кода, сохраняем, запускаем Live Server.">
+<div class="sl-body">
+  <div>
+    <div class="q-label">Создание проекта</div>
+    <h2>Три файла, <span class="acc">три блока кода</span></h2>
+  </div>
+  <div class="grid-2" style="margin-top:8px">
+    <ol class="steps steps--tight">
+      <li>В VS Code откройте папку <span class="code-chip">D:/vibe-coding/lesson-02/</span></li>
+      <li>Создайте 3 файла: <span class="code-chip">index.html</span>, <span class="code-chip">style.css</span>, <span class="code-chip">script.js</span></li>
+      <li>В DeepSeek нажмите Copy на первом блоке (HTML) → вставьте в <span class="code-chip">index.html</span></li>
+      <li>Тем же способом — со вторым (CSS) и третьим (JS)</li>
+      <li>Сохраните все три файла (<span class="code-chip">Ctrl+S</span> в каждом)</li>
+      <li>Правый клик по <span class="code-chip">index.html</span> → <b>Open with Live Server</b></li>
+    </ol>
+    <div class="ek-note ek-note--red">
+      <h3>Если страница пустая</h3>
+      <p>Откройте DevTools (F12) → вкладка <b>Console</b>. Там будет ошибка красным. Скопируйте её текст и отправьте в DeepSeek с вопросом «как исправить?».</p>
+      <p style="margin-top:10px">В большинстве случаев нейросеть исправляет за один ответ.</p>
+    </div>
+  </div>
+</div>
+</section>
+
+<section class="slide slide--content"
+  data-notes="Первая правка — добавляем настоящий аватар. Используем технику Итерации: «измени только Х, остальное не трогай».">
+<div class="sl-body">
+  <div>
+    <div class="q-label">Правка 1 · аватар</div>
+    <h2>Точечная правка <span class="acc">через диалог</span></h2>
+  </div>
+  <div class="prompt-card prompt-card--copy" style="margin-top:10px">
+    <span class="pc-tag">→ В тот же чат</span>
+    <div class="pc-text">Замени placeholder-аватар на <span class="hl">круглую картинку 140×140 пикселей</span>. Картинку возьми по ссылке https://api.dicebear.com/7.x/adventurer/svg?seed=Harry
+
+Изменения <span class="hl">только в index.html</span> и в селекторе <span class="hl">.avatar в style.css</span>. Остальной код не трогай.
+
+Верни мне только изменённые куски.</div>
+  </div>
+  <div class="ek-note">Замените <span class="code-chip">seed=Harry</span> на имя вашего персонажа.</div>
+</div>
+</section>
+
+<section class="slide slide--content"
+  data-notes="Вторая правка — в JS. Анимация чисел от 0 до значений. Покажите, как нейросеть добавляет функцию, не трогая существующие.">
+<div class="sl-body">
+  <div>
+    <div class="q-label">Правка 2 · анимация чисел</div>
+    <h2>Добавляем <span class="acc">поведение в JS</span></h2>
+  </div>
+  <div class="prompt-card prompt-card--copy" style="margin-top:10px">
+    <span class="pc-tag">→ В тот же чат</span>
+    <div class="pc-text">В script.js добавь функцию: при загрузке страницы числа характеристик (Сила, Ум, Харизма) <span class="hl">анимируются от 0 до своих значений за 1 секунду</span>.
+
+Не трогай другие функции. Добавь новую и вызови её при <span class="hl">DOMContentLoaded</span>.
+
+Верни только новый код, который нужно добавить.</div>
+  </div>
+  <div class="ek-note"><b>DOMContentLoaded</b> — событие, которое срабатывает, когда страница полностью загрузилась. Анимировать числа до загрузки бесполезно — на экране их ещё нет.</div>
+</div>
+</section>
+
+<section class="slide slide--content"
+  data-notes="Самая зрелищная правка. Tilt 3D — карточка наклоняется в сторону курсора.">
+<div class="sl-body">
+  <div>
+    <div class="q-label">Правка 3 · 3D-наклон</div>
+    <h2>Эффект «наклон <span class="acc">в сторону курсора</span>»</h2>
+  </div>
+  <div class="prompt-card prompt-card--copy" style="margin-top:10px">
+    <span class="pc-tag">→ В тот же чат</span>
+    <div class="pc-text">Сейчас при наведении карточка просто увеличивается. Сделай эффект <span class="hl">3D-наклона</span>: карточка <span class="hl">наклоняется в сторону курсора</span>, как в интерфейсах с глубиной (например, на промо-страницах Apple).
+
+Реализуй на <span class="hl">чистом JS в script.js</span>, через transform: rotateX(...) rotateY(...) и событие mousemove.
+
+<span class="hl">Без библиотек</span>. Только то, что уже подключено.</div>
+  </div>
+</div>
+</section>
+
+<section class="slide slide--content"
+  data-notes="Главный навык: фиксируйте точки отката. Перед серьёзной правкой — копия. Иначе можно случайно потерять час работы.">
+<div class="sl-body">
+  <div>
+    <div class="q-label">Полезный навык</div>
+    <h2>Если правка <span class="acc">ломает код</span></h2>
+  </div>
+  <div class="grid-2" style="margin-top:8px">
+    <div>
+      <h3>Точка отката</h3>
+      <p><b>Перед серьёзной правкой сохраняйте копию.</b></p>
+      <ol class="steps steps--tight" style="margin-top:10px">
+        <li>Скопируйте <span class="code-chip">index.html</span> в <span class="code-chip">index_v2.html</span></li>
+        <li>Сделайте правку</li>
+        <li>Не подошло — удалите изменённый файл, переименуйте копию обратно</li>
+      </ol>
+      <p style="margin-top:12px">С урока 3 будем делать это автоматически через Git. Пока — копируем руками.</p>
+    </div>
+    <div class="ek-note ek-note--red">
+      <h3>Если нейросеть «зациклилась»</h3>
+      <p>Иногда правки приводят к одной и той же ошибке. Откройте <b>новый чат</b> в DeepSeek.</p>
+      <p style="margin-top:8px">В первом сообщении приложите <span class="hl">весь актуальный код</span> (3 файла) и опишите, что нужно сделать.</p>
+      <p style="margin-top:8px">Длинные диалоги начинают «забываться». Свежий чат начинает с нуля.</p>
+    </div>
+  </div>
+</div>
+</section>
+
+<section class="slide slide--content"
+  data-notes="Простой вопрос для проверки понимания. Подождите 10–15 секунд, потом разберите варианты ответов.">
+<div class="sl-body">
+  <div>
+    <div class="q-label">Проверка</div>
+    <h2>Изучите ситуацию <span class="acc">и ответьте</span></h2>
+  </div>
+  <div class="quiz-box" style="margin-top:8px">
+    <span class="q-num">Вопрос</span>
+    <p class="q-text">Вы сделали 5 правок подряд, последняя — добавление tilt-эффекта. После неё клик по карточке перестал открывать биографию. Какой промпт описывает ситуацию точнее всего?</p>
+    <div class="quiz-answer">
+      <button class="quiz-btn" type="button">Показать ответ</button>
+      <div class="quiz-reveal">
+        <p>«После добавления tilt-эффекта перестал срабатывать обработчик click на карточке. Скорее всего, mousemove или transform мешает событию click. Как исправить, не убирая tilt? Верни только изменённый кусок script.js.»</p>
+        <p>Здесь есть и описание ситуации, и гипотеза, и точечная правка, и формат ответа.</p>
+      </div>
+    </div>
+  </div>
+</div>
+</section>
+
+<section class="slide slide--content"
+  data-notes="Закрепление. 5 правил, которые важно унести с урока.">
+<div class="sl-body">
+  <div>
+    <div class="q-label">Запомните</div>
+    <h2>Пять полезных <span class="acc">привычек</span></h2>
+  </div>
+  <div class="kv" style="margin-top:8px">
+    <div class="kv-row"><div class="k">01 · Три файла</div><div class="v">Любой проект разбиваем на структуру (HTML), оформление (CSS), поведение (JS).</div></div>
+    <div class="kv-row"><div class="k">02 · Маленькие промпты</div><div class="v">Одна правка — один промпт. Так проще сохранять контроль над проектом.</div></div>
+    <div class="kv-row"><div class="k">03 · «Оставь всё как есть»</div><div class="v">Полезная фраза для точечных правок. Помогает нейросети не «расходиться».</div></div>
+    <div class="kv-row"><div class="k">04 · Точка отката</div><div class="v">Перед серьёзным изменением — копия файла. Спасает время и работу.</div></div>
+    <div class="kv-row"><div class="k">05 · Контекст устаревает</div><div class="v">Чат стал длинным и нейросеть путается — открывайте новый, прикладывайте актуальный код.</div></div>
+  </div>
+</div>
+</section>
+
+<section class="slide slide--content"
+  data-notes="ДЗ: галерея из 3 героев + фильтр. Это шаг от одного компонента к мини-приложению.">
+<div class="sl-body">
+  <div>
+    <div class="q-label">Домашнее задание · около 30 минут</div>
+    <h2>Галерея из трёх <span class="acc">персонажей</span></h2>
+  </div>
+  <div class="grid-3" style="margin-top:8px">
+    <div class="info-card">
+      <h3>HTML</h3>
+      <p>Дополните <span class="code-chip">index.html</span> ещё двумя карточками. Получится 3 персонажа в одном проекте.</p>
+    </div>
+    <div class="info-card">
+      <h3>CSS</h3>
+      <p>Оформите <span class="hl">grid-сетку</span>: на десктопе — 3 в ряд, на мобильном — 1 в ряд. Используйте <span class="code-chip">@media</span>.</p>
+    </div>
+    <div class="info-card">
+      <h3>JS</h3>
+      <p>Добавьте <span class="hl">фильтр сверху</span>: кнопки «Все / Спорт / Кино / Игры». При клике показываются только нужные карточки.</p>
+    </div>
+  </div>
+  <div class="ek-note ek-note--red">Пришлите в чат: скриншот галереи и один <span class="hl">самый удачный промпт</span> из своих за это задание.</div>
+</div>
+</section>
+
+<section class="slide slide--green"
+  data-notes="Закройте урок. На следующем уроке страница научится реагировать на действия пользователя: клики, ввод, события и DOM. Соберём список задач, который запоминает данные между перезагрузками через localStorage.">
+<div class="sl-orbit">
+    <i class="sl-ring"></i>
+    <svg class="sl-ico" viewBox="0 0 100 100" style="left:75px;top:20px;width:150px;height:150px;transform:rotate(-10deg)"><use href="#ek-i-trophy"/></svg>
+    <i class="sl-letter" style="left:466px;top:13px;width:78px;height:78px;--fs:36px">D</i>
+    <svg class="sl-ico" viewBox="0 0 100 100" style="left:1040px;top:15px;width:130px;height:130px;transform:rotate(12deg)"><use href="#ek-i-heart"/></svg>
+    <i class="sl-letter" style="left:68px;top:268px;width:100px;height:100px;--fs:46px">O</i>
+    <i class="sl-letter" style="left:1137px;top:327px;width:95px;height:95px;--fs:44px">M</i>
+    <svg class="sl-ico" viewBox="0 0 100 100" style="left:102px;top:532px;width:125px;height:125px;transform:rotate(-15deg)"><use href="#ek-i-star"/></svg>
+    <i class="sl-letter" style="left:726px;top:613px;width:78px;height:78px;--fs:36px">J</i>
+    <svg class="sl-ico" viewBox="0 0 100 100" style="left:1045px;top:540px;width:110px;height:110px;transform:rotate(8deg)"><use href="#ek-i-gem"/></svg>
+  </div>
+  <div class="cover-center">
+    <div class="bubble">
+      <h1>До встречи<br>на уроке 3!</h1>
+      <p>Сегодня собрали интерактивную карточку персонажа из трёх файлов и освоили пять техник промтинга. На следующем уроке страница научится реагировать на клики и ввод: соберём список задач, который запоминает данные между перезагрузками через localStorage.</p>
+      <div class="cover-chips"><span class="chip">Урок 3 · События и DOM</span><span class="chip chip--green">localStorage</span><span class="chip chip--gray">Список задач</span></div>
+    </div>
+  </div>
+</section>
+</main>
+
+<div class="notes" id="notes">
+  <div class="notes__header">Заметки преподавателя &middot; N — скрыть</div>
+  <div class="notes__body" id="notesBody">—</div>
+</div>
+
+<div class="hint"><kbd>←</kbd><kbd>→</kbd> слайды &middot; <kbd>N</kbd> заметки &middot; <kbd>F</kbd> весь экран</div>
+
+<svg width="0" height="0" style="position:absolute" aria-hidden="true"><defs>
+<symbol id="ek-i-trophy" viewBox="0 0 100 100"><path fill="currentColor" d="M24 16h52v12h8c6 0 10 4 10 10 0 15-11 25-23 27-3 5-8 9-14 10v8h14c4 0 7 3 7 7v4H22v-4c0-4 3-7 7-7h14v-8c-6-1-11-5-14-10C17 63 6 53 6 38c0-6 4-10 10-10h8V16zM24 36h-7c-2 0-4 2-4 4 0 8 5 15 12 18-1-5-1-10-1-16v-6zM76 36v6c0 6 0 11-1 16 7-3 12-10 12-18 0-2-2-4-4-4h-7z"/></symbol>
+<symbol id="ek-i-heart" viewBox="0 0 100 100"><path fill="currentColor" d="M50 88C28 72 10 56 10 38 10 24 21 14 34 14c6 0 12 3 16 8 4-5 10-8 16-8 13 0 24 10 24 24 0 18-18 34-40 50z"/></symbol>
+<symbol id="ek-i-star" viewBox="0 0 100 100"><path fill="currentColor" d="M50 8l12 27 29 3-22 20 6 29-25-15-25 15 6-29L9 38l29-3z"/></symbol>
+<symbol id="ek-i-gem" viewBox="0 0 100 100"><path fill="currentColor" d="M30 12h40l18 24-38 52L12 36zM36 20l-12 16h20zM64 20l-8 16h20zM50 22l-9 14h18zM26 44l20 30-8-30zM62 44l-8 30 20-30zM46 44h8l-4 26z"/></symbol>
+</defs></svg>
+
+<script>
+/* ============ Автомасштаб сцены ============ */
+(function(){
+  'use strict';
+  var stage = document.getElementById('deck');
+  function fit(){
+    var w = window.innerWidth, h = window.innerHeight;
+    if (!w || !h) return;
+    var s = Math.min(w / 1320, h / 780);
+    if (document.fullscreenElement) s = Math.min(w / 1280, h / 720);
+    stage.style.transform = 'translate(-50%,-50%) scale(' + s + ')';
+    stage.style.borderRadius = document.fullscreenElement ? '0' : '18px';
+  }
+  window.addEventListener('resize', fit);
+  document.addEventListener('fullscreenchange', fit);
+  fit();
+})();
+
+/* ============ Навигация по слайдам ============ */
+(function(){
+  'use strict';
+  var slides = Array.prototype.slice.call(document.querySelectorAll('.slide'));
+  var total = slides.length;
+  var idx = 0;
+  document.getElementById('total').textContent = total;
+
+  var progressEl = document.getElementById('progress');
+  var currentEl = document.getElementById('current');
+  var notesPanel = document.getElementById('notes');
+  var notesBody = document.getElementById('notesBody');
+
+  slides.forEach(function(s, i){
+    if (s.classList.contains('slide--content')) s.setAttribute('data-page', i + 1);
+  });
+
+  function render(){
+    slides.forEach(function(s, i){
+      s.classList.remove('active', 'prev');
+      if (i === idx) s.classList.add('active');
+      else if (i < idx) s.classList.add('prev');
+    });
+    progressEl.style.width = ((idx + 1) / total * 100).toFixed(2) + '%';
+    currentEl.textContent = idx + 1;
+    notesBody.textContent = slides[idx].getAttribute('data-notes') || '—';
+  }
+
+  function go(n){ idx = Math.max(0, Math.min(total - 1, n)); render(); }
+  function next(){ go(idx + 1); }
+  function prev(){ go(idx - 1); }
+
+  document.addEventListener('keydown', function(e){
+    var active = document.activeElement;
+    if (active && (active.isContentEditable || active.tagName === 'TEXTAREA' || active.tagName === 'INPUT')) return;
+    switch (e.key){
+      case 'ArrowRight': case 'PageDown': case ' ':
+        e.preventDefault(); next(); break;
+      case 'ArrowLeft': case 'PageUp':
+        e.preventDefault(); prev(); break;
+      case 'Home': e.preventDefault(); go(0); break;
+      case 'End': e.preventDefault(); go(total - 1); break;
+      case 'f': case 'F': case 'а': case 'А':
+        e.preventDefault();
+        if (!document.fullscreenElement){ if (document.documentElement.requestFullscreen) document.documentElement.requestFullscreen(); }
+        else if (document.exitFullscreen) document.exitFullscreen();
+        break;
+      case 'n': case 'N': case 'т': case 'Т':
+        e.preventDefault(); notesPanel.classList.toggle('active'); break;
+      case 'Escape':
+        if (document.fullscreenElement && document.exitFullscreen) document.exitFullscreen();
+        notesPanel.classList.remove('active'); break;
+    }
+  });
+
+  var tx = 0, ty = 0;
+  document.addEventListener('touchstart', function(e){ tx = e.changedTouches[0].screenX; ty = e.changedTouches[0].screenY; }, { passive: true });
+  document.addEventListener('touchend', function(e){
+    var dx = e.changedTouches[0].screenX - tx, dy = e.changedTouches[0].screenY - ty;
+    if (Math.abs(dx) > 60 && Math.abs(dx) > Math.abs(dy)){ if (dx < 0) next(); else prev(); }
+  }, { passive: true });
+
+  document.addEventListener('click', function(e){
+    if (e.target.closest('a,button,input,textarea,code,pre,[contenteditable],.code-win,.term,.prompt-card,.quiz-box,.notes')) return;
+    var x = e.clientX, w = window.innerWidth;
+    if (x < w * 0.25) prev();
+    else if (x > w * 0.75) next();
+  });
+
+  render();
+})();
+
+/* ============ Квизы: показать ответ ============ */
+(function(){
+  'use strict';
+  Array.prototype.slice.call(document.querySelectorAll('.quiz-btn')).forEach(function(btn){
+    btn.addEventListener('click', function(e){
+      e.stopPropagation();
+      var box = btn.closest('.quiz-box');
+      var reveal = box && box.querySelector('.quiz-reveal');
+      if (!reveal) return;
+      var shown = reveal.classList.toggle('show');
+      btn.textContent = shown ? 'Скрыть ответ' : 'Показать ответ';
+    });
+  });
+})();
+</script>
+</body>
+</html>

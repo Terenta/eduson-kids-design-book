@@ -1,0 +1,1189 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Урок 4 — Своя браузерная игра на Canvas | Eduson Kids</title>
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter+Tight:wght@600;700;800;900&family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;700&display=swap">
+
+<style>
+/* ============ Дизайн-токены Eduson Kids ============ */
+:root{
+  --ek-violet:#8C7FF6; --ek-violet-soft:#A79EF9; --ek-violet-deep:#6F61E8; --ek-violet-bg:#F0EEFE;
+  --ek-green:#3DF79D; --ek-green-soft:#7BF9BD; --ek-green-mint:#C9F7E3; --ek-green-pale:#E7FDF2; --ek-green-deep:#0FBF6E;
+  --ek-ink:#17171C; --ek-gray:#8F8F98; --ek-gray-light:#EFEFF2; --ek-line:#E3E3EA;
+  --ek-red:#FF6B6B; --ek-red-soft:#FF8A8A; --ek-red-deep:#E04848; --ek-red-pale:#FFECEC;
+  --f-head:'Inter Tight','Inter','Segoe UI',system-ui,sans-serif;
+  --f-body:'Inter','Segoe UI',system-ui,sans-serif;
+  --f-mono:'JetBrains Mono','Cascadia Mono','Consolas',monospace;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{height:100%;overflow:hidden}
+body{font-family:var(--f-body);background:#E9E9F1;color:var(--ek-ink);-webkit-font-smoothing:antialiased}
+
+/* ============ Хром: прогресс, счётчик, подсказка ============ */
+.progress{position:fixed;top:0;left:0;right:0;height:4px;background:rgba(23,23,28,.08);z-index:100}
+.progress__fill{height:100%;width:0%;background:var(--ek-violet);transition:width 300ms ease}
+.counter{position:fixed;top:14px;right:18px;z-index:90;font:600 13px var(--f-body);color:var(--ek-gray);background:#fff;border:1px solid var(--ek-line);padding:6px 14px;border-radius:999px;font-variant-numeric:tabular-nums}
+.counter b{color:var(--ek-ink)}
+.hint{position:fixed;bottom:12px;left:50%;transform:translateX(-50%);z-index:90;font:500 11px var(--f-body);color:var(--ek-gray);background:#fff;border:1px solid var(--ek-line);padding:6px 14px;border-radius:999px;letter-spacing:.03em}
+.hint kbd{font-family:var(--f-mono);background:var(--ek-gray-light);padding:1px 6px;border-radius:4px;font-size:10px;margin:0 2px;color:var(--ek-ink)}
+
+/* ============ Сцена 1280×720 ============ */
+.stage{position:absolute;left:50%;top:50%;width:1280px;height:720px;transform:translate(-50%,-50%);border-radius:18px;overflow:hidden;box-shadow:0 30px 90px rgba(23,23,28,.18);background:#fff}
+.slide{position:absolute;inset:0;background:#fff;opacity:0;transform:translateY(26px);transition:opacity 280ms ease,transform 280ms ease;pointer-events:none;font-family:var(--f-head)}
+.slide.active{opacity:1;transform:none;pointer-events:auto}
+.slide.prev{transform:translateY(-26px)}
+.slide--violet{background:var(--ek-violet)}
+.slide--green{background:var(--ek-green)}
+
+/* Номер страницы на контентных слайдах */
+.slide--content::after{content:attr(data-page);position:absolute;right:54px;bottom:30px;font:800 30px/1 var(--f-head);color:var(--ek-ink);opacity:.5}
+
+/* ============ Декор «Орбита» ============ */
+.sl-orbit{position:absolute;inset:0;pointer-events:none}
+.slide--violet .sl-orbit{--decor:#A79EF9;--letter:#C4BEFA}
+.slide--green .sl-orbit{--decor:#7BF9BD;--letter:#C4FCE0}
+.sl-ring{position:absolute;left:50%;top:50%;width:1040px;height:660px;transform:translate(-50%,-50%);border:3px solid var(--decor);border-radius:50%;opacity:.9}
+.sl-ico{position:absolute;color:var(--decor)}
+.sl-letter{position:absolute;border-radius:50%;background:var(--decor);color:var(--letter);display:flex;align-items:center;justify-content:center;font:800 var(--fs,40px)/1 var(--f-head);font-style:normal}
+
+/* ============ Каверы: карточка-окно и спич-бабл ============ */
+.cover-center{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);z-index:2}
+.cover-card{position:relative;width:860px;background:#fff;border-radius:28px;box-shadow:0 30px 80px rgba(23,23,28,.18)}
+.card-top{display:flex;justify-content:space-between;align-items:center;padding:24px 30px 0}
+.win-dots{display:flex;gap:9px}
+.win-dots i{width:13px;height:13px;border-radius:50%;background:var(--ek-violet)}
+.win-close{position:relative;width:22px;height:22px}
+.win-close::before,.win-close::after{content:"";position:absolute;left:-1px;top:9px;width:24px;height:4px;border-radius:2px;background:var(--ek-violet)}
+.win-close::before{transform:rotate(45deg)}
+.win-close::after{transform:rotate(-45deg)}
+.cover-card .badge{position:absolute;left:50%;top:-30px;transform:translateX(-50%) rotate(-4deg)}
+.cover-card h1{padding:26px 64px 30px;text-align:center;font:800 50px/1.14 var(--f-head);letter-spacing:-.015em;color:var(--ek-ink)}
+.cover-card .cover-sub{padding:0 80px 34px;text-align:center;font:500 19px/1.5 var(--f-body);color:#3C3C45}
+.cover-card .cover-chips{display:flex;justify-content:center;gap:10px;flex-wrap:wrap;padding:0 40px 40px}
+.bubble{position:relative;width:660px;background:#EFEFF1;border-radius:30px;padding:56px 70px;text-align:center}
+.bubble::after{content:"";position:absolute;right:56px;bottom:-24px;width:0;height:0;border-left:38px solid transparent;border-top:28px solid #EFEFF1}
+.bubble h1{font:800 42px/1.25 var(--f-head);letter-spacing:-.01em;color:var(--ek-ink)}
+.bubble p{margin-top:16px;font:500 18px/1.5 var(--f-body);color:#3C3C45}
+
+/* ============ Стикер-бейдж и чипы ============ */
+.badge{display:inline-block;background:var(--ek-green);color:var(--ek-ink);font:800 24px/1 var(--f-head);padding:13px 22px;border-radius:13px;transform:rotate(-3deg);box-shadow:0 10px 24px rgba(23,23,28,.10)}
+.badge--violet{background:var(--ek-violet);color:#fff}
+.badge--sm{font-size:16px;padding:9px 16px;border-radius:10px}
+.chip{display:inline-block;font:700 14px/1 var(--f-body);padding:8px 14px;border-radius:999px;background:var(--ek-violet-bg);color:var(--ek-violet-deep)}
+.chip--green{background:var(--ek-green-pale);color:var(--ek-green-deep)}
+.chip--gray{background:var(--ek-gray-light);color:#3C3C45}
+
+/* ============ Контентные слайды ============ */
+.sl-body{position:absolute;inset:0;padding:56px 80px 62px;display:flex;flex-direction:column;gap:16px;overflow:hidden}
+h2{font:800 38px/1.16 var(--f-head);letter-spacing:-.01em;color:var(--ek-ink)}
+.acc{color:var(--ek-violet-deep)}
+.sl-body>p, .col p{font:500 18px/1.5 var(--f-body);color:#3C3C45}
+.code-chip{font-family:var(--f-mono);font-weight:700;font-size:.88em;background:var(--ek-violet-bg);color:var(--ek-violet-deep);padding:2px 8px;border-radius:8px;white-space:nowrap}
+.hl{color:var(--ek-violet-deep);font-weight:700}
+.out-chip{font-family:var(--f-mono);font-weight:700;font-size:.88em;background:var(--ek-green-pale);color:#0B7A48;padding:2px 8px;border-radius:8px;white-space:nowrap}
+
+.grid-2{display:grid;grid-template-columns:1fr 1fr;gap:22px;align-items:start}
+.grid-3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:18px;align-items:stretch}
+
+.info-card{background:#F5F5F9;border-radius:18px;padding:18px 22px;font:500 16px/1.55 var(--f-body);color:#3C3C45}
+.info-card h3{font:800 19px/1.3 var(--f-head);color:var(--ek-ink);margin-bottom:8px}
+.ek-note{background:var(--ek-violet-bg);border-left:4px solid var(--ek-violet);border-radius:0 14px 14px 0;padding:14px 20px;font:600 17px/1.5 var(--f-body);color:#3C3560}
+.ek-note--green{background:var(--ek-green-pale);border-left-color:var(--ek-green-deep);color:#0B5B39}
+.ek-note--red{background:var(--ek-red-pale);border-left-color:var(--ek-red);color:#7A2E2E}
+
+ul.clean{list-style:none;display:flex;flex-direction:column;gap:10px}
+ul.clean li{display:flex;gap:14px;align-items:flex-start;font:500 17.5px/1.5 var(--f-body);color:#3C3C45}
+ul.clean li::before{content:'—';flex:0 0 auto;color:var(--ek-violet-deep);font-weight:800}
+
+ol.steps{list-style:none;counter-reset:step;display:flex;flex-direction:column;gap:12px}
+ol.steps li{counter-increment:step;display:flex;gap:16px;align-items:center;padding:14px 20px;background:#F5F5F9;border-radius:16px;font:500 17.5px/1.45 var(--f-body);color:#2E2E36}
+ol.steps li::before{content:counter(step);flex:0 0 40px;height:40px;display:flex;align-items:center;justify-content:center;border-radius:50%;background:var(--ek-violet);font:800 18px var(--f-head);color:#fff}
+ol.steps li:last-child::before{background:var(--ek-green);color:var(--ek-ink)}
+ol.steps.steps--tight{gap:8px}
+ol.steps.steps--tight li{padding:9px 16px;font-size:15.5px;gap:12px}
+ol.steps.steps--tight li::before{flex-basis:32px;height:32px;font-size:14px}
+
+.q-label{font:700 13px/1 var(--f-head);letter-spacing:.08em;text-transform:uppercase;color:var(--ek-gray)}
+
+/* ============ План занятия (agenda) ============ */
+.agenda{display:flex;flex-direction:column;gap:8px}
+.agenda-row{display:flex;gap:16px;align-items:center;padding:10px 18px;background:#F5F5F9;border-radius:14px}
+.agenda-row .t{flex:0 0 84px;text-align:center;font:800 14px/1 var(--f-mono);color:var(--ek-ink);background:var(--ek-green);border-radius:999px;padding:8px 0}
+.agenda-row .tt{font:700 16.5px/1.3 var(--f-head);color:var(--ek-ink)}
+.agenda-row .dd{font:500 14px/1.4 var(--f-body);color:var(--ek-gray)}
+
+/* ============ Ключ-значение (привычки, шпаргалки) ============ */
+.kv{display:flex;flex-direction:column}
+.kv-row{display:grid;grid-template-columns:250px 1fr;gap:18px;align-items:start;padding:11px 4px;border-bottom:1.5px solid var(--ek-line)}
+.kv-row:last-child{border-bottom:none}
+.kv-row .k{font:800 14px/1.35 var(--f-head);letter-spacing:.05em;text-transform:uppercase;color:var(--ek-violet-deep);padding-top:2px}
+.kv-row .v{font:500 16.5px/1.5 var(--f-body);color:#3C3C45}
+
+/* ============ Окно кода (статичное) ============ */
+.code-win{background:#fff;border:2.5px solid var(--ek-ink);border-radius:16px;overflow:hidden;font-family:var(--f-mono);box-shadow:10px 10px 0 rgba(140,127,246,.14)}
+.code-head{display:flex;align-items:center;justify-content:space-between;padding:9px 16px;border-bottom:2px solid var(--ek-ink)}
+.code-head .win-dots i{width:11px;height:11px}
+.lang-badge{font:700 11px var(--f-mono);letter-spacing:.14em;color:var(--ek-gray)}
+.code-body{padding:14px 20px;font:500 14.5px/1.6 var(--f-mono);color:var(--ek-ink);white-space:pre;overflow:auto;max-height:400px;tab-size:4}
+.code-body .cm{color:var(--ek-gray)}
+.code-body .st{color:var(--ek-green-deep)}
+.code-body .kw{color:var(--ek-violet-deep);font-weight:700}
+
+/* ============ Терминал (тёмное окно) ============ */
+.term{background:var(--ek-ink);border-radius:16px;overflow:hidden;font-family:var(--f-mono);box-shadow:10px 10px 0 rgba(23,23,28,.12)}
+.term-head{display:flex;align-items:center;justify-content:space-between;padding:9px 16px;border-bottom:1px solid rgba(255,255,255,.14)}
+.term-head .win-dots i{width:11px;height:11px;background:var(--ek-green)}
+.term-head .lang-badge{color:rgba(255,255,255,.5)}
+.term-body{padding:14px 20px;font:500 14.5px/1.62 var(--f-mono);color:var(--ek-green);white-space:pre-wrap;word-break:break-word;overflow:auto;max-height:420px}
+.term-body .usr{color:#fff}
+.term-body .dim{color:rgba(255,255,255,.55)}
+
+/* ============ Промпт-карточка (диалог с DeepSeek) ============ */
+.prompt-card{position:relative;background:var(--ek-violet-bg);border:2.5px solid var(--ek-violet);border-radius:18px;padding:20px 26px 18px;box-shadow:10px 10px 0 rgba(140,127,246,.18)}
+.prompt-card .pc-tag{position:absolute;top:-16px;left:22px;background:var(--ek-violet);color:#fff;font:800 14px/1 var(--f-head);padding:9px 16px;border-radius:10px;transform:rotate(-2deg);box-shadow:0 8px 18px rgba(23,23,28,.12)}
+.prompt-card .pc-text{margin-top:6px;font:500 15px/1.62 var(--f-mono);color:#2E2A52;white-space:pre-wrap}
+.prompt-card .pc-text .hl{color:var(--ek-violet-deep)}
+.prompt-card--copy .pc-tag{background:var(--ek-green);color:var(--ek-ink)}
+
+/* ============ Сравнение (vs) ============ */
+.vs{display:grid;grid-template-columns:1fr 1fr;gap:20px;align-items:stretch}
+.vs-col{border-radius:18px;padding:20px 24px}
+.vs-col h4{font:800 15px/1 var(--f-head);letter-spacing:.08em;text-transform:uppercase;margin-bottom:12px}
+.vs-col p{font:500 16px/1.55 var(--f-body)}
+.vs-col .note{margin-top:12px;font:500 13.5px/1.4 var(--f-body);opacity:.75}
+.vs-col--plain{background:var(--ek-gray-light);color:#3C3C45}
+.vs-col--plain h4{color:var(--ek-gray)}
+.vs-col--win{background:var(--ek-green-pale);color:#124F35;border:2px solid var(--ek-green-soft)}
+.vs-col--win h4{color:var(--ek-green-deep)}
+
+/* ============ Квиз с раскрытием ответа ============ */
+.quiz-box{background:#F5F5F9;border:2.5px solid var(--ek-ink);border-radius:18px;padding:22px 26px;box-shadow:10px 10px 0 rgba(61,247,157,.25)}
+.quiz-box .q-num{display:inline-block;background:var(--ek-green);color:var(--ek-ink);font:800 13px/1 var(--f-head);letter-spacing:.08em;text-transform:uppercase;padding:8px 14px;border-radius:999px;margin-bottom:14px}
+.quiz-box .q-text{font:700 21px/1.42 var(--f-head);color:var(--ek-ink)}
+.quiz-answer{margin-top:16px}
+.quiz-btn{border:0;border-radius:12px;padding:12px 22px;font:800 15px/1 var(--f-head);cursor:pointer;background:var(--ek-violet);color:#fff;transition:background .15s}
+.quiz-btn:hover{background:var(--ek-violet-deep)}
+.quiz-reveal{display:none;margin-top:14px;background:var(--ek-green-pale);border-left:4px solid var(--ek-green-deep);border-radius:0 14px 14px 0;padding:14px 20px;font:500 16.5px/1.55 var(--f-body);color:#0B5B39}
+.quiz-reveal.show{display:block}
+.quiz-reveal p+p{margin-top:8px}
+
+/* Появление контента */
+.slide.active .info-card,.slide.active ul.clean li,.slide.active ol.steps li,.slide.active .grid-2>*,.slide.active .grid-3>*,.slide.active .agenda-row,.slide.active .kv-row{animation:reveal 450ms ease backwards}
+.slide.active .info-card:nth-child(2),.slide.active ul.clean li:nth-child(2),.slide.active ol.steps li:nth-child(2),.slide.active .grid-2>*:nth-child(2),.slide.active .grid-3>*:nth-child(2),.slide.active .agenda-row:nth-child(2),.slide.active .kv-row:nth-child(2){animation-delay:80ms}
+.slide.active ul.clean li:nth-child(3),.slide.active ol.steps li:nth-child(3),.slide.active .grid-3>*:nth-child(3),.slide.active .agenda-row:nth-child(3),.slide.active .kv-row:nth-child(3){animation-delay:160ms}
+.slide.active ol.steps li:nth-child(4),.slide.active .agenda-row:nth-child(4),.slide.active .kv-row:nth-child(4){animation-delay:240ms}
+.slide.active ol.steps li:nth-child(5),.slide.active .agenda-row:nth-child(5),.slide.active .kv-row:nth-child(5){animation-delay:320ms}
+.slide.active .agenda-row:nth-child(6),.slide.active ol.steps li:nth-child(6),.slide.active .kv-row:nth-child(6){animation-delay:400ms}
+.slide.active .agenda-row:nth-child(7),.slide.active ol.steps li:nth-child(7),.slide.active .kv-row:nth-child(7){animation-delay:480ms}
+@keyframes reveal{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:translateY(0)}}
+@media (prefers-reduced-motion:reduce){.slide.active .info-card,.slide.active ul.clean li,.slide.active ol.steps li,.slide.active .grid-2>*,.slide.active .grid-3>*,.slide.active .agenda-row,.slide.active .kv-row{animation:none}}
+
+/* ============ Заметки преподавателя ============ */
+.notes{position:fixed;bottom:0;left:0;right:0;background:#fff;border-top:1px solid var(--ek-line);box-shadow:0 -16px 40px rgba(23,23,28,.10);padding:20px 40px;z-index:95;max-height:40vh;overflow-y:auto;transform:translateY(100%);transition:transform 300ms ease}
+.notes.active{transform:translateY(0)}
+.notes__header{font:800 11px var(--f-head);letter-spacing:.2em;text-transform:uppercase;color:var(--ek-violet-deep);margin-bottom:8px}
+.notes__body{font:500 15px/1.55 var(--f-body);color:#3C3C45}
+
+:focus-visible{outline:3px solid var(--ek-violet-soft);outline-offset:2px;border-radius:6px}
+::-webkit-scrollbar{width:8px;height:8px}
+::-webkit-scrollbar-track{background:transparent}
+::-webkit-scrollbar-thumb{background:rgba(23,23,28,.15);border-radius:4px}
+</style>
+</head>
+<body>
+
+<div class="progress"><div class="progress__fill" id="progress"></div></div>
+<div class="counter"><b id="current">1</b> / <span id="total">38</span></div>
+
+<main class="stage" id="deck">
+<section class="slide slide--violet active"
+  data-notes="Поприветствуйте. Сегодня соберём настоящую игру в браузере. Самый зрелищный урок модуля — каждый получит игру, в которую можно играть и показать друзьям.">
+<div class="sl-orbit">
+    <i class="sl-ring"></i>
+    <svg class="sl-ico" viewBox="0 0 100 100" style="left:75px;top:20px;width:150px;height:150px;transform:rotate(-10deg)"><use href="#ek-i-trophy"/></svg>
+    <i class="sl-letter" style="left:466px;top:13px;width:78px;height:78px;--fs:36px">S</i>
+    <svg class="sl-ico" viewBox="0 0 100 100" style="left:1040px;top:15px;width:130px;height:130px;transform:rotate(12deg)"><use href="#ek-i-heart"/></svg>
+    <i class="sl-letter" style="left:68px;top:268px;width:100px;height:100px;--fs:46px">G</i>
+    <i class="sl-letter" style="left:1137px;top:327px;width:95px;height:95px;--fs:44px">E</i>
+    <svg class="sl-ico" viewBox="0 0 100 100" style="left:102px;top:532px;width:125px;height:125px;transform:rotate(-15deg)"><use href="#ek-i-star"/></svg>
+    <i class="sl-letter" style="left:726px;top:613px;width:78px;height:78px;--fs:36px">M</i>
+    <svg class="sl-ico" viewBox="0 0 100 100" style="left:1045px;top:540px;width:110px;height:110px;transform:rotate(8deg)"><use href="#ek-i-gem"/></svg>
+  </div>
+  <div class="cover-center">
+    <div class="cover-card">
+      <div class="badge">Урок №4</div>
+      <div class="card-top"><span class="win-dots"><i></i><i></i><i></i></span><span class="win-close"></span></div>
+      <h1>Своя браузерная<br>игра на&nbsp;Canvas</h1>
+      <p class="cover-sub">Соберём «Змейку» с управлением, очками и сохранением рекорда. Узнаем, что такое игровой цикл и как рисовать на холсте.</p>
+      <div class="cover-chips"><span class="chip">HTML5 Canvas</span><span class="chip chip--green">Игровой цикл</span><span class="chip chip--gray">requestAnimationFrame</span><span class="chip chip--gray">localStorage</span></div>
+    </div>
+  </div>
+</section>
+
+<section class="slide slide--content"
+  data-notes="План. Первые 25 минут — теория и каркас. Дальше — 5 правок.">
+<div class="sl-body">
+  <div>
+    <div class="q-label">Agenda · план занятия</div>
+    <h2>Как пройдут <span class="acc">60 минут</span></h2>
+  </div>
+  <div class="agenda">
+    <div class="agenda-row"><span class="t">0–5</span><div><div class="tt">Разбор ДЗ</div><div class="dd">Смотрим расширения списка задач.</div></div></div>
+    <div class="agenda-row"><span class="t">5–15</span><div><div class="tt">Canvas и игровой цикл</div><div class="dd">Холст в браузере и три фазы игры.</div></div></div>
+    <div class="agenda-row"><span class="t">15–25</span><div><div class="tt">Стартовый промпт</div><div class="dd">Каркас: холст, сетка, точка-змея.</div></div></div>
+    <div class="agenda-row"><span class="t">25–45</span><div><div class="tt">5 правок через диалог</div><div class="dd">Движение → клавиши → яблоки → проигрыш → рекорд.</div></div></div>
+    <div class="agenda-row"><span class="t">45–55</span><div><div class="tt">Косметика и проверка</div><div class="dd">Цвета, мини-вопросы.</div></div></div>
+    <div class="agenda-row"><span class="t">55–60</span><div><div class="tt">Турнир в группе</div><div class="dd">Сравниваем рекорды.</div></div></div>
+  </div>
+</div>
+</section>
+
+<section class="slide slide--content"
+  data-notes="Смотрим расширения списка задач. Отметьте, кто как реализовал фильтр.">
+<div class="sl-body">
+  <div>
+    <div class="q-label">Разбор ДЗ урока 3</div>
+    <h2>Смотрим <span class="acc">расширения списка</span></h2>
+  </div>
+  <div class="grid-3" style="margin-top:8px">
+    <div class="info-card">
+      <h3>Приоритеты</h3>
+      <p>Разбираем, как реализована красная метка для высокого приоритета.</p>
+    </div>
+    <div class="info-card">
+      <h3>Фильтр</h3>
+      <p>Сравниваем подходы: скрытие через класс vs перерисовка списка.</p>
+    </div>
+    <div class="info-card">
+      <h3>Счётчик</h3>
+      <p>Где обновляется цифра — при каждом изменении или один раз.</p>
+    </div>
+  </div>
+</div>
+</section>
+
+<section class="slide slide--content"
+  data-notes="Canvas — «холст», на котором JS рисует. Не элементы, как DOM, а пиксели.">
+<div class="sl-body">
+  <div>
+    <div class="q-label">Идея урока</div>
+    <h2>Что такое <span class="acc">Canvas</span></h2>
+  </div>
+  <p>Canvas — это <span class="hl">прямоугольная область на странице</span>, на которой JavaScript может рисовать что угодно: линии, прямоугольники, картинки, текст. Удобно для игр и анимаций.</p>
+  <div class="ek-note" style="margin-top:10px">Один тег <span class="code-chip">&lt;canvas&gt;</span> — и у вас есть «лист бумаги», на котором программа рисует кадр за кадром.</div>
+</div>
+</section>
+
+<section class="slide slide--content"
+  data-notes="Объясните разницу. DOM — элементы со стилями. Canvas — пиксели. Для игр Canvas быстрее.">
+<div class="sl-body">
+  <div>
+    <div class="q-label">Сравнение</div>
+    <h2>Canvas или DOM — <span class="acc">когда что</span></h2>
+  </div>
+  <div class="vs" style="margin-top:6px">
+    <div class="vs-col vs-col--plain">
+      <h4>DOM · уроки 1–3</h4>
+      <p>Набор элементов: div, button, li. У каждого свой стиль и события.</p>
+      <p class="note">Удобно для интерфейсов: формы, списки.</p>
+    </div>
+    <div class="vs-col vs-col--win">
+      <h4>Canvas · урок 4</h4>
+      <p>Нет элементов — только пиксели. Рисуем всё сами кадр за кадром.</p>
+      <p class="note">Быстро — идеально для игр и анимаций.</p>
+    </div>
+  </div>
+</div>
+</section>
+
+<section class="slide slide--content"
+  data-notes="Покажите ctx и базовые методы рисования. Важно, чтобы ученики увидели связь: строка JS превращается в фигуру на холсте.">
+<div class="sl-body">
+  <div>
+    <div class="q-label">Основа рисования</div>
+    <h2>Как <span class="acc">рисовать</span> на Canvas</h2>
+  </div>
+  <div class="code-win">
+    <div class="code-head"><span class="win-dots"><i></i><i></i><i></i></span><span class="lang-badge">JAVASCRIPT</span></div>
+    <div class="code-body"><span class="kw">const</span> canvas = document.getElementById(<span class="st">'game'</span>);
+<span class="kw">const</span> ctx = canvas.getContext(<span class="st">'2d'</span>);   <span class="cm">// «кисть» для рисования</span>
+
+<span class="cm">// Прямоугольник: x, y, ширина, высота</span>
+ctx.fillStyle = <span class="st">'#10B981'</span>;
+ctx.fillRect(100, 100, 20, 20);
+
+ctx.clearRect(0, 0, 400, 400);        <span class="cm">// очистить весь холст</span>
+
+ctx.fillStyle = <span class="st">'white'</span>;           <span class="cm">// текст</span>
+ctx.font = <span class="st">'20px Inter'</span>;
+ctx.fillText(<span class="st">'Счёт: 5'</span>, 10, 30);</div>
+  </div>
+  <div class="ek-note"><span class="code-chip">ctx</span> (context) — это «кисть». Все рисунки идут через неё.</div>
+</div>
+</section>
+
+<section class="slide slide--content"
+  data-notes="Важно: начало координат в левом ВЕРХНЕМ углу. Y растёт вниз. Это частый источник путаницы.">
+<div class="sl-body">
+  <div>
+    <div class="q-label">Система координат</div>
+    <h2>Где у Canvas точка <span class="acc">(0, 0)</span></h2>
+  </div>
+  <div class="grid-2" style="margin-top:6px">
+    <div>
+      <p>Точка <span class="code-chip">(0, 0)</span> — в <b>левом верхнем углу</b>.</p>
+      <ul class="clean">
+        <li><b>X</b> растёт вправо →</li>
+        <li><b>Y</b> растёт вниз ↓ — не вверх, как в математике!</li>
+      </ul>
+      <p style="margin-top:8px">Поэтому «движение вниз» — это увеличение Y.</p>
+    </div>
+    <div class="code-win">
+      <div class="code-head"><span class="win-dots"><i></i><i></i><i></i></span><span class="lang-badge">ХОЛСТ</span></div>
+      <div class="code-body">(0,0) ───────────→ X
+  │  ┌──────────────┐
+  │  │              │
+  │  │   холст      │
+  ▼  │   400×400    │
+  Y  └──────────────┘
+            (400,400)</div>
+    </div>
+  </div>
+</div>
+</section>
+
+<section class="slide slide--content"
+  data-notes="Сердце любой игры. 3 фазы повторяются десятки раз в секунду.">
+<div class="sl-body">
+  <div>
+    <div class="q-label">Сердце любой игры</div>
+    <h2>Что такое <span class="acc">игровой цикл</span></h2>
+  </div>
+  <p>Игра — это цикл, который повторяется много раз в секунду. На каждом «тике» — три действия:</p>
+  <div class="grid-3" style="margin-top:8px">
+    <div class="info-card">
+      <h3>1 · Input</h3>
+      <p>Что нажал игрок? Куда движется змейка?</p>
+    </div>
+    <div class="info-card">
+      <h3>2 · Update</h3>
+      <p>Двигаем объекты, проверяем столкновения, обновляем счёт.</p>
+    </div>
+    <div class="info-card">
+      <h3>3 · Render</h3>
+      <p>Стираем холст и рисуем заново: змею, яблоко, счёт.</p>
+    </div>
+  </div>
+</div>
+</section>
+
+<section class="slide slide--content"
+  data-notes="Детально про input. Игра не реагирует мгновенно — она запоминает намерение и применяет на следующем тике.">
+<div class="sl-body">
+  <div>
+    <div class="q-label">Фаза 1 · Input</div>
+    <h2>Как игра <span class="acc">слышит игрока</span></h2>
+  </div>
+  <p>Игра <b>не двигает змейку сразу</b> при нажатии. Она запоминает <span class="hl">направление</span>, а двигает на следующем тике update.</p>
+  <div class="code-win">
+    <div class="code-head"><span class="win-dots"><i></i><i></i><i></i></span><span class="lang-badge">JAVASCRIPT</span></div>
+    <div class="code-body"><span class="kw">let</span> dir = { x: 1, y: 0 };   <span class="cm">// едем вправо</span>
+
+document.addEventListener(<span class="st">'keydown'</span>, (e) =&gt; {
+  <span class="kw">if</span> (e.key === <span class="st">'ArrowUp'</span>)    dir = { x: 0, y: -1 };
+  <span class="kw">if</span> (e.key === <span class="st">'ArrowDown'</span>)  dir = { x: 0, y:  1 };
+  <span class="kw">if</span> (e.key === <span class="st">'ArrowLeft'</span>)  dir = { x: -1, y: 0 };
+  <span class="kw">if</span> (e.key === <span class="st">'ArrowRight'</span>) dir = { x: 1, y:  0 };
+});</div>
+  </div>
+  <div class="ek-note">Input только <span class="hl">запоминает</span> намерение. Двигает — фаза Update.</div>
+</div>
+</section>
+
+<section class="slide slide--content"
+  data-notes="Update — вся логика. Двигаем голову, проверяем яблоко и столкновения.">
+<div class="sl-body">
+  <div>
+    <div class="q-label">Фаза 2 · Update</div>
+    <h2>Где вся <span class="acc">логика игры</span></h2>
+  </div>
+  <p>В update происходит главное:</p>
+  <ul class="clean" style="margin-top:8px">
+    <li>Двигаем голову змейки на одну клетку в сторону <span class="code-chip">dir</span></li>
+    <li>Проверяем: голова попала на яблоко? → счёт +1, змейка растёт</li>
+    <li>Проверяем: голова вышла за стену или врезалась в себя? → game over</li>
+    <li>Хвост удаляется, если яблоко не съедено — змейка «ползёт»</li>
+  </ul>
+  <div class="ek-note ek-note--red" style="margin-top:12px">Update <b>не рисует</b> ничего. Он только считает новое состояние. Рисование — отдельная фаза.</div>
+</div>
+</section>
+
+<section class="slide slide--content"
+  data-notes="Render — только рисование. Сначала стереть весь холст, потом нарисовать заново.">
+<div class="sl-body">
+  <div>
+    <div class="q-label">Фаза 3 · Render</div>
+    <h2>Стереть и <span class="acc">нарисовать заново</span></h2>
+  </div>
+  <div class="code-win">
+    <div class="code-head"><span class="win-dots"><i></i><i></i><i></i></span><span class="lang-badge">JAVASCRIPT</span></div>
+    <div class="code-body"><span class="kw">function</span> render() {
+  <span class="cm">// 1. Стираем весь холст</span>
+  ctx.clearRect(0, 0, 400, 400);
+
+  <span class="cm">// 2. Рисуем каждый сегмент змейки</span>
+  ctx.fillStyle = <span class="st">'#10B981'</span>;
+  <span class="kw">for</span> (<span class="kw">const</span> seg <span class="kw">of</span> snake) {
+    ctx.fillRect(seg.x * 20, seg.y * 20, 19, 19);
+  }
+
+  <span class="cm">// 3. Рисуем яблоко</span>
+  ctx.fillStyle = <span class="st">'#EF4444'</span>;
+  ctx.fillRect(apple.x * 20, apple.y * 20, 19, 19);
+}</div>
+  </div>
+  <div class="ek-note">Главное правило: <b>сначала <span class="code-chip">clearRect</span></b>, иначе старые кадры останутся «следами».</div>
+</div>
+</section>
+
+<section class="slide slide--content"
+  data-notes="Что запускает цикл. Браузер сам подбирает частоту ~60 кадров/сек.">
+<div class="sl-body">
+  <div>
+    <div class="q-label">Двигатель цикла</div>
+    <h2>Что такое <span class="acc">requestAnimationFrame</span></h2>
+  </div>
+  <p>Это функция браузера, которая вызывает ваш код <span class="hl">перед каждым кадром экрана</span> — обычно 60 раз в секунду.</p>
+  <div class="code-win">
+    <div class="code-head"><span class="win-dots"><i></i><i></i><i></i></span><span class="lang-badge">JAVASCRIPT</span></div>
+    <div class="code-body"><span class="kw">function</span> loop() {
+  update();                      <span class="cm">// посчитать состояние</span>
+  render();                      <span class="cm">// нарисовать</span>
+  requestAnimationFrame(loop);   <span class="cm">// запросить следующий кадр</span>
+}
+loop();                          <span class="cm">// запускаем</span></div>
+  </div>
+  <div class="ek-note">В отличие от <span class="code-chip">setInterval</span>, она сама подстраивается под устройство: на слабом компьютере кадры реже, но игра остаётся плавной.</div>
+</div>
+</section>
+
+<section class="slide slide--content"
+  data-notes="Объясните: змейка хранится как массив координат. Движение = добавить голову, убрать хвост.">
+<div class="sl-body">
+  <div>
+    <div class="q-label">Структура данных</div>
+    <h2>Змейка — это <span class="acc">массив клеток</span></h2>
+  </div>
+  <div class="code-win">
+    <div class="code-head"><span class="win-dots"><i></i><i></i><i></i></span><span class="lang-badge">JAVASCRIPT</span></div>
+    <div class="code-body"><span class="cm">// Каждый сегмент — клетка с координатами</span>
+<span class="kw">let</span> snake = [
+  { x: 10, y: 10 },   <span class="cm">// голова</span>
+  { x: 9,  y: 10 },
+  { x: 8,  y: 10 },   <span class="cm">// хвост</span>
+];</div>
+  </div>
+  <div class="grid-2" style="margin-top:8px">
+    <div class="info-card">
+      <h3>Движение</h3>
+      <p>Добавить новую голову спереди, удалить хвост сзади.</p>
+    </div>
+    <div class="info-card">
+      <h3>Рост</h3>
+      <p>Съели яблоко — голову добавили, а хвост <span class="hl">не</span> удалили.</p>
+    </div>
+  </div>
+</div>
+</section>
+
+<section class="slide slide--content"
+  data-notes="Почему клетки, а не пиксели. Для пошаговых игр сетка проще.">
+<div class="sl-body">
+  <div>
+    <div class="q-label">Полезный приём</div>
+    <h2>Сетка вместо <span class="acc">пикселей</span></h2>
+  </div>
+  <p>Холст 400×400 пикселей. Клетка — 20 пикселей. Значит сетка — <span class="hl">20×20 клеток</span>.</p>
+  <div class="grid-2" style="margin-top:8px">
+    <div class="info-card">
+      <h3>Думаем в клетках</h3>
+      <p>Змейка на клетке (10, 10). Удобно проверять столкновения.</p>
+    </div>
+    <div class="info-card">
+      <h3>Рисуем в пикселях</h3>
+      <p>Клетка (10, 10) → пиксели (200, 200): умножаем на 20.</p>
+    </div>
+  </div>
+  <div class="code-win" style="margin-top:14px">
+    <div class="code-head"><span class="win-dots"><i></i><i></i><i></i></span><span class="lang-badge">JAVASCRIPT</span></div>
+    <div class="code-body">ctx.fillRect(seg.x * 20, seg.y * 20, 19, 19);
+<span class="cm">//            клетка→пиксели       чуть меньше — видна сетка</span></div>
+  </div>
+</div>
+</section>
+
+<section class="slide slide--content"
+  data-notes="Цель урока. Подчеркните: к концу — играбельная игра.">
+<div class="sl-body">
+  <div>
+    <div class="q-label">Goal · что будет в конце</div>
+    <h2>Цель <span class="acc">урока</span></h2>
+  </div>
+  <div class="ek-note ek-note--green">Через диалог с DeepSeek собрать «Змейку»: управление стрелками, поедание яблок, счёт, проигрыш при столкновении, сохранение рекорда.</div>
+  <div class="grid-2" style="margin-top:14px">
+    <div class="info-card">
+      <h3>Узнаете</h3>
+      <ul class="clean">
+        <li>Что такое Canvas и как на нём рисовать</li>
+        <li>Что такое игровой цикл</li>
+        <li>Как ловить нажатия клавиш через keydown</li>
+      </ul>
+    </div>
+    <div class="info-card">
+      <h3>Сделаете</h3>
+      <ul class="clean">
+        <li>Каркас игры с холстом и сеткой</li>
+        <li>Движение змейки по клавишам</li>
+        <li>Яблоки, счёт и проигрыш</li>
+        <li>Сохранение рекорда между сессиями</li>
+      </ul>
+    </div>
+  </div>
+</div>
+</section>
+
+<section class="slide slide--content"
+  data-notes="Покажите готовую игру, собранную заранее. Сначала дайте увидеть результат, потом переходите к шагам сборки.">
+<div class="sl-body">
+  <div>
+    <div class="q-label">Демо результата</div>
+    <h2>Что <span class="acc">соберём</span> сегодня</h2>
+  </div>
+  <p>К концу урока у каждого — <span class="hl">играбельная «Змейка»</span>:</p>
+  <div class="grid-2" style="margin-top:8px">
+    <div class="info-card">
+      <h3>Игровой процесс</h3>
+      <ul class="clean">
+        <li>Стрелки — управление</li>
+        <li>Красное яблоко — растём и набираем очки</li>
+        <li>Стена или своё тело — Game Over</li>
+      </ul>
+    </div>
+    <div class="info-card">
+      <h3>Прогресс</h3>
+      <ul class="clean">
+        <li>Табло «Счёт: N»</li>
+        <li>«Лучший: N» — рекорд</li>
+        <li>Рекорд держится после перезагрузки</li>
+      </ul>
+    </div>
+  </div>
+</div>
+</section>
+
+<section class="slide slide--content"
+  data-notes="lesson-04, 3 файла как обычно.">
+<div class="sl-body">
+  <div>
+    <div class="q-label">Структура проекта</div>
+    <h2>Папка <span class="acc">lesson-04</span></h2>
+  </div>
+  <div class="grid-2">
+    <ol class="steps">
+      <li>В <span class="code-chip">vibe-coding</span> создайте папку <span class="code-chip">lesson-04</span></li>
+      <li>Откройте её в <b>VS Code</b></li>
+      <li>Создайте 3 файла: <span class="code-chip">index.html</span>, <span class="code-chip">style.css</span>, <span class="code-chip">script.js</span></li>
+    </ol>
+    <div class="term">
+      <div class="term-head"><span class="win-dots"><i></i><i></i><i></i></span><span class="lang-badge">ТЕРМИНАЛ</span></div>
+      <div class="term-body">D:/vibe-coding/lesson-04/
+├── index.html
+├── style.css
+└── script.js</div>
+    </div>
+  </div>
+</div>
+</section>
+
+<section class="slide slide--content"
+  data-notes="Каркас: холст 400×400, клетка 20px, 20×20 клеток, точка в центре, пустой цикл.">
+<div class="sl-body">
+  <div>
+    <div class="q-label">Промпт #1 · стартовый</div>
+    <h2>Каркас <span class="acc">игры</span></h2>
+  </div>
+  <div class="prompt-card">
+    <span class="pc-tag">→ Новый чат DeepSeek</span>
+    <div class="pc-text">Ты senior разработчик игр, делал казуальные браузерные игры. Я делаю классическую Змейку для урока программирования.
+
+Требования к каркасу:
+- Три файла: index.html, style.css, script.js
+- В index.html — заголовок «Змейка», &lt;canvas id="game" width="400" height="400"&gt;, табло «Счёт: 0»
+- В style.css — тёмная тема, акцент зелёный #10B981, холст центрирован, лёгкая рамка
+- В script.js — настройка холста (ctx), сетка 20×20 клеток (клетка 20px), одна точка змеи в центре, пустой игровой цикл через requestAnimationFrame, который пока только очищает холст и рисует змею
+
+Без библиотек. Чистый JS.
+
+Ответь тремя блоками с подписью имён файлов.</div>
+  </div>
+</div>
+</section>
+
+<section class="slide slide--content"
+  data-notes="Видим зелёную точку на чёрном фоне. Не двигается — правильно.">
+<div class="sl-body">
+  <div>
+    <div class="q-label">Запуск каркаса</div>
+    <h2>Холст и <span class="acc">одна точка</span></h2>
+  </div>
+  <ol class="steps">
+    <li>Скопируйте 3 блока в 3 файла, сохраните</li>
+    <li>Правый клик по <span class="code-chip">index.html</span> → <b>Open with Live Server</b></li>
+    <li>Вы видите чёрный квадрат с <span class="hl">зелёной точкой</span> посередине</li>
+  </ol>
+  <div class="ek-note">Точка <b>не двигается</b> — это нормально. Движение добавим следующей правкой.</div>
+</div>
+</section>
+
+<section class="slide slide--content"
+  data-notes="Troubleshooting запуска каркаса игры.">
+<div class="sl-body">
+  <div>
+    <div class="q-label">Если точка не появилась</div>
+    <h2>Типичные ситуации <span class="acc">запуска</span></h2>
+  </div>
+  <div class="kv">
+    <div class="kv-row"><div class="k">Холст белый / пустой</div><div class="v">Откройте F12 → Console. Ошибка про <span class="code-chip">getContext</span> или <span class="code-chip">canvas</span> — скопируйте её в DeepSeek.</div></div>
+    <div class="kv-row"><div class="k">Холст крошечный</div><div class="v">В теге <span class="code-chip">&lt;canvas&gt;</span> нет width/height, либо размер задан в CSS. Размер холста задаётся <b>атрибутами тега</b>.</div></div>
+    <div class="kv-row"><div class="k">Страница белая</div><div class="v">Файл не сохранён. Нажмите <span class="code-chip">Ctrl+S</span> и проверьте, что код вставлен.</div></div>
+  </div>
+</div>
+</section>
+
+<section class="slide slide--content"
+  data-notes="Учим змейку двигаться сама. Пока без управления — посмотреть, как ползёт.">
+<div class="sl-body">
+  <div>
+    <div class="q-label">Правка 1 · движение</div>
+    <h2>Змейка <span class="acc">двигается</span> сама</h2>
+  </div>
+  <div class="prompt-card prompt-card--copy" style="margin-top:10px">
+    <span class="pc-tag">→ В тот же чат</span>
+    <div class="pc-text">Доработай script.js:
+- Змейка — теперь массив сегментов (каждый = клетка с x, y)
+- Начнём с 3 сегментов в центре
+- Направление движения — переменная <span class="hl">dir</span> {x, y}, по умолчанию {x: 1, y: 0} (вправо)
+- В update: <span class="hl">двигай голову на одну клетку в направлении dir</span>, остальные сегменты следуют (последний удаляется, новый добавляется в начало)
+- Скорость — <span class="hl">4 кадра в секунду</span> (счётчик внутри requestAnimationFrame)
+
+Не трогай стили и HTML. Верни обновлённый script.js.</div>
+  </div>
+</div>
+</section>
+
+<section class="slide slide--content"
+  data-notes="Объясните механику: новая голова вперёд, хвост убирается. Так змейка «ползёт» не двигая каждый сегмент.">
+<div class="sl-body">
+  <div>
+    <div class="q-label">Разбор кода</div>
+    <h2>Как именно <span class="acc">ползёт</span> змейка</h2>
+  </div>
+  <div class="code-win">
+    <div class="code-head"><span class="win-dots"><i></i><i></i><i></i></span><span class="lang-badge">JAVASCRIPT</span></div>
+    <div class="code-body"><span class="kw">function</span> update() {
+  <span class="kw">const</span> head = snake[0];
+  <span class="kw">const</span> newHead = {            <span class="cm">// новая голова на клетку вперёд</span>
+    x: head.x + dir.x,
+    y: head.y + dir.y
+  };
+  snake.unshift(newHead);      <span class="cm">// добавили голову в начало</span>
+  snake.pop();                 <span class="cm">// удалили хвост в конце</span>
+}</div>
+  </div>
+  <div class="ek-note ek-note--green" style="margin-top:12px">Ключевой приём: мы <b>не двигаем</b> каждый сегмент. Добавляем голову и убираем хвост — на экране это выглядит как ползущая змея.</div>
+</div>
+</section>
+
+<section class="slide slide--content"
+  data-notes="Управление с клавиатуры. Запрещаем разворот на 180°.">
+<div class="sl-body">
+  <div>
+    <div class="q-label">Правка 2 · управление</div>
+    <h2>Управление <span class="acc">стрелками</span></h2>
+  </div>
+  <div class="prompt-card prompt-card--copy" style="margin-top:10px">
+    <span class="pc-tag">→ В тот же чат</span>
+    <div class="pc-text">Добавь обработку клавиатуры:
+- При нажатии стрелок (<span class="hl">ArrowUp, ArrowDown, ArrowLeft, ArrowRight</span>) — меняй направление dir
+- Запрети разворот на 180°: если змейка двигается вправо, нажатие «влево» <span class="hl">не должно сработать</span>
+- Используй <span class="hl">document.addEventListener('keydown', …)</span>
+- Добавь <span class="hl">e.preventDefault()</span>, чтобы стрелки не прокручивали страницу
+
+Изменения только в script.js. Верни целиком обновлённый script.js.</div>
+  </div>
+</div>
+</section>
+
+<section class="slide slide--content"
+  data-notes="Объясните, почему разворот на 180 убивает игру: голова мгновенно врезается в шею.">
+<div class="sl-body">
+  <div>
+    <div class="q-label">Важная тонкость</div>
+    <h2>Почему нельзя развернуться на <span class="acc">180°</span></h2>
+  </div>
+  <div class="vs" style="margin-top:6px">
+    <div class="vs-col vs-col--plain">
+      <h4>✕ Без запрета</h4>
+      <p>Змейка едет вправо. Игрок жмёт «влево». Голова мгновенно врезается в свою же шею — мгновенный проигрыш на ровном месте.</p>
+    </div>
+    <div class="vs-col vs-col--win">
+      <h4>✓ С запретом</h4>
+      <p>Проверяем: новое направление не противоположно текущему. Если противоположно — игнорируем нажатие.</p>
+    </div>
+  </div>
+  <div class="code-win" style="margin-top:12px">
+    <div class="code-head"><span class="win-dots"><i></i><i></i><i></i></span><span class="lang-badge">JAVASCRIPT</span></div>
+    <div class="code-body"><span class="cm">// нельзя влево, если едем вправо</span>
+<span class="kw">if</span> (newDir.x === -dir.x && newDir.y === -dir.y) <span class="kw">return</span>;</div>
+  </div>
+</div>
+</section>
+
+<section class="slide slide--content"
+  data-notes="Зачем preventDefault. Без него стрелки скроллят страницу — играть невозможно.">
+<div class="sl-body">
+  <div>
+    <div class="q-label">Полезное знание</div>
+    <h2>Зачем <span class="acc">e.preventDefault()</span></h2>
+  </div>
+  <p>У стрелок есть <span class="hl">стандартное поведение браузера</span> — прокрутка страницы. В игре это мешает: нажал «вниз» — страница уехала.</p>
+  <div class="code-win" style="margin-top:10px">
+    <div class="code-head"><span class="win-dots"><i></i><i></i><i></i></span><span class="lang-badge">JAVASCRIPT</span></div>
+    <div class="code-body">document.addEventListener(<span class="st">'keydown'</span>, (e) =&gt; {
+  e.preventDefault();          <span class="cm">// отменяем прокрутку страницы</span>
+  <span class="cm">// ... меняем направление</span>
+});</div>
+  </div>
+  <div class="ek-note" style="margin-top:12px"><span class="code-chip">preventDefault()</span> говорит браузеру: «не делай своё стандартное действие, я обработаю сам».</div>
+</div>
+</section>
+
+<section class="slide slide--content"
+  data-notes="Появляется красная клетка. Съели — счёт +1, новое яблоко.">
+<div class="sl-body">
+  <div>
+    <div class="q-label">Правка 3 · яблоки</div>
+    <h2>Яблоки и <span class="acc">счёт</span></h2>
+  </div>
+  <div class="prompt-card prompt-card--copy" style="margin-top:10px">
+    <span class="pc-tag">→ В тот же чат</span>
+    <div class="pc-text">Добавь яблоко:
+- Случайная клетка на сетке (не на змейке)
+- Цвет красный <span class="hl">#EF4444</span>
+- Когда голова змейки попадает на яблоко: <span class="hl">счёт +1</span>, длина змейки <span class="hl">+1 сегмент</span>, яблоко появляется в новом случайном месте
+- Обнови табло «Счёт: N»
+
+Изменения в script.js и (если нужно) в index.html (для табло). Верни изменённые файлы.</div>
+  </div>
+</div>
+</section>
+
+<section class="slide slide--content"
+  data-notes="Как генерится случайная клетка и почему её надо проверять на пересечение со змейкой.">
+<div class="sl-body">
+  <div>
+    <div class="q-label">Разбор кода</div>
+    <h2>Случайная позиция <span class="acc">яблока</span></h2>
+  </div>
+  <div class="code-win">
+    <div class="code-head"><span class="win-dots"><i></i><i></i><i></i></span><span class="lang-badge">JAVASCRIPT</span></div>
+    <div class="code-body"><span class="kw">function</span> randomApple() {
+  <span class="kw">let</span> pos;
+  <span class="kw">do</span> {
+    pos = {
+      x: Math.floor(Math.random() * 20),  <span class="cm">// 0..19</span>
+      y: Math.floor(Math.random() * 20),
+    };
+  } <span class="kw">while</span> (snake.some(s =&gt; s.x === pos.x && s.y === pos.y));
+  <span class="kw">return</span> pos;          <span class="cm">// клетка точно НЕ на змейке</span>
+}</div>
+  </div>
+  <div class="ek-note ek-note--red" style="margin-top:12px"><span class="code-chip">do...while</span> повторяет генерацию, пока яблоко не окажется на свободной клетке. Иначе яблоко могло бы появиться внутри змейки.</div>
+</div>
+</section>
+
+<section class="slide slide--content"
+  data-notes="Столкновение со стеной или с собой = game over.">
+<div class="sl-body">
+  <div>
+    <div class="q-label">Правка 4 · проигрыш</div>
+    <h2>Game Over при <span class="acc">столкновении</span></h2>
+  </div>
+  <div class="prompt-card prompt-card--copy" style="margin-top:10px">
+    <span class="pc-tag">→ В тот же чат</span>
+    <div class="pc-text">Добавь логику проигрыша:
+- Если голова змейки выходит <span class="hl">за границы холста</span> — game over
+- Если голова попадает в любой <span class="hl">сегмент собственного тела</span> — game over
+- При game over: <span class="hl">останови игру</span>, нарисуй полупрозрачный чёрный прямоугольник на весь холст, в центре крупный белый текст «GAME OVER» и снизу «Нажмите Пробел, чтобы начать заново»
+- При нажатии Пробела — игра начинается с нуля
+
+Изменения в script.js. Верни обновлённый script.js.</div>
+  </div>
+</div>
+</section>
+
+<section class="slide slide--content"
+  data-notes="Детально: два вида столкновений — со стеной и с собой.">
+<div class="sl-body">
+  <div>
+    <div class="q-label">Разбор кода</div>
+    <h2>Как проверяются <span class="acc">столкновения</span></h2>
+  </div>
+  <div class="code-win">
+    <div class="code-head"><span class="win-dots"><i></i><i></i><i></i></span><span class="lang-badge">JAVASCRIPT</span></div>
+    <div class="code-body"><span class="kw">const</span> h = snake[0];                    <span class="cm">// голова</span>
+
+<span class="cm">// 1. Со стеной — вышли за сетку 0..19</span>
+<span class="kw">if</span> (h.x &lt; 0 || h.x &gt; 19 || h.y &lt; 0 || h.y &gt; 19) {
+  gameOver();
+}
+
+<span class="cm">// 2. С собой — голова на клетке тела</span>
+<span class="kw">for</span> (<span class="kw">let</span> i = 1; i &lt; snake.length; i++) {
+  <span class="kw">if</span> (h.x === snake[i].x && h.y === snake[i].y) {
+    gameOver();
+  }
+}</div>
+  </div>
+  <div class="ek-note" style="margin-top:12px">Проверку начинаем с <span class="code-chip">i = 1</span> — голова сама с собой не сталкивается.</div>
+</div>
+</section>
+
+<section class="slide slide--content"
+  data-notes="Сохраняем максимальный счёт в localStorage — связь с уроком 3.">
+<div class="sl-body">
+  <div>
+    <div class="q-label">Правка 5 · рекорд</div>
+    <h2>Сохраняем <span class="acc">рекорд</span> между сессиями</h2>
+  </div>
+  <p>Финальная правка: рекорд должен пережить перезагрузку страницы. Здесь снова пригодится <span class="hl">localStorage</span> — прямо как в списке задач урока 3.</p>
+  <div class="prompt-card prompt-card--copy" style="margin-top:12px">
+    <span class="pc-tag">→ В тот же чат</span>
+    <div class="pc-text">Добавь рекорд:
+- В localStorage храни <span class="hl">лучший счёт</span> (ключ <span class="hl">snake_best</span>)
+- При game over: если текущий счёт <span class="hl">больше</span> сохранённого — обнови сохранённый
+- На табло над холстом покажи <span class="hl">«Лучший: N»</span>
+- При перезагрузке страницы рекорд должен подгрузиться
+
+Изменения в script.js и index.html. Верни изменённые блоки.</div>
+  </div>
+</div>
+</section>
+
+<section class="slide slide--content"
+  data-notes="Вопрос про скорость. Подождите, потом раскройте.">
+<div class="sl-body">
+  <div>
+    <div class="q-label">Проверка · вопрос 1</div>
+    <h2>Изучите ситуацию и <span class="acc">ответьте</span></h2>
+  </div>
+  <div class="quiz-box">
+    <span class="q-num">Вопрос 1</span>
+    <p class="q-text">Змейка двигается слишком быстро — играть невозможно. Какие два способа замедлить движение, не трогая requestAnimationFrame?</p>
+    <div class="quiz-answer">
+      <button class="quiz-btn" type="button">Показать ответ</button>
+      <div class="quiz-reveal">
+        <p><b>1. Счётчик кадров:</b> увеличивать <span class="code-chip">frames++</span> в цикле и вызывать <span class="code-chip">update()</span> только когда <span class="code-chip">frames % 10 === 0</span>.</p>
+        <p><b>2. По времени:</b> запоминать <span class="code-chip">lastTime</span> и обновлять, только если прошло, например, 150 мс.</p>
+      </div>
+    </div>
+  </div>
+</div>
+</section>
+
+<section class="slide slide--content"
+  data-notes="Вопрос про состояние при рестарте. Частая ошибка — забыть сбросить переменные.">
+<div class="sl-body">
+  <div>
+    <div class="q-label">Проверка · вопрос 2</div>
+    <h2>Изучите ситуацию и <span class="acc">ответьте</span></h2>
+  </div>
+  <div class="quiz-box">
+    <span class="q-num">Вопрос 2</span>
+    <p class="q-text">После Game Over игрок жмёт Пробел. Игра запускается, но змейка сразу длинная (как перед смертью) и счёт не обнулился. Что забыли сделать?</p>
+    <div class="quiz-answer">
+      <button class="quiz-btn" type="button">Показать ответ</button>
+      <div class="quiz-reveal">
+        <p>Забыли <b>сбросить состояние</b> при рестарте. Нужно заново задать: <span class="code-chip">snake</span> — 3 сегмента в центре, <span class="code-chip">dir</span> — вправо, <span class="code-chip">score</span> — 0, новое яблоко.</p>
+        <p>Промпт для DeepSeek: «при нажатии Пробела сбрасывай snake, dir, score и яблоко в начальное состояние».</p>
+      </div>
+    </div>
+  </div>
+</div>
+</section>
+
+<section class="slide slide--content"
+  data-notes="Если игра ведёт себя странно — печатайте состояние в Console.">
+<div class="sl-body">
+  <div>
+    <div class="q-label">Инструмент отладки</div>
+    <h2>Отладка игры через <span class="acc">Console</span></h2>
+  </div>
+  <div class="grid-2" style="margin-top:6px">
+    <div class="code-win">
+      <div class="code-head"><span class="win-dots"><i></i><i></i><i></i></span><span class="lang-badge">JAVASCRIPT</span></div>
+      <div class="code-body"><span class="cm">// печатаем состояние игры</span>
+console.log(<span class="st">'snake:'</span>, snake);
+console.log(<span class="st">'dir:'</span>, dir);
+console.log(<span class="st">'apple:'</span>, apple);</div>
+    </div>
+    <div>
+      <h3>Частые находки</h3>
+      <ul class="clean">
+        <li><span class="code-chip">dir</span> не меняется → событие keydown не работает</li>
+        <li><span class="code-chip">snake</span> растёт без яблок → не удаляется хвост</li>
+        <li>яблоко всегда в одном месте → не вызывается randomApple</li>
+      </ul>
+    </div>
+  </div>
+</div>
+</section>
+
+<section class="slide slide--content"
+  data-notes="5 привычек геймдева. Дайте сфотографировать.">
+<div class="sl-body">
+  <div>
+    <div class="q-label">Запомните</div>
+    <h2>Полезные привычки <span class="acc">геймдева</span></h2>
+  </div>
+  <div class="kv">
+    <div class="kv-row"><div class="k">01 · 3 фазы цикла</div><div class="v">input → update → render. На каждом кадре в этом порядке.</div></div>
+    <div class="kv-row"><div class="k">02 · Сетка вместо пикселей</div><div class="v">Для пошаговых игр удобнее работать с клетками.</div></div>
+    <div class="kv-row"><div class="k">03 · Запрет некорректных действий</div><div class="v">Проверяйте допустимость нажатий, чтобы игра сохраняла понятные правила.</div></div>
+    <div class="kv-row"><div class="k">04 · Сброс состояния при рестарте</div><div class="v">snake, dir, score, apple — всё заново в начальное состояние.</div></div>
+    <div class="kv-row"><div class="k">05 · console.log — друг</div><div class="v">Странное поведение — печатайте <span class="code-chip">snake</span> и <span class="code-chip">dir</span>.</div></div>
+  </div>
+</div>
+</section>
+
+<section class="slide slide--content"
+  data-notes="Чек-лист завершения игры.">
+<div class="sl-body">
+  <div>
+    <div class="q-label">Финальная проверка</div>
+    <h2>Готовность <span class="acc">к 55-й минуте</span></h2>
+  </div>
+  <div class="grid-2" style="margin-top:6px">
+    <div>
+      <h3>Готово</h3>
+      <ul class="clean">
+        <li>Папка <span class="code-chip">lesson-04</span> с 3 файлами</li>
+        <li>Холст с зелёной змейкой</li>
+        <li>Змейка управляется стрелками</li>
+        <li>Не разворачивается на 180°</li>
+      </ul>
+    </div>
+    <div>
+      <h3>Работает</h3>
+      <ul class="clean">
+        <li>Яблоки появляются и съедаются, счёт растёт</li>
+        <li>Столкновение → экран Game Over</li>
+        <li>Пробел — рестарт с нуля</li>
+        <li>Рекорд держится после перезагрузки</li>
+      </ul>
+    </div>
+  </div>
+</div>
+</section>
+
+<section class="slide slide--content"
+  data-notes="Шпаргалка по проблемам игры.">
+<div class="sl-body">
+  <div>
+    <div class="q-label">Шпаргалка</div>
+    <h2>Что делать, <span class="acc">если…</span></h2>
+  </div>
+  <div class="kv">
+    <div class="kv-row"><div class="k">точка не появилась</div><div class="v">F12 → Console, прочитайте ошибку про canvas, отправьте в DeepSeek.</div></div>
+    <div class="kv-row"><div class="k">слишком быстро</div><div class="v">Счётчик кадров: update только когда <span class="code-chip">frames % 10 === 0</span>.</div></div>
+    <div class="kv-row"><div class="k">стрелки скроллят</div><div class="v">Добавьте <span class="code-chip">e.preventDefault()</span> в обработчик keydown.</div></div>
+    <div class="kv-row"><div class="k">яблоко в змейке</div><div class="v">Генерация без проверки. Промпт: «генерируй позицию, пока она не свободна».</div></div>
+    <div class="kv-row"><div class="k">рестарт ломается</div><div class="v">Не сброшено состояние. Промпт: «при Пробеле сбрось snake, dir, score, apple».</div></div>
+  </div>
+</div>
+</section>
+
+<section class="slide slide--content"
+  data-notes="ДЗ — прокачать игру. 3 улучшения через диалог.">
+<div class="sl-body">
+  <div>
+    <div class="q-label">Домашнее задание · около 30 минут</div>
+    <h2>Прокачайте свою <span class="acc">змейку</span></h2>
+  </div>
+  <p>Через диалог с DeepSeek добавьте 3 улучшения:</p>
+  <div class="grid-3" style="margin-top:6px">
+    <div class="info-card">
+      <h3>Растущая скорость</h3>
+      <p>Каждые 5 яблок скорость +20%. К 25 яблокам играть тяжело.</p>
+    </div>
+    <div class="info-card">
+      <h3>Золотое яблоко</h3>
+      <p>Раз в 30 секунд — золотое яблоко: +5 очков, исчезает через 3 секунды.</p>
+    </div>
+    <div class="info-card">
+      <h3>Эффект частиц</h3>
+      <p>При поедании — вспышка из 5–8 точек, разлетающихся в стороны.</p>
+    </div>
+  </div>
+  <div class="ek-note ek-note--red">Пришлите скриншот игры и ваш лучший рекорд. Один лучший промпт — отдельным сообщением.</div>
+</div>
+</section>
+
+<section class="slide slide--green"
+  data-notes="Закройте урок. Модуль 1 (веб) завершён. Дальше — Python.">
+<div class="sl-orbit">
+    <i class="sl-ring"></i>
+    <svg class="sl-ico" viewBox="0 0 100 100" style="left:75px;top:20px;width:150px;height:150px;transform:rotate(-10deg)"><use href="#ek-i-trophy"/></svg>
+    <i class="sl-letter" style="left:466px;top:13px;width:78px;height:78px;--fs:36px">S</i>
+    <svg class="sl-ico" viewBox="0 0 100 100" style="left:1040px;top:15px;width:130px;height:130px;transform:rotate(12deg)"><use href="#ek-i-heart"/></svg>
+    <i class="sl-letter" style="left:68px;top:268px;width:100px;height:100px;--fs:46px">A</i>
+    <i class="sl-letter" style="left:1137px;top:327px;width:95px;height:95px;--fs:44px">I</i>
+    <svg class="sl-ico" viewBox="0 0 100 100" style="left:102px;top:532px;width:125px;height:125px;transform:rotate(-15deg)"><use href="#ek-i-star"/></svg>
+    <i class="sl-letter" style="left:726px;top:613px;width:78px;height:78px;--fs:36px">K</i>
+    <svg class="sl-ico" viewBox="0 0 100 100" style="left:1045px;top:540px;width:110px;height:110px;transform:rotate(8deg)"><use href="#ek-i-gem"/></svg>
+  </div>
+  <div class="cover-center">
+    <div class="bubble">
+      <h1>До встречи<br>на уроке 5!</h1>
+      <p>Модуль 1 (веб-основы) пройден: HTML, CSS, JavaScript, события, Canvas. На уроке 5 начинаем Python — и впервые подключим нейросеть прямо внутрь своей программы. Подход тот же: формулируем задачу, нейросеть пишет код, мы запускаем и проверяем.</p>
+    </div>
+  </div>
+</section>
+</main>
+
+<div class="notes" id="notes">
+  <div class="notes__header">Заметки преподавателя &middot; N — скрыть</div>
+  <div class="notes__body" id="notesBody">—</div>
+</div>
+
+<div class="hint"><kbd>←</kbd><kbd>→</kbd> слайды &middot; <kbd>N</kbd> заметки &middot; <kbd>F</kbd> весь экран</div>
+
+<svg width="0" height="0" style="position:absolute" aria-hidden="true"><defs>
+<symbol id="ek-i-trophy" viewBox="0 0 100 100"><path fill="currentColor" d="M24 16h52v12h8c6 0 10 4 10 10 0 15-11 25-23 27-3 5-8 9-14 10v8h14c4 0 7 3 7 7v4H22v-4c0-4 3-7 7-7h14v-8c-6-1-11-5-14-10C17 63 6 53 6 38c0-6 4-10 10-10h8V16zM24 36h-7c-2 0-4 2-4 4 0 8 5 15 12 18-1-5-1-10-1-16v-6zM76 36v6c0 6 0 11-1 16 7-3 12-10 12-18 0-2-2-4-4-4h-7z"/></symbol>
+<symbol id="ek-i-heart" viewBox="0 0 100 100"><path fill="currentColor" d="M50 88C28 72 10 56 10 38 10 24 21 14 34 14c6 0 12 3 16 8 4-5 10-8 16-8 13 0 24 10 24 24 0 18-18 34-40 50z"/></symbol>
+<symbol id="ek-i-star" viewBox="0 0 100 100"><path fill="currentColor" d="M50 8l12 27 29 3-22 20 6 29-25-15-25 15 6-29L9 38l29-3z"/></symbol>
+<symbol id="ek-i-gem" viewBox="0 0 100 100"><path fill="currentColor" d="M30 12h40l18 24-38 52L12 36zM36 20l-12 16h20zM64 20l-8 16h20zM50 22l-9 14h18zM26 44l20 30-8-30zM62 44l-8 30 20-30zM46 44h8l-4 26z"/></symbol>
+</defs></svg>
+
+<script>
+/* ============ Автомасштаб сцены ============ */
+(function(){
+  'use strict';
+  var stage = document.getElementById('deck');
+  function fit(){
+    var w = window.innerWidth, h = window.innerHeight;
+    if (!w || !h) return;
+    var s = Math.min(w / 1320, h / 780);
+    if (document.fullscreenElement) s = Math.min(w / 1280, h / 720);
+    stage.style.transform = 'translate(-50%,-50%) scale(' + s + ')';
+    stage.style.borderRadius = document.fullscreenElement ? '0' : '18px';
+  }
+  window.addEventListener('resize', fit);
+  document.addEventListener('fullscreenchange', fit);
+  fit();
+})();
+
+/* ============ Навигация по слайдам ============ */
+(function(){
+  'use strict';
+  var slides = Array.prototype.slice.call(document.querySelectorAll('.slide'));
+  var total = slides.length;
+  var idx = 0;
+  document.getElementById('total').textContent = total;
+
+  var progressEl = document.getElementById('progress');
+  var currentEl = document.getElementById('current');
+  var notesPanel = document.getElementById('notes');
+  var notesBody = document.getElementById('notesBody');
+
+  slides.forEach(function(s, i){
+    if (s.classList.contains('slide--content')) s.setAttribute('data-page', i + 1);
+  });
+
+  function render(){
+    slides.forEach(function(s, i){
+      s.classList.remove('active', 'prev');
+      if (i === idx) s.classList.add('active');
+      else if (i < idx) s.classList.add('prev');
+    });
+    progressEl.style.width = ((idx + 1) / total * 100).toFixed(2) + '%';
+    currentEl.textContent = idx + 1;
+    notesBody.textContent = slides[idx].getAttribute('data-notes') || '—';
+  }
+
+  function go(n){ idx = Math.max(0, Math.min(total - 1, n)); render(); }
+  function next(){ go(idx + 1); }
+  function prev(){ go(idx - 1); }
+
+  document.addEventListener('keydown', function(e){
+    var active = document.activeElement;
+    if (active && (active.isContentEditable || active.tagName === 'TEXTAREA' || active.tagName === 'INPUT')) return;
+    switch (e.key){
+      case 'ArrowRight': case 'PageDown': case ' ':
+        e.preventDefault(); next(); break;
+      case 'ArrowLeft': case 'PageUp':
+        e.preventDefault(); prev(); break;
+      case 'Home': e.preventDefault(); go(0); break;
+      case 'End': e.preventDefault(); go(total - 1); break;
+      case 'f': case 'F': case 'а': case 'А':
+        e.preventDefault();
+        if (!document.fullscreenElement){ if (document.documentElement.requestFullscreen) document.documentElement.requestFullscreen(); }
+        else if (document.exitFullscreen) document.exitFullscreen();
+        break;
+      case 'n': case 'N': case 'т': case 'Т':
+        e.preventDefault(); notesPanel.classList.toggle('active'); break;
+      case 'Escape':
+        if (document.fullscreenElement && document.exitFullscreen) document.exitFullscreen();
+        notesPanel.classList.remove('active'); break;
+    }
+  });
+
+  var tx = 0, ty = 0;
+  document.addEventListener('touchstart', function(e){ tx = e.changedTouches[0].screenX; ty = e.changedTouches[0].screenY; }, { passive: true });
+  document.addEventListener('touchend', function(e){
+    var dx = e.changedTouches[0].screenX - tx, dy = e.changedTouches[0].screenY - ty;
+    if (Math.abs(dx) > 60 && Math.abs(dx) > Math.abs(dy)){ if (dx < 0) next(); else prev(); }
+  }, { passive: true });
+
+  document.addEventListener('click', function(e){
+    if (e.target.closest('a,button,input,textarea,code,pre,[contenteditable],.code-win,.term,.prompt-card,.quiz-box,.notes')) return;
+    var x = e.clientX, w = window.innerWidth;
+    if (x < w * 0.25) prev();
+    else if (x > w * 0.75) next();
+  });
+
+  render();
+})();
+
+/* ============ Квизы: показать ответ ============ */
+(function(){
+  'use strict';
+  Array.prototype.slice.call(document.querySelectorAll('.quiz-btn')).forEach(function(btn){
+    btn.addEventListener('click', function(e){
+      e.stopPropagation();
+      var box = btn.closest('.quiz-box');
+      var reveal = box && box.querySelector('.quiz-reveal');
+      if (!reveal) return;
+      var shown = reveal.classList.toggle('show');
+      btn.textContent = shown ? 'Скрыть ответ' : 'Показать ответ';
+    });
+  });
+})();
+</script>
+</body>
+</html>

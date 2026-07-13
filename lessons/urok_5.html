@@ -1,0 +1,1153 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Урок 5 — Первая программа на Python с AI | Eduson Kids</title>
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter+Tight:wght@600;700;800;900&family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;700&display=swap">
+
+<style>
+/* ============ Дизайн-токены Eduson Kids ============ */
+:root{
+  --ek-violet:#8C7FF6; --ek-violet-soft:#A79EF9; --ek-violet-deep:#6F61E8; --ek-violet-bg:#F0EEFE;
+  --ek-green:#3DF79D; --ek-green-soft:#7BF9BD; --ek-green-mint:#C9F7E3; --ek-green-pale:#E7FDF2; --ek-green-deep:#0FBF6E;
+  --ek-ink:#17171C; --ek-gray:#8F8F98; --ek-gray-light:#EFEFF2; --ek-line:#E3E3EA;
+  --ek-red:#FF6B6B; --ek-red-soft:#FF8A8A; --ek-red-deep:#E04848; --ek-red-pale:#FFECEC;
+  --f-head:'Inter Tight','Inter','Segoe UI',system-ui,sans-serif;
+  --f-body:'Inter','Segoe UI',system-ui,sans-serif;
+  --f-mono:'JetBrains Mono','Cascadia Mono','Consolas',monospace;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{height:100%;overflow:hidden}
+body{font-family:var(--f-body);background:#E9E9F1;color:var(--ek-ink);-webkit-font-smoothing:antialiased}
+
+/* ============ Хром: прогресс, счётчик, подсказка ============ */
+.progress{position:fixed;top:0;left:0;right:0;height:4px;background:rgba(23,23,28,.08);z-index:100}
+.progress__fill{height:100%;width:0%;background:var(--ek-violet);transition:width 300ms ease}
+.counter{position:fixed;top:14px;right:18px;z-index:90;font:600 13px var(--f-body);color:var(--ek-gray);background:#fff;border:1px solid var(--ek-line);padding:6px 14px;border-radius:999px;font-variant-numeric:tabular-nums}
+.counter b{color:var(--ek-ink)}
+.hint{position:fixed;bottom:12px;left:50%;transform:translateX(-50%);z-index:90;font:500 11px var(--f-body);color:var(--ek-gray);background:#fff;border:1px solid var(--ek-line);padding:6px 14px;border-radius:999px;letter-spacing:.03em}
+.hint kbd{font-family:var(--f-mono);background:var(--ek-gray-light);padding:1px 6px;border-radius:4px;font-size:10px;margin:0 2px;color:var(--ek-ink)}
+
+/* ============ Сцена 1280×720 ============ */
+.stage{position:absolute;left:50%;top:50%;width:1280px;height:720px;transform:translate(-50%,-50%);border-radius:18px;overflow:hidden;box-shadow:0 30px 90px rgba(23,23,28,.18);background:#fff}
+.slide{position:absolute;inset:0;background:#fff;opacity:0;transform:translateY(26px);transition:opacity 280ms ease,transform 280ms ease;pointer-events:none;font-family:var(--f-head)}
+.slide.active{opacity:1;transform:none;pointer-events:auto}
+.slide.prev{transform:translateY(-26px)}
+.slide--violet{background:var(--ek-violet)}
+.slide--green{background:var(--ek-green)}
+
+/* Номер страницы на контентных слайдах */
+.slide--content::after{content:attr(data-page);position:absolute;right:54px;bottom:30px;font:800 30px/1 var(--f-head);color:var(--ek-ink);opacity:.5}
+
+/* ============ Декор «Орбита» ============ */
+.sl-orbit{position:absolute;inset:0;pointer-events:none}
+.slide--violet .sl-orbit{--decor:#A79EF9;--letter:#C4BEFA}
+.slide--green .sl-orbit{--decor:#7BF9BD;--letter:#C4FCE0}
+.sl-ring{position:absolute;left:50%;top:50%;width:1040px;height:660px;transform:translate(-50%,-50%);border:3px solid var(--decor);border-radius:50%;opacity:.9}
+.sl-ico{position:absolute;color:var(--decor)}
+.sl-letter{position:absolute;border-radius:50%;background:var(--decor);color:var(--letter);display:flex;align-items:center;justify-content:center;font:800 var(--fs,40px)/1 var(--f-head);font-style:normal}
+
+/* ============ Каверы: карточка-окно и спич-бабл ============ */
+.cover-center{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);z-index:2}
+.cover-card{position:relative;width:860px;background:#fff;border-radius:28px;box-shadow:0 30px 80px rgba(23,23,28,.18)}
+.card-top{display:flex;justify-content:space-between;align-items:center;padding:24px 30px 0}
+.win-dots{display:flex;gap:9px}
+.win-dots i{width:13px;height:13px;border-radius:50%;background:var(--ek-violet)}
+.win-close{position:relative;width:22px;height:22px}
+.win-close::before,.win-close::after{content:"";position:absolute;left:-1px;top:9px;width:24px;height:4px;border-radius:2px;background:var(--ek-violet)}
+.win-close::before{transform:rotate(45deg)}
+.win-close::after{transform:rotate(-45deg)}
+.cover-card .badge{position:absolute;left:50%;top:-30px;transform:translateX(-50%) rotate(-4deg)}
+.cover-card h1{padding:26px 64px 30px;text-align:center;font:800 50px/1.14 var(--f-head);letter-spacing:-.015em;color:var(--ek-ink)}
+.cover-card .cover-sub{padding:0 80px 34px;text-align:center;font:500 19px/1.5 var(--f-body);color:#3C3C45}
+.cover-card .cover-chips{display:flex;justify-content:center;gap:10px;flex-wrap:wrap;padding:0 40px 40px}
+.bubble{position:relative;width:660px;background:#EFEFF1;border-radius:30px;padding:56px 70px;text-align:center}
+.bubble::after{content:"";position:absolute;right:56px;bottom:-24px;width:0;height:0;border-left:38px solid transparent;border-top:28px solid #EFEFF1}
+.bubble h1{font:800 42px/1.25 var(--f-head);letter-spacing:-.01em;color:var(--ek-ink)}
+.bubble p{margin-top:16px;font:500 18px/1.5 var(--f-body);color:#3C3C45}
+
+/* ============ Стикер-бейдж и чипы ============ */
+.badge{display:inline-block;background:var(--ek-green);color:var(--ek-ink);font:800 24px/1 var(--f-head);padding:13px 22px;border-radius:13px;transform:rotate(-3deg);box-shadow:0 10px 24px rgba(23,23,28,.10)}
+.badge--violet{background:var(--ek-violet);color:#fff}
+.badge--sm{font-size:16px;padding:9px 16px;border-radius:10px}
+.chip{display:inline-block;font:700 14px/1 var(--f-body);padding:8px 14px;border-radius:999px;background:var(--ek-violet-bg);color:var(--ek-violet-deep)}
+.chip--green{background:var(--ek-green-pale);color:var(--ek-green-deep)}
+.chip--gray{background:var(--ek-gray-light);color:#3C3C45}
+
+/* ============ Контентные слайды ============ */
+.sl-body{position:absolute;inset:0;padding:56px 80px 62px;display:flex;flex-direction:column;gap:16px;overflow:hidden}
+h2{font:800 38px/1.16 var(--f-head);letter-spacing:-.01em;color:var(--ek-ink)}
+.acc{color:var(--ek-violet-deep)}
+.sl-body>p, .col p{font:500 18px/1.5 var(--f-body);color:#3C3C45}
+.code-chip{font-family:var(--f-mono);font-weight:700;font-size:.88em;background:var(--ek-violet-bg);color:var(--ek-violet-deep);padding:2px 8px;border-radius:8px;white-space:nowrap}
+.hl{color:var(--ek-violet-deep);font-weight:700}
+.out-chip{font-family:var(--f-mono);font-weight:700;font-size:.88em;background:var(--ek-green-pale);color:#0B7A48;padding:2px 8px;border-radius:8px;white-space:nowrap}
+
+.grid-2{display:grid;grid-template-columns:1fr 1fr;gap:22px;align-items:start}
+.grid-3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:18px;align-items:stretch}
+
+.info-card{background:#F5F5F9;border-radius:18px;padding:18px 22px;font:500 16px/1.55 var(--f-body);color:#3C3C45}
+.info-card h3{font:800 19px/1.3 var(--f-head);color:var(--ek-ink);margin-bottom:8px}
+.ek-note{background:var(--ek-violet-bg);border-left:4px solid var(--ek-violet);border-radius:0 14px 14px 0;padding:14px 20px;font:600 17px/1.5 var(--f-body);color:#3C3560}
+.ek-note--green{background:var(--ek-green-pale);border-left-color:var(--ek-green-deep);color:#0B5B39}
+.ek-note--red{background:var(--ek-red-pale);border-left-color:var(--ek-red);color:#7A2E2E}
+
+ul.clean{list-style:none;display:flex;flex-direction:column;gap:10px}
+ul.clean li{display:flex;gap:14px;align-items:flex-start;font:500 17.5px/1.5 var(--f-body);color:#3C3C45}
+ul.clean li::before{content:'—';flex:0 0 auto;color:var(--ek-violet-deep);font-weight:800}
+
+ol.steps{list-style:none;counter-reset:step;display:flex;flex-direction:column;gap:12px}
+ol.steps li{counter-increment:step;display:flex;gap:16px;align-items:center;padding:14px 20px;background:#F5F5F9;border-radius:16px;font:500 17.5px/1.45 var(--f-body);color:#2E2E36}
+ol.steps li::before{content:counter(step);flex:0 0 40px;height:40px;display:flex;align-items:center;justify-content:center;border-radius:50%;background:var(--ek-violet);font:800 18px var(--f-head);color:#fff}
+ol.steps li:last-child::before{background:var(--ek-green);color:var(--ek-ink)}
+ol.steps.steps--tight{gap:8px}
+ol.steps.steps--tight li{padding:9px 16px;font-size:15.5px;gap:12px}
+ol.steps.steps--tight li::before{flex-basis:32px;height:32px;font-size:14px}
+
+.q-label{font:700 13px/1 var(--f-head);letter-spacing:.08em;text-transform:uppercase;color:var(--ek-gray)}
+
+/* ============ План занятия (agenda) ============ */
+.agenda{display:flex;flex-direction:column;gap:8px}
+.agenda-row{display:flex;gap:16px;align-items:center;padding:10px 18px;background:#F5F5F9;border-radius:14px}
+.agenda-row .t{flex:0 0 84px;text-align:center;font:800 14px/1 var(--f-mono);color:var(--ek-ink);background:var(--ek-green);border-radius:999px;padding:8px 0}
+.agenda-row .tt{font:700 16.5px/1.3 var(--f-head);color:var(--ek-ink)}
+.agenda-row .dd{font:500 14px/1.4 var(--f-body);color:var(--ek-gray)}
+
+/* ============ Ключ-значение (привычки, шпаргалки) ============ */
+.kv{display:flex;flex-direction:column}
+.kv-row{display:grid;grid-template-columns:250px 1fr;gap:18px;align-items:start;padding:11px 4px;border-bottom:1.5px solid var(--ek-line)}
+.kv-row:last-child{border-bottom:none}
+.kv-row .k{font:800 14px/1.35 var(--f-head);letter-spacing:.05em;text-transform:uppercase;color:var(--ek-violet-deep);padding-top:2px}
+.kv-row .v{font:500 16.5px/1.5 var(--f-body);color:#3C3C45}
+
+/* ============ Окно кода (статичное) ============ */
+.code-win{background:#fff;border:2.5px solid var(--ek-ink);border-radius:16px;overflow:hidden;font-family:var(--f-mono);box-shadow:10px 10px 0 rgba(140,127,246,.14)}
+.code-head{display:flex;align-items:center;justify-content:space-between;padding:9px 16px;border-bottom:2px solid var(--ek-ink)}
+.code-head .win-dots i{width:11px;height:11px}
+.lang-badge{font:700 11px var(--f-mono);letter-spacing:.14em;color:var(--ek-gray)}
+.code-body{padding:14px 20px;font:500 14.5px/1.6 var(--f-mono);color:var(--ek-ink);white-space:pre;overflow:auto;max-height:400px;tab-size:4}
+.code-body .cm{color:var(--ek-gray)}
+.code-body .st{color:var(--ek-green-deep)}
+.code-body .kw{color:var(--ek-violet-deep);font-weight:700}
+
+/* ============ Терминал (тёмное окно) ============ */
+.term{background:var(--ek-ink);border-radius:16px;overflow:hidden;font-family:var(--f-mono);box-shadow:10px 10px 0 rgba(23,23,28,.12)}
+.term-head{display:flex;align-items:center;justify-content:space-between;padding:9px 16px;border-bottom:1px solid rgba(255,255,255,.14)}
+.term-head .win-dots i{width:11px;height:11px;background:var(--ek-green)}
+.term-head .lang-badge{color:rgba(255,255,255,.5)}
+.term-body{padding:14px 20px;font:500 14.5px/1.62 var(--f-mono);color:var(--ek-green);white-space:pre-wrap;word-break:break-word;overflow:auto;max-height:420px}
+.term-body .usr{color:#fff}
+.term-body .dim{color:rgba(255,255,255,.55)}
+
+/* ============ Промпт-карточка (диалог с DeepSeek) ============ */
+.prompt-card{position:relative;background:var(--ek-violet-bg);border:2.5px solid var(--ek-violet);border-radius:18px;padding:20px 26px 18px;box-shadow:10px 10px 0 rgba(140,127,246,.18)}
+.prompt-card .pc-tag{position:absolute;top:-16px;left:22px;background:var(--ek-violet);color:#fff;font:800 14px/1 var(--f-head);padding:9px 16px;border-radius:10px;transform:rotate(-2deg);box-shadow:0 8px 18px rgba(23,23,28,.12)}
+.prompt-card .pc-text{margin-top:6px;font:500 15px/1.62 var(--f-mono);color:#2E2A52;white-space:pre-wrap}
+.prompt-card .pc-text .hl{color:var(--ek-violet-deep)}
+.prompt-card--copy .pc-tag{background:var(--ek-green);color:var(--ek-ink)}
+
+/* ============ Сравнение (vs) ============ */
+.vs{display:grid;grid-template-columns:1fr 1fr;gap:20px;align-items:stretch}
+.vs-col{border-radius:18px;padding:20px 24px}
+.vs-col h4{font:800 15px/1 var(--f-head);letter-spacing:.08em;text-transform:uppercase;margin-bottom:12px}
+.vs-col p{font:500 16px/1.55 var(--f-body)}
+.vs-col .note{margin-top:12px;font:500 13.5px/1.4 var(--f-body);opacity:.75}
+.vs-col--plain{background:var(--ek-gray-light);color:#3C3C45}
+.vs-col--plain h4{color:var(--ek-gray)}
+.vs-col--win{background:var(--ek-green-pale);color:#124F35;border:2px solid var(--ek-green-soft)}
+.vs-col--win h4{color:var(--ek-green-deep)}
+
+/* ============ Квиз с раскрытием ответа ============ */
+.quiz-box{background:#F5F5F9;border:2.5px solid var(--ek-ink);border-radius:18px;padding:22px 26px;box-shadow:10px 10px 0 rgba(61,247,157,.25)}
+.quiz-box .q-num{display:inline-block;background:var(--ek-green);color:var(--ek-ink);font:800 13px/1 var(--f-head);letter-spacing:.08em;text-transform:uppercase;padding:8px 14px;border-radius:999px;margin-bottom:14px}
+.quiz-box .q-text{font:700 21px/1.42 var(--f-head);color:var(--ek-ink)}
+.quiz-answer{margin-top:16px}
+.quiz-btn{border:0;border-radius:12px;padding:12px 22px;font:800 15px/1 var(--f-head);cursor:pointer;background:var(--ek-violet);color:#fff;transition:background .15s}
+.quiz-btn:hover{background:var(--ek-violet-deep)}
+.quiz-reveal{display:none;margin-top:14px;background:var(--ek-green-pale);border-left:4px solid var(--ek-green-deep);border-radius:0 14px 14px 0;padding:14px 20px;font:500 16.5px/1.55 var(--f-body);color:#0B5B39}
+.quiz-reveal.show{display:block}
+.quiz-reveal p+p{margin-top:8px}
+
+/* Появление контента */
+.slide.active .info-card,.slide.active ul.clean li,.slide.active ol.steps li,.slide.active .grid-2>*,.slide.active .grid-3>*,.slide.active .agenda-row,.slide.active .kv-row{animation:reveal 450ms ease backwards}
+.slide.active .info-card:nth-child(2),.slide.active ul.clean li:nth-child(2),.slide.active ol.steps li:nth-child(2),.slide.active .grid-2>*:nth-child(2),.slide.active .grid-3>*:nth-child(2),.slide.active .agenda-row:nth-child(2),.slide.active .kv-row:nth-child(2){animation-delay:80ms}
+.slide.active ul.clean li:nth-child(3),.slide.active ol.steps li:nth-child(3),.slide.active .grid-3>*:nth-child(3),.slide.active .agenda-row:nth-child(3),.slide.active .kv-row:nth-child(3){animation-delay:160ms}
+.slide.active ol.steps li:nth-child(4),.slide.active .agenda-row:nth-child(4),.slide.active .kv-row:nth-child(4){animation-delay:240ms}
+.slide.active ol.steps li:nth-child(5),.slide.active .agenda-row:nth-child(5),.slide.active .kv-row:nth-child(5){animation-delay:320ms}
+.slide.active .agenda-row:nth-child(6),.slide.active ol.steps li:nth-child(6),.slide.active .kv-row:nth-child(6){animation-delay:400ms}
+.slide.active .agenda-row:nth-child(7),.slide.active ol.steps li:nth-child(7),.slide.active .kv-row:nth-child(7){animation-delay:480ms}
+@keyframes reveal{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:translateY(0)}}
+@media (prefers-reduced-motion:reduce){.slide.active .info-card,.slide.active ul.clean li,.slide.active ol.steps li,.slide.active .grid-2>*,.slide.active .grid-3>*,.slide.active .agenda-row,.slide.active .kv-row{animation:none}}
+
+/* ============ Заметки преподавателя ============ */
+.notes{position:fixed;bottom:0;left:0;right:0;background:#fff;border-top:1px solid var(--ek-line);box-shadow:0 -16px 40px rgba(23,23,28,.10);padding:20px 40px;z-index:95;max-height:40vh;overflow-y:auto;transform:translateY(100%);transition:transform 300ms ease}
+.notes.active{transform:translateY(0)}
+.notes__header{font:800 11px var(--f-head);letter-spacing:.2em;text-transform:uppercase;color:var(--ek-violet-deep);margin-bottom:8px}
+.notes__body{font:500 15px/1.55 var(--f-body);color:#3C3C45}
+
+:focus-visible{outline:3px solid var(--ek-violet-soft);outline-offset:2px;border-radius:6px}
+::-webkit-scrollbar{width:8px;height:8px}
+::-webkit-scrollbar-track{background:transparent}
+::-webkit-scrollbar-thumb{background:rgba(23,23,28,.15);border-radius:4px}
+</style>
+</head>
+<body>
+
+<div class="progress"><div class="progress__fill" id="progress"></div></div>
+<div class="counter"><b id="current">1</b> / <span id="total">38</span></div>
+
+<main class="stage" id="deck">
+<section class="slide slide--violet active"
+  data-notes="Поприветствуйте. Сегодня большой день: первая программа на Python — и впервые нейросеть заработает внутри собственного кода. К концу урока у каждого — советчик, который отвечает на любой вопрос живым ответом DeepSeek.">
+<div class="sl-orbit">
+    <i class="sl-ring"></i>
+    <svg class="sl-ico" viewBox="0 0 100 100" style="left:75px;top:20px;width:150px;height:150px;transform:rotate(-10deg)"><use href="#ek-i-trophy"/></svg>
+    <i class="sl-letter" style="left:466px;top:13px;width:78px;height:78px;--fs:36px">P</i>
+    <svg class="sl-ico" viewBox="0 0 100 100" style="left:1040px;top:15px;width:130px;height:130px;transform:rotate(12deg)"><use href="#ek-i-heart"/></svg>
+    <i class="sl-letter" style="left:68px;top:268px;width:100px;height:100px;--fs:46px">A</i>
+    <i class="sl-letter" style="left:1137px;top:327px;width:95px;height:95px;--fs:44px">I</i>
+    <svg class="sl-ico" viewBox="0 0 100 100" style="left:102px;top:532px;width:125px;height:125px;transform:rotate(-15deg)"><use href="#ek-i-star"/></svg>
+    <i class="sl-letter" style="left:726px;top:613px;width:78px;height:78px;--fs:36px">Y</i>
+    <svg class="sl-ico" viewBox="0 0 100 100" style="left:1045px;top:540px;width:110px;height:110px;transform:rotate(8deg)"><use href="#ek-i-gem"/></svg>
+  </div>
+  <div class="cover-center">
+    <div class="cover-card">
+      <div class="badge">Урок №5 · Модуль 2</div>
+      <div class="card-top"><span class="win-dots"><i></i><i></i><i></i></span><span class="win-close"></span></div>
+      <h1>Первая программа<br>на&nbsp;Python с&nbsp;AI</h1>
+      <p class="cover-sub">Запустим Python в терминале и соберём советчика, внутри которого работает настоящая нейросеть: задаёте вопрос — DeepSeek отвечает прямо в вашей программе.</p>
+      <div class="cover-chips"><span class="chip">Python</span><span class="chip chip--green">DeepSeek API</span><span class="chip chip--gray">Терминал</span><span class="chip chip--gray">input / print</span></div>
+    </div>
+  </div>
+</section>
+
+<section class="slide slide--content"
+  data-notes="План. Теории — минимум: уже на 12-й минуте каждый запускает первый скрипт, к 30-й — советчик с живой нейросетью внутри. Дальше — 5 правок через диалог, как на прошлых уроках.">
+<div class="sl-body">
+  <div>
+    <div class="q-label">Agenda · план занятия</div>
+    <h2>Как пройдут <span class="acc">60 минут</span></h2>
+  </div>
+  <div class="agenda">
+    <div class="agenda-row"><span class="t">0–5</span><div><div class="tt">Разбор ДЗ</div><div class="dd">Смотрим прокачанные «Змейки»: скорость, золотое яблоко, частицы.</div></div></div>
+    <div class="agenda-row"><span class="t">5–12</span><div><div class="tt">Python и терминал</div><div class="dd">Новый язык — минимум теории, только чтобы запуститься.</div></div></div>
+    <div class="agenda-row"><span class="t">12–20</span><div><div class="tt">Первый скрипт hello.py</div><div class="dd">Промпт → код → запуск в терминале.</div></div></div>
+    <div class="agenda-row"><span class="t">20–30</span><div><div class="tt">Каркас советчика</div><div class="dd">Что такое API — и DeepSeek внутри вашей программы.</div></div></div>
+    <div class="agenda-row"><span class="t">30–48</span><div><div class="tt">5 правок через диалог</div><div class="dd">Имя → характеры → цикл диалога → история → цвета.</div></div></div>
+    <div class="agenda-row"><span class="t">48–55</span><div><div class="tt">Мини-вопросы и отладка</div><div class="dd">Читаем ошибки, проверяем понимание.</div></div></div>
+    <div class="agenda-row"><span class="t">55–60</span><div><div class="tt">Демо в группе</div><div class="dd">Каждый задаёт советчику свой вопрос.</div></div></div>
+  </div>
+</div>
+</section>
+
+<section class="slide slide--content"
+  data-notes="Откройте 2-3 прокачанные «Змейки». Разбирайте диалог с нейросетью, а не только результат: какие промпты сработали с первого раза. Свяжите с сегодняшним уроком — те же приёмы работают в Python.">
+<div class="sl-body">
+  <div>
+    <div class="q-label">Разбор ДЗ урока 4</div>
+    <h2>Смотрим прокачанные <span class="acc">«Змейки»</span></h2>
+  </div>
+  <p>Открываем 2–3 присланные игры и разбираем именно <span class="hl">диалог с нейросетью</span>, а не только рекорды.</p>
+  <div class="grid-3" style="margin-top:8px">
+    <div class="info-card">
+      <h3>Что сработало</h3>
+      <p>Точечные промпты: одно улучшение — один запрос. Скорость, золотое яблоко и частицы добавляли по очереди.</p>
+    </div>
+    <div class="info-card">
+      <h3>Что переделывали</h3>
+      <p>Где забыли «не трогай остальной код» — нейросеть заодно сломала рестарт.</p>
+    </div>
+    <div class="info-card">
+      <h3>Вывод</h3>
+      <p>Точная формулировка плюс проверка после каждой правки. Сегодня это пригодится в <b>Python</b>.</p>
+    </div>
+  </div>
+</div>
+</section>
+
+<section class="slide slide--content"
+  data-notes="Главная мысль урока: у DeepSeek появляется вторая роль. Раньше он только писал код за нас в чате. Сегодня нейросеть впервые заработает внутри программы — advisor.py будет сам отправлять ей вопросы и печатать живые ответы.">
+<div class="sl-body">
+  <div>
+    <div class="q-label">Идея урока</div>
+    <h2>Нейросеть — внутри вашей <span class="acc">программы</span></h2>
+  </div>
+  <p>Модуль 1 пройден: сайты, список задач и «Змейка» жили в браузере. Сегодня выходим в Python — и впервые <span class="hl">встраиваем нейросеть в собственный код</span>.</p>
+  <div class="vs" style="margin-top:6px">
+    <div class="vs-col vs-col--plain">
+      <h4>Роль 1 · пишет код за нас</h4>
+      <p>Как раньше: формулируем задачу в чате DeepSeek — забираем готовый код. Это вайб-кодинг.</p>
+    </div>
+    <div class="vs-col vs-col--win">
+      <h4>Роль 2 · работает внутри программы</h4>
+      <p><b>Новое:</b> наш <span class="code-chip">advisor.py</span> сам отправляет вопросы нейросети через API и печатает живые ответы в терминале.</p>
+    </div>
+  </div>
+</div>
+</section>
+
+<section class="slide slide--content"
+  data-notes="Сравнение без «лучше/хуже»: JavaScript живёт в браузере, Python — в системе. Напомните: один язык им уже знаком — второй учится легче. Подход вайб-кодинга не меняется.">
+<div class="sl-body">
+  <div>
+    <div class="q-label">Сравнение</div>
+    <h2>Python или JavaScript — в чём <span class="acc">разница</span></h2>
+  </div>
+  <div class="vs" style="margin-top:6px">
+    <div class="vs-col vs-col--plain">
+      <h4>JavaScript</h4>
+      <p>Живёт в браузере. Ждёт события — клики и нажатия — и реагирует на них. Результат видим на странице.</p>
+      <p class="note">Им мы делали список задач и «Змейку».</p>
+    </div>
+    <div class="vs-col vs-col--win">
+      <h4>Python</h4>
+      <p>Живёт в системе. Выполняется сверху вниз в терминале, управляет файлами, ботами и нейросетями.</p>
+      <p class="note">На нём написаны Telegram-боты и сам DeepSeek.</p>
+    </div>
+  </div>
+  <div class="ek-note">Языки разные, а подход вайб-кодинга один: <b>формулируем задачу — DeepSeek пишет код — мы запускаем</b>.</div>
+</div>
+</section>
+
+<section class="slide slide--content"
+  data-notes="Терминал — текстовое окно для команд, как чат с компьютером, только команды строгие. Все открывают терминал и проверяют python --version. Не идите дальше, пока у всех не показалась версия.">
+<div class="sl-body">
+  <div>
+    <div class="q-label">Новый инструмент</div>
+    <h2>Терминал в <span class="acc">VS Code</span></h2>
+  </div>
+  <p>Терминал — <span class="hl">текстовое окно для команд компьютеру</span>: без кнопок и мыши. Ввели команду, нажали Enter — получили ответ.</p>
+  <div class="grid-2">
+    <div class="col">
+      <ol class="steps steps--tight">
+        <li><div>Откройте папку <span class="code-chip">vibe-coding</span> в VS Code</div></li>
+        <li><div>Нажмите <span class="code-chip">Ctrl+ё</span> (или меню <b>Terminal → New Terminal</b>)</div></li>
+        <li><div>Введите <span class="code-chip">python --version</span> — должно показать <span class="out-chip">Python 3.12</span></div></li>
+      </ol>
+    </div>
+    <div class="col">
+      <div class="kv">
+        <div class="kv-row"><div class="k">Запуск</div><div class="v"><span class="code-chip">python имя_файла.py</span> — так запускается любой Python-скрипт.</div></div>
+      </div>
+      <div class="ek-note ek-note--red" style="margin-top:14px">Если видите «python is not recognized» — Python ставили на уроке 1. Позовите преподавателя: чинится за минуту.</div>
+    </div>
+  </div>
+</div>
+</section>
+
+<section class="slide slide--content"
+  data-notes="Никакой долгой подготовки: сразу просим код у DeepSeek. Промпт короткий, но с ролью и форматом — техники урока 2 работают и здесь. Дети копируют промпт целиком.">
+<div class="sl-body">
+  <div>
+    <div class="q-label">Промпт #1 · разминка</div>
+    <h2>hello.py за <span class="acc">две минуты</span></h2>
+  </div>
+  <p>Не будем долго готовиться — попросим у DeepSeek первый скрипт и сразу запустим его в терминале.</p>
+  <div class="prompt-card" style="margin-top:14px">
+    <span class="pc-tag">→ Новый чат DeepSeek</span>
+    <div class="pc-text">Ты — опытный Python-разработчик и наставник школьника.
+Напиши маленький скрипт hello.py: он спрашивает имя через input,
+здоровается по имени и печатает одну приятную фразу дня.
+Только стандартная библиотека Python, без сторонних пакетов.
+Прокомментируй код для новичка и ответь одним блоком кода.</div>
+  </div>
+</div>
+</section>
+
+<section class="slide slide--content"
+  data-notes="Фундамент урока: не идите дальше, пока у всех hello.py не запустился и не ответил. Это первый запуск Python у группы — у кого-то всплывут проблемы окружения, чините сразу.">
+<div class="sl-body">
+  <div>
+    <div class="q-label">Запуск</div>
+    <h2>Первый Python-скрипт — <span class="acc">12-я минута</span></h2>
+  </div>
+  <ol class="steps steps--tight">
+    <li><div>В <span class="code-chip">vibe-coding</span> создайте папку <span class="code-chip">lesson-05</span></div></li>
+    <li><div>Создайте файл <span class="code-chip">hello.py</span> и вставьте код из ответа DeepSeek</div></li>
+    <li><div>Сохраните: <span class="code-chip">Ctrl+S</span></div></li>
+    <li><div>В терминале выполните <span class="code-chip">python hello.py</span></div></li>
+  </ol>
+  <div class="ek-note ek-note--green" style="margin-top:16px">Программа спросила имя и ответила? Поздравляем — ваш <b>первый Python-скрипт</b> работает. Двенадцатая минута урока.</div>
+</div>
+</section>
+
+<section class="slide slide--content"
+  data-notes="Разбор на живом коде, который уже у всех запустился. Три кита сегодняшнего урока: print, input, f-строка. Подчеркните: input всегда возвращает строку — к этому вернёмся в мини-вопросе.">
+<div class="sl-body">
+  <div>
+    <div class="q-label">Разбор кода</div>
+    <h2>Что внутри <span class="acc">hello.py</span></h2>
+  </div>
+  <div class="code-win">
+    <div class="code-head"><span class="win-dots"><i></i><i></i><i></i></span><span class="lang-badge">PYTHON</span></div>
+    <div class="code-body">name = input(<span class="st">"Как тебя зовут? "</span>)   <span class="cm"># ждём ответ пользователя</span>
+print(f<span class="st">"Привет, {name}!"</span>)          <span class="cm"># подставляем имя в текст</span>
+print(<span class="st">"Фраза дня: маленькие шаги каждый день сильнее рывков."</span>)</div>
+  </div>
+  <div class="kv" style="margin-top:14px">
+    <div class="kv-row"><div class="k">print</div><div class="v">Выводит текст в терминал. Каждый print — новая строка.</div></div>
+    <div class="kv-row"><div class="k">input</div><div class="v">Останавливает программу и ждёт Enter. Возвращает <span class="hl">всегда строку</span> — даже если ввели число.</div></div>
+    <div class="kv-row"><div class="k">f-строка</div><div class="v"><span class="code-chip">f"Привет, {name}!"</span> — вставляет переменную прямо в текст через фигурные скобки.</div></div>
+  </div>
+</div>
+</section>
+
+<section class="slide slide--content"
+  data-notes="Шпаргалка по трём типичным проблемам первого запуска. Почините у всех — дальше эти же команды нужны для советчика.">
+<div class="sl-body">
+  <div>
+    <div class="q-label">Типичные ситуации запуска</div>
+    <h2>Если hello.py <span class="acc">не запустился</span></h2>
+  </div>
+  <div class="grid-3" style="margin-top:8px">
+    <div class="ek-note ek-note--red">
+      <b>python is not recognized</b><br>Python не добавлен в PATH. Переустановите с галочкой <b>Add to PATH</b> — или зовите преподавателя.
+    </div>
+    <div class="ek-note ek-note--red">
+      <b>can't open file</b><br>Терминал смотрит в другую папку. Закройте его и откройте заново из VS Code — он стартует в папке проекта.
+    </div>
+    <div class="ek-note ek-note--red">
+      <b>SyntaxError</b><br>Код скопирован не целиком. Вернитесь в чат DeepSeek и заберите весь блок кода заново.
+    </div>
+  </div>
+</div>
+</section>
+
+<section class="slide slide--content"
+  data-notes="Ключевая новая идея урока. Объясните простыми словами: API — дверь, через которую программы обращаются к нейросети. Дети уже общались с DeepSeek в чате — теперь это будет делать их код.">
+<div class="sl-body">
+  <div>
+    <div class="q-label">Главная идея</div>
+    <h2>Что такое <span class="acc">API</span></h2>
+  </div>
+  <p>Нейросеть можно вызывать не только из чата в браузере. У DeepSeek есть <span class="hl">API</span> — дверь для программ: ваш код отправляет вопрос, нейросеть возвращает ответ текстом.</p>
+  <div class="ek-note" style="margin-top:8px">API — это способ, которым <b>программы разговаривают друг с другом</b>. Сегодня ваша программа впервые заговорит с нейросетью напрямую — без браузера и без чата.</div>
+</div>
+</section>
+
+<section class="slide slide--content"
+  data-notes="Пройдите по трём шагам схемы. Подчеркните: внутри — тот же DeepSeek, что писал им код, меняется только способ обращения.">
+<div class="sl-body">
+  <div>
+    <div class="q-label">Как это работает</div>
+    <h2>Как летит <span class="acc">запрос</span></h2>
+  </div>
+  <div class="grid-3" style="margin-top:6px">
+    <div class="info-card">
+      <h3>1 · Запрос</h3>
+      <p><span class="code-chip">advisor.py</span> собирает сообщение: модель, роль советчика и вопрос пользователя.</p>
+    </div>
+    <div class="info-card">
+      <h3>2 · Нейросеть</h3>
+      <p>Сервер DeepSeek генерирует ответ — тот же «мозг», что отвечает вам в чате.</p>
+    </div>
+    <div class="info-card">
+      <h3>3 · Ответ</h3>
+      <p>Программа получает текст и печатает его в терминале.</p>
+    </div>
+  </div>
+  <div class="ek-note" style="margin-top:8px">Всё это — одна функция <span class="code-chip">requests.post</span> и пара строк кода. Их напишет DeepSeek.</div>
+</div>
+</section>
+
+<section class="slide slide--content"
+  data-notes="Раздайте ключи (подготовьте заранее). Проговорите правило: ключ — как пароль, не публиковать и не показывать на скриншотах.">
+<div class="sl-body">
+  <div>
+    <div class="q-label">Пропуск к нейросети</div>
+    <h2><span class="acc">API-ключ</span></h2>
+  </div>
+  <p>Ключ — строка вида <span class="code-chip">sk-...</span>. Это <span class="hl">пропуск</span>: по нему сервер понимает, кто стучится.</p>
+  <div class="grid-2" style="margin-top:6px">
+    <div class="info-card">
+      <h3>Где взять</h3>
+  <p>Сегодня ключ выдаст преподаватель — вставите его в код и сразу проверите запрос.</p>
+    </div>
+    <div class="info-card">
+      <h3>Как хранить</h3>
+      <p>Ключ — как пароль: не публиковать, не показывать на скриншотах. Сегодня вставим в константу <span class="code-chip">API_KEY</span> прямо в код — для учёбы можно. Правильному хранению научимся на уроке 8.</p>
+    </div>
+  </div>
+  <div class="ek-note ek-note--red" style="margin-top:8px">Если ключ «утёк» — его <b>перевыпускают</b>: старый перестаёт работать, выдаётся новый.</div>
+</div>
+</section>
+
+<section class="slide slide--content"
+  data-notes="Прочитайте цель вслух. Подчеркните: сегодня внутри программы — настоящая нейросеть, ответы у всех будут разными.">
+<div class="sl-body">
+  <div>
+    <div class="q-label">Goal · что будет в конце</div>
+    <h2>Цель <span class="acc">урока</span></h2>
+  </div>
+  <div class="ek-note">К 55-й минуте у каждого — советчик с настоящей нейросетью внутри: спрашивает имя и характер, ведёт диалог по кругу, отвечает живыми ответами DeepSeek, сохраняет историю в файл и печатает всё в цвете.</div>
+  <div class="grid-2" style="margin-top:10px">
+    <div class="info-card">
+      <h3>Узнаете</h3>
+      <ul class="clean">
+        <li>Как Python-скрипт запускается в терминале</li>
+        <li>Что такое API и API-ключ</li>
+        <li>Как промпт живёт внутри кода — системная роль</li>
+      </ul>
+    </div>
+    <div class="info-card">
+      <h3>Сделаете</h3>
+      <ul class="clean">
+        <li>Запустите первый скрипт</li>
+        <li>Подключите DeepSeek API к своей программе</li>
+        <li>Соберёте советчика через 5 правок</li>
+      </ul>
+    </div>
+  </div>
+</div>
+</section>
+
+<section class="slide slide--content"
+  data-notes="Покажите живой запуск советчика — соберите заранее. Спросите одно и то же дважды, чтобы группа увидела разные ответы нейросети.">
+<div class="sl-body">
+  <div>
+    <div class="q-label">Демо результата</div>
+    <h2>Что соберём <span class="acc">сегодня</span></h2>
+  </div>
+  <div class="term">
+    <div class="term-head"><span class="win-dots"><i></i><i></i><i></i></span><span class="lang-badge">ТЕРМИНАЛ</span></div>
+    <div class="term-body">🔮 Советчик на связи!
+Как тебя зовут? <span class="usr">Маша</span>
+Выбери характер: 1 — добрый друг, 2 — строгий тренер, 3 — весёлый кот
+&gt; <span class="usr">1</span>
+Маша, о чём поговорим? <span class="usr">Завтра контрольная по алгебре, страшно</span>
+Совет: Страх перед контрольной — это нормально. Разбери два-три
+типовых примера сегодня вечером — и завтра рука сама всё вспомнит.
+Маша, о чём поговорим? <span class="usr">выход</span>
+Записал наш разговор в history.txt. До встречи, Маша!</div>
+  </div>
+  <div class="ek-note" style="margin-top:8px">Совет сгенерировала <span class="hl">нейросеть</span> — у каждого в классе ответы будут свои.</div>
+</div>
+</section>
+
+<section class="slide slide--content"
+  data-notes="Подготовка: advisor.py рядом с hello.py, затем pip install requests. Дождитесь, пока установка пройдёт у всех — без requests дальше никак.">
+<div class="sl-body">
+  <div>
+    <div class="q-label">Подготовка</div>
+    <h2>Папка lesson-05 и <span class="acc">requests</span></h2>
+  </div>
+  <div class="grid-2" style="margin-top:6px">
+    <div>
+      <ol class="steps">
+        <li>Папка <span class="code-chip">lesson-05</span> уже есть — в ней живёт <span class="code-chip">hello.py</span></li>
+        <li>Создайте файл <span class="code-chip">advisor.py</span></li>
+        <li>В терминале выполните <span class="code-chip">pip install requests</span> — библиотека, через которую Python ходит в интернет</li>
+      </ol>
+    </div>
+    <div>
+      <div class="term">
+        <div class="term-head"><span class="win-dots"><i></i><i></i><i></i></span><span class="lang-badge">ПАПКА</span></div>
+        <div class="term-body">D:/vibe-coding/lesson-05/
+├── hello.py
+└── advisor.py</div>
+      </div>
+      <div class="ek-note" style="margin-top:8px"><span class="code-chip">pip</span> ставит библиотеку один раз. При повторном запуске напишет <span class="out-chip">Requirement already satisfied</span> — это нормально.</div>
+    </div>
+  </div>
+</div>
+</section>
+
+<section class="slide slide--content"
+  data-notes="Скопировать промпт целиком в новый чат DeepSeek. Обратите внимание: url и модель уже в промпте — нейросеть соберёт рабочий запрос сама.">
+<div class="sl-body">
+  <div>
+    <div class="q-label">Промпт #2 · стартовый</div>
+    <h2>Каркас <span class="acc">советчика</span></h2>
+  </div>
+  <div class="prompt-card" style="margin-top:6px">
+    <span class="pc-tag">→ Новый чат DeepSeek</span>
+    <div class="pc-text">Ты — опытный Python-разработчик и наставник школьника.
+Напиши advisor.py — советчика для подростка с DeepSeek API.
+
+Что должен делать каркас:
+- печатает приветствие «🔮 Советчик на связи!»
+- спрашивает вопрос через input
+- отправляет его в DeepSeek API: url https://api.deepseek.com/chat/completions, модель deepseek-chat, библиотека requests
+- системная роль: «Ты дружелюбный советчик для подростка. Отвечай кратко, 2–3 предложения, по-русски»
+- печатает ответ нейросети и прощается
+
+Ключ — в константе API_KEY в начале файла, я вставлю свой.
+Прокомментируй код для новичка. Ответь одним блоком кода.</div>
+  </div>
+</div>
+</section>
+
+<section class="slide slide--content"
+  data-notes="Раздайте ключи заранее и проверьте интернет на машинах. Первый запуск с API — дождитесь, пока у каждого появится ответ нейросети.">
+<div class="sl-body">
+  <div>
+    <div class="q-label">Запуск каркаса</div>
+    <h2>Вставляем ключ и <span class="acc">запускаем</span></h2>
+  </div>
+  <ol class="steps">
+    <li>Скопируйте код из ответа DeepSeek в <span class="code-chip">advisor.py</span></li>
+    <li>Замените <span class="code-chip">sk-...</span> на ключ, который выдал преподаватель</li>
+    <li>Сохраните файл (<span class="code-chip">Ctrl+S</span>)</li>
+    <li>Выполните <span class="code-chip">python advisor.py</span></li>
+    <li>Задайте советчику настоящий вопрос</li>
+  </ol>
+  <div class="ek-note ek-note--red" style="margin-top:8px">Ключ — <b>в кавычках и без пробелов</b>. На скриншотах для домашки ключ замазываем.</div>
+</div>
+</section>
+
+<section class="slide slide--content"
+  data-notes="Дайте момент прочувствовать: их код только что поговорил с нейросетью. Попросите задать один и тот же вопрос дважды и сравнить ответы.">
+<div class="sl-body">
+  <div>
+    <div class="q-label">Момент урока</div>
+    <h2>Первый ответ <span class="acc">нейросети</span></h2>
+  </div>
+  <p>Вы только что соединили свой код с нейросетью: вопрос ушёл из вашей программы на сервер DeepSeek — ответ вернулся в ваш терминал.</p>
+  <div class="ek-note ek-note--green" style="margin-top:8px">Спросите одно и то же дважды — ответы будут <b>разными</b>: нейросеть генерирует текст заново, а не достаёт из списка.</div>
+  <div class="ek-note" style="margin-top:8px">Это та же нейросеть, что писала вам код в чате, — теперь она <b>работает на вас</b> внутри вашей программы.</div>
+</div>
+</section>
+
+<section class="slide slide--content"
+  data-notes="Пробегитесь по четырём ситуациям. Чаще всего — забыли pip install requests или ключ вставлен с лишним пробелом. Помогите лично тем, у кого не отвечает, остальные сверяются со слайдом.">
+<div class="sl-body">
+  <div>
+    <div class="q-label">Если советчик не ответил</div>
+    <h2>Типичные ситуации <span class="acc">запуска</span></h2>
+  </div>
+  <div class="kv">
+    <div class="kv-row"><div class="k">ModuleNotFoundError</div><div class="v">Библиотека <span class="code-chip">requests</span> не установлена. В терминале: <span class="code-chip">pip install requests</span> — и запускайте снова.</div></div>
+    <div class="kv-row"><div class="k">401 Unauthorized</div><div class="v">Ключ скопирован не целиком или с пробелом. Проверьте константу <span class="code-chip">API_KEY</span>: ключ начинается с <span class="code-chip">sk-</span> и стоит в кавычках.</div></div>
+    <div class="kv-row"><div class="k">«Программа молчит»</div><div class="v">5–10 секунд тишины — это <span class="hl">нейросеть думает</span>. Нормально. Подождите ответ.</div></div>
+    <div class="kv-row"><div class="k">ConnectionError</div><div class="v">Программа не достучалась до интернета. Проверьте Wi-Fi и запустите ещё раз.</div></div>
+  </div>
+</div>
+</section>
+
+<section class="slide slide--content"
+  data-notes="Разбор ядра. Не углубляйтесь в каждый символ: четыре смысловых блока — адрес, пропуск, посылка, ответ. Остальное дети уже видели в работе.">
+<div class="sl-body">
+  <div>
+    <div class="q-label">Разбор кода</div>
+    <h2>Четыре строки, которые ходят к <span class="acc">нейросети</span></h2>
+  </div>
+  <div class="code-win">
+    <div class="code-head"><span class="win-dots"><i></i><i></i><i></i></span><span class="lang-badge">PYTHON</span></div>
+    <div class="code-body">url = <span class="st">"https://api.deepseek.com/chat/completions"</span>   <span class="cm"># адрес DeepSeek</span>
+headers = {<span class="st">"Authorization"</span>: f<span class="st">"Bearer {API_KEY}"</span>}     <span class="cm"># пропуск: ваш ключ</span>
+
+data = {
+    <span class="st">"model"</span>: <span class="st">"deepseek-chat"</span>,                        <span class="cm"># какая модель отвечает</span>
+    <span class="st">"messages"</span>: [
+        {<span class="st">"role"</span>: <span class="st">"system"</span>, <span class="st">"content"</span>: <span class="st">"Ты дружелюбный советчик…"</span>},
+        {<span class="st">"role"</span>: <span class="st">"user"</span>, <span class="st">"content"</span>: question},       <span class="cm"># вопрос из input</span>
+    ],
+}
+
+response = requests.post(url, headers=headers, json=data)   <span class="cm"># отправили</span>
+answer = response.json()[<span class="st">"choices"</span>][0][<span class="st">"message"</span>][<span class="st">"content"</span>] <span class="cm"># достали текст</span></div>
+  </div>
+  <p><span class="code-chip">headers</span> — пропуск с ключом, <span class="code-chip">data</span> — что отправляем, <span class="code-chip">response</span> — что вернулось. Всё остальное — обёртка.</p>
+</div>
+</section>
+
+<section class="slide slide--content"
+  data-notes="Ключевая идея урока: в messages два сообщения с разными ролями. Системную роль пишем мы — это промпт внутри программы. Свяжите с уроком 2: те же техники промптинга.">
+<div class="sl-body">
+  <div>
+    <div class="q-label">Разбор кода</div>
+    <h2>Два сообщения — <span class="acc">две роли</span></h2>
+  </div>
+  <div class="kv">
+    <div class="kv-row"><div class="k">role: system</div><div class="v">Характер и правила советчика. Пишем <b>мы, один раз</b>: «Ты дружелюбный советчик для подростка. Отвечай кратко, 2–3 предложения».</div></div>
+    <div class="kv-row"><div class="k">role: user</div><div class="v">Живой вопрос пользователя — то, что пришло из <span class="code-chip">input</span>. Меняется при каждом запуске.</div></div>
+  </div>
+  <div class="ek-note">Системная роль — это <b>промпт, который живёт внутри программы</b>. Роль, контекст, формат, ограничения — те же 5 техник из урока 2, только теперь в вашем коде.</div>
+</div>
+</section>
+
+<section class="slide slide--content"
+  data-notes="Первая правка идёт в тот же чат. Дождитесь, пока у всех советчик зовёт по имени, потом идём дальше.">
+<div class="sl-body">
+  <div>
+    <div class="q-label">Правка 1 · знакомство</div>
+    <h2>Советчик зовёт <span class="acc">по имени</span></h2>
+  </div>
+  <div class="prompt-card prompt-card--copy" style="margin-top:14px">
+    <span class="pc-tag">→ В тот же чат</span>
+    <div class="pc-text">Доработай advisor.py, остальное не меняй:
+- Перед вопросом программа знакомится: спрашивает имя через input
+- Дальше обращается по имени: «{имя}, о чём поговорим?»
+- Имя добавь и в системную роль: «Пользователя зовут {имя}, обращайся к нему по имени»
+
+Верни весь обновлённый advisor.py целиком.</div>
+  </div>
+</div>
+</section>
+
+<section class="slide slide--content"
+  data-notes="Самый весёлый момент урока. После запуска дайте 2–3 минуты поиграть с характерами: один и тот же вопрос — три разных советчика.">
+<div class="sl-body">
+  <div>
+    <div class="q-label">Правка 2 · выбор характера</div>
+    <h2>Меняем роль — меняем <span class="acc">советчика</span></h2>
+  </div>
+  <p>Код останется тем же. Поменяем только <span class="hl">текст системной роли</span> — и советчик станет другим «человеком».</p>
+  <div class="prompt-card prompt-card--copy" style="margin-top:10px">
+    <span class="pc-tag">→ В тот же чат</span>
+    <div class="pc-text">Добавь выбор характера при запуске:
+- 1 — добрый друг: поддерживает, мягкий тон
+- 2 — строгий тренер: краткие чёткие шаги, без сюсюканья
+- 3 — весёлый кот: шутит и мурлычет, но советы дельные
+- Пользователь вводит цифру, и в системную роль подставляется соответствующее описание
+- Если ввели не 1/2/3 — используй характер 1
+
+Верни весь файл.</div>
+  </div>
+</div>
+</section>
+
+<section class="slide slide--content"
+  data-notes="Зафиксируйте вывод: качество программы с нейросетью равно качеству промпта внутри неё. Пусть каждый задаст один вопрос всем трём характерам.">
+<div class="sl-body">
+  <div>
+    <div class="q-label">Полезное знание</div>
+    <h2>Промпт — <span class="acc">часть программы</span></h2>
+  </div>
+  <div class="code-win">
+    <div class="code-head"><span class="win-dots"><i></i><i></i><i></i></span><span class="lang-badge">PYTHON</span></div>
+    <div class="code-body">characters = {
+    <span class="st">"1"</span>: <span class="st">"Ты добрый друг: поддерживай и подбадривай."</span>,
+    <span class="st">"2"</span>: <span class="st">"Ты строгий тренер: давай чёткие шаги, без воды."</span>,
+    <span class="st">"3"</span>: <span class="st">"Ты весёлый кот: шути и мурлычь, но советуй дельно."</span>,
+}
+role = characters.get(choice, characters[<span class="st">"1"</span>])
+
+messages = [{<span class="st">"role"</span>: <span class="st">"system"</span>, <span class="st">"content"</span>: role}, ...]</div>
+  </div>
+  <div class="ek-note ek-note--green">Код один и тот же — звучит советчик совершенно иначе. <b>Качество программы с нейросетью = качество промпта внутри неё.</b> Попробуйте все три характера на одном вопросе.</div>
+</div>
+</section>
+
+<section class="slide slide--content"
+  data-notes="Правка 3. После неё советчик превращается в настоящий чат. Дождитесь, пока у всех работает «выход», потом идём дальше.">
+<div class="sl-body">
+  <div>
+    <div class="q-label">Правка 3 · разговор по кругу</div>
+    <h2>Диалог, а не <span class="acc">один ответ</span></h2>
+  </div>
+  <div class="prompt-card prompt-card--copy" style="margin-top:14px">
+    <span class="pc-tag">→ В тот же чат</span>
+    <div class="pc-text">Сейчас советчик отвечает один раз и выключается. Сделай диалог:
+- Программа спрашивает «{имя}, о чём поговорим?» по кругу
+- На каждый вопрос — новый ответ нейросети
+- Цикл крутится, пока пользователь не введёт «выход»
+- После «выход» — попрощайся по имени
+
+Верни весь файл.</div>
+  </div>
+</div>
+</section>
+
+<section class="slide slide--content"
+  data-notes="Минимум теории про цикл: повторяет блок, break выходит. Подчеркните, почему проверка «выход» стоит до запроса — не тратим обращение к нейросети впустую. Подробно циклы — на уроке 6.">
+<div class="sl-body">
+  <div>
+    <div class="q-label">Разбор кода</div>
+    <h2>Как работает <span class="acc">вечный цикл</span></h2>
+  </div>
+  <div class="code-win">
+    <div class="code-head"><span class="win-dots"><i></i><i></i><i></i></span><span class="lang-badge">PYTHON</span></div>
+    <div class="code-body"><span class="kw">while</span> <span class="kw">True</span>:                          <span class="cm"># повторять бесконечно</span>
+    question = input(f<span class="st">"{name}, о чём поговорим? "</span>)
+    <span class="kw">if</span> question.lower() == <span class="st">"выход"</span>:
+        <span class="kw">break</span>                        <span class="cm"># выйти из цикла</span>
+    <span class="cm"># ...запрос к нейросети и печать ответа...</span></div>
+  </div>
+  <p><span class="code-chip">while True</span> повторяет блок снова и снова, <span class="code-chip">break</span> — выход. Проверка «выход» стоит <b>до</b> запроса, чтобы не тратить обращение к нейросети впустую.</p>
+  <div class="ek-note">Циклы — главная тема <b>урока 6</b>. Сегодня берём необходимый минимум.</div>
+</div>
+</section>
+
+<section class="slide slide--content"
+  data-notes="Правка 4. После запуска покажите: в папке появился history.txt — откройте его прямо в VS Code, там весь разговор с датами. Если группа отстаёт по времени — правки 4 и 5 можно перенести в домашнее задание.">
+<div class="sl-body">
+  <div>
+    <div class="q-label">Правка 4 · история диалога</div>
+    <h2>Советчик ведёт <span class="acc">дневник</span></h2>
+  </div>
+  <div class="prompt-card prompt-card--copy" style="margin-top:14px">
+    <span class="pc-tag">→ В тот же чат</span>
+    <div class="pc-text">Пусть советчик ведёт дневник:
+- После каждого ответа дозаписывай в файл history.txt строку вида «[2026-06-12 18:30] Маша: вопрос → ответ нейросети»
+- Дату и время бери из datetime.now()
+- Файл открывай через with open('history.txt', 'a', encoding='utf-8')
+- Если файла нет — он должен создаться сам
+
+Верни весь файл.</div>
+  </div>
+</div>
+</section>
+
+<section class="slide slide--content"
+  data-notes="Главная ловушка — режим w стирает файл. Дайте сфотографировать таблицу режимов.">
+<div class="sl-body">
+  <div>
+    <div class="q-label">Разбор кода</div>
+    <h2><span class="acc">with open</span> и режимы файла</h2>
+  </div>
+  <div class="code-win">
+    <div class="code-head"><span class="win-dots"><i></i><i></i><i></i></span><span class="lang-badge">PYTHON</span></div>
+    <div class="code-body"><span class="kw">from</span> datetime <span class="kw">import</span> datetime
+
+now = datetime.now().strftime(<span class="st">'%Y-%m-%d %H:%M'</span>)
+<span class="kw">with</span> open(<span class="st">'history.txt'</span>, <span class="st">'a'</span>, encoding=<span class="st">'utf-8'</span>) <span class="kw">as</span> f:
+    f.write(f<span class="st">"[{now}] {name}: {question} → {answer}\n"</span>)</div>
+  </div>
+  <div class="kv" style="margin-top:12px">
+    <div class="kv-row"><div class="k">'r' — читать</div><div class="v">Только смотрим содержимое, менять нельзя.</div></div>
+    <div class="kv-row"><div class="k">'w' — переписать</div><div class="v">Создаёт файл заново и <b>стирает всё старое</b>. Осторожно!</div></div>
+    <div class="kv-row"><div class="k">'a' — дописать</div><div class="v">Добавляет строки в конец. История копится — нам сюда.</div></div>
+  </div>
+  <p><span class="code-chip">with</span> закрывает файл сам, а <span class="code-chip">encoding='utf-8'</span> бережёт русские буквы от кракозябр.</p>
+</div>
+</section>
+
+<section class="slide slide--content"
+  data-notes="Последняя правка — косметика. Цвета сразу видны: советчик начинает выглядеть как настоящий продукт. Дождитесь, пока все запустят, потом идём к разбору.">
+<div class="sl-body">
+  <div>
+    <div class="q-label">Правка 5 · цвет в терминале</div>
+    <h2>Раскрашиваем <span class="acc">советчика</span></h2>
+  </div>
+  <p>Советчик работает — теперь наведём красоту. Одна правка ANSI-кодами, и вывод оживёт цветом, без единой сторонней библиотеки.</p>
+  <div class="prompt-card prompt-card--copy" style="margin-top:12px">
+    <span class="pc-tag">→ В тот же чат</span>
+    <div class="pc-text">Раскрась вывод советчика ANSI-кодами, <span class="hl">без сторонних библиотек</span>:
+- Приветствие — фиолетовым
+- Вопросы пользователю — голубым
+- Ответ нейросети — <span class="hl">зелёным и жирным</span>
+- Прощание — обычным цветом
+
+Заведи в начале файла константы вроде VIOLET = '\033[35m'
+и RESET = '\033[0m' и подставляй их в print через f-строки.
+
+Верни весь обновлённый advisor.py.</div>
+  </div>
+</div>
+</section>
+
+<section class="slide slide--content"
+  data-notes="Разбор цветов. Покажите: пять констант в начале файла, дальше обычные f-строки. Если у кого-то цвета не появились — пусть проверит, что запускает программу во встроенном терминале VS Code.">
+<div class="sl-body">
+  <div>
+    <div class="q-label">Разбор кода</div>
+    <h2>Как терминал понимает <span class="acc">цвет</span></h2>
+  </div>
+  <p>Терминал следит за <span class="hl">специальными последовательностями</span> в тексте: <span class="code-chip">\033[35m</span> переключает цвет, <span class="code-chip">\033[0m</span> возвращает обычный. Удобно завести константы в начале файла:</p>
+  <div class="code-win" style="margin-top:10px">
+    <div class="code-head"><span class="win-dots"><i></i><i></i><i></i></span><span class="lang-badge">PYTHON</span></div>
+    <div class="code-body">VIOLET = <span class="st">'\033[35m'</span>   <span class="cm"># фиолетовый</span>
+CYAN   = <span class="st">'\033[96m'</span>   <span class="cm"># ярко-голубой</span>
+GREEN  = <span class="st">'\033[92m'</span>   <span class="cm"># ярко-зелёный</span>
+BOLD   = <span class="st">'\033[1m'</span>    <span class="cm"># жирный</span>
+RESET  = <span class="st">'\033[0m'</span>    <span class="cm"># вернуть обычный вид</span>
+
+print(f<span class="st">"{GREEN}{BOLD}Совет:{RESET}"</span>)</div>
+  </div>
+  <div class="ek-note ek-note--red">Работает во встроенном терминале VS Code. В старых системных консолях цвета могут не появиться — это <b>не ошибка вашего кода</b>.</div>
+</div>
+</section>
+
+<section class="slide slide--content"
+  data-notes="Вопрос про природу нейросети. Дайте 10–15 секунд подумать, потом раскройте ответ. Это ключевое отличие от программ с заготовками — нейросеть генерирует текст заново.">
+<div class="sl-body">
+  <div>
+    <div class="q-label">Проверка · вопрос 1</div>
+    <h2>Изучите ситуацию и <span class="acc">ответьте</span></h2>
+  </div>
+  <div class="quiz-box">
+    <span class="q-num">Вопрос 1</span>
+    <p class="q-text">Маша задала советчику один и тот же вопрос два раза подряд — и получила два разных ответа. Серёжа говорит: «У тебя в программе ошибка». Прав ли он?</p>
+    <div class="quiz-answer">
+      <button class="quiz-btn" type="button">Показать ответ</button>
+      <div class="quiz-reveal">
+        <p>Нет. Нейросеть <b>не достаёт ответ из готового списка</b> — она генерирует текст заново при каждом запросе, поэтому формулировки отличаются.</p>
+        <p>Так работает и чат DeepSeek: задайте одинаковый вопрос дважды — получите разные ответы. Нейросеть каждый раз заново формулирует ответ.</p>
+      </div>
+    </div>
+  </div>
+</div>
+</section>
+
+<section class="slide slide--content"
+  data-notes="Вопрос про режимы открытия файла. Частая ошибка — w вместо a. Свяжите с дневником: дневник не переписывают с нуля каждый день.">
+<div class="sl-body">
+  <div>
+    <div class="q-label">Проверка · вопрос 2</div>
+    <h2>Изучите ситуацию и <span class="acc">ответьте</span></h2>
+  </div>
+  <div class="quiz-box">
+    <span class="q-num">Вопрос 2</span>
+    <p class="q-text">Алина решила «улучшить» сохранение истории и поменяла режим открытия файла с <span class="code-chip">'a'</span> на <span class="code-chip">'w'</span>. Ошибок нет, но после каждого запуска в history.txt остаётся только последняя запись. Почему?</p>
+    <div class="quiz-answer">
+      <button class="quiz-btn" type="button">Показать ответ</button>
+      <div class="quiz-reveal">
+        <p>Режим <b>'w'</b> каждый раз создаёт файл заново и <b>стирает старое содержимое</b>. Для дневника нужен режим <b>'a'</b> — append, дозапись в конец файла.</p>
+      </div>
+    </div>
+  </div>
+</div>
+</section>
+
+<section class="slide slide--content"
+  data-notes="Научите читать traceback снизу вверх — это пригодится на всех уроках Python. Напомните привычку из «Змейки»: непонятная ошибка целиком уходит в DeepSeek. И новое: странные ответы нейросети чинятся в системной роли.">
+<div class="sl-body">
+  <div>
+    <div class="q-label">Отладка</div>
+    <h2>Читаем <span class="acc">ошибки Python</span></h2>
+  </div>
+  <div class="grid-2" style="margin-top:6px">
+    <div>
+      <h3 style="font:800 15px/1 var(--f-head);margin-bottom:8px">Traceback — снизу вверх</h3>
+      <div class="term">
+        <div class="term-head"><span class="win-dots"><i></i><i></i><i></i></span><span class="lang-badge">ТЕРМИНАЛ</span></div>
+        <div class="term-body">Traceback (most recent call last):
+  File "advisor.py", line 12, in &lt;module&gt;
+    print(advise)
+<span class="usr">NameError: name 'advise' is not defined</span></div>
+      </div>
+      <p style="font-size:13.5px;margin-top:8px;opacity:.75">Последняя строка — <b>что</b> случилось, строкой выше — <b>где</b>.</p>
+    </div>
+    <div>
+      <h3 style="font:800 15px/1 var(--f-head);margin-bottom:8px">Если застряли</h3>
+      <ul class="clean">
+        <li><b>Ошибка непонятна</b> — скопируйте traceback целиком в чат DeepSeek и попросите объяснить и починить</li>
+        <li><b>Программа молчит</b> — добавьте print-метки, чтобы увидеть, докуда дошло выполнение</li>
+        <li><b>Ответ нейросети странный</b> — проблема почти всегда в системной роли: перечитайте её текст</li>
+      </ul>
+    </div>
+  </div>
+</div>
+</section>
+
+<section class="slide slide--content"
+  data-notes="5 привычек разработчика с нейросетью. Дайте сфотографировать слайд. Особо подчеркните первую: ключ — это пароль.">
+<div class="sl-body">
+  <div>
+    <div class="q-label">Запомните</div>
+    <h2>Привычки разработчика <span class="acc">с нейросетью</span></h2>
+  </div>
+  <div class="kv">
+    <div class="kv-row"><div class="k">01 · Ключ — это пароль</div><div class="v">Не публикуем, не показываем на скриншотах. Утёк — перевыпускаем.</div></div>
+    <div class="kv-row"><div class="k">02 · Промпт живёт в коде</div><div class="v">Системная роль решает, каким будет ответ. Меняешь её — меняется программа.</div></div>
+    <div class="kv-row"><div class="k">03 · Терминал — друг</div><div class="v">Любой скрипт: <span class="code-chip">python имя_файла.py</span>. Библиотеки: <span class="code-chip">pip install</span>.</div></div>
+    <div class="kv-row"><div class="k">04 · input → строка</div><div class="v">Всё из input приходит текстом. Число достаём через <span class="code-chip">int(...)</span>.</div></div>
+    <div class="kv-row"><div class="k">05 · with open</div><div class="v">Файлы открываем только так — закроется сам. Режим <span class="code-chip">'a'</span> — дозапись.</div></div>
+  </div>
+</div>
+</section>
+
+<section class="slide slide--content"
+  data-notes="Чек-лист завершения советчика. Кто отметил всё — пусть даст соседу задать вопрос своему советчику и сравнит характеры.">
+<div class="sl-body">
+  <div>
+    <div class="q-label">Чек-лист</div>
+    <h2>Готовность <span class="acc">к 55-й минуте</span></h2>
+  </div>
+  <div class="grid-2" style="margin-top:6px">
+    <div>
+      <h3 style="font:800 15px/1 var(--f-head);margin-bottom:10px">Готово</h3>
+      <ul class="clean">
+        <li><span class="code-chip">advisor.py</span> запускается командой <span class="code-chip">python advisor.py</span></li>
+        <li>Советчик здоровается по имени</li>
+        <li>Характер выбирается при запуске и реально меняет тон</li>
+      </ul>
+    </div>
+    <div>
+      <h3 style="font:800 15px/1 var(--f-head);margin-bottom:10px">Работает</h3>
+      <ul class="clean">
+        <li>Диалог идёт по кругу, пока не введёте «выход»</li>
+        <li>Ответы генерирует нейросеть DeepSeek — не заготовки</li>
+        <li>История дописывается в <span class="code-chip">history.txt</span> с датой</li>
+        <li>Вывод цветной</li>
+      </ul>
+    </div>
+  </div>
+  <div class="ek-note ek-note--green">Всё отмечено? Дайте соседу задать вашему советчику вопрос — и сравните характеры.</div>
+</div>
+</section>
+
+<section class="slide slide--content"
+  data-notes="ДЗ — прокачать советчика, примерно 30 минут. Каждое улучшение — отдельный диалог с DeepSeek, не всё сразу. Напомните про ключ на скриншотах.">
+<div class="sl-body">
+  <div>
+    <div class="q-label">Домашнее задание · около 30 минут</div>
+    <h2>Прокачайте <span class="acc">советчика</span></h2>
+  </div>
+  <p>Три улучшения — каждое через отдельный диалог с DeepSeek:</p>
+  <div class="grid-3" style="margin-top:8px">
+    <div class="info-card">
+      <h3>Свой характер</h3>
+      <p>Придумайте четвёртый характер — мудрый дедушка или капитан космического корабля — и добавьте в меню. Проверьте, как меняются ответы.</p>
+    </div>
+    <div class="info-card">
+      <h3>Память разговора</h3>
+      <p>Советчик забывает каждый вопрос. Попросите DeepSeek хранить прошлые сообщения в списке <span class="code-chip">messages</span> и слать их вместе с новым — советчик начнёт помнить разговор.</p>
+    </div>
+    <div class="info-card">
+      <h3>ASCII-логотип</h3>
+      <p>При старте советчик рисует надпись СОВЕТЧИК псевдографикой — попросите DeepSeek сгенерировать.</p>
+    </div>
+  </div>
+  <div class="ek-note ek-note--red">Пришлите скриншот терминала с диалогом — <b>ключ скройте!</b> Ваш самый удачный промпт — отдельным сообщением.</div>
+</div>
+</section>
+
+<section class="slide slide--green"
+  data-notes="Закройте урок. Сегодня двойной прорыв: первый Python-скрипт и первая программа с нейросетью внутри. На уроке 6 — циклы и функции, текстовая игра-приключение с сюжетом от нейросети.">
+<div class="sl-orbit">
+    <i class="sl-ring"></i>
+    <svg class="sl-ico" viewBox="0 0 100 100" style="left:75px;top:20px;width:150px;height:150px;transform:rotate(-10deg)"><use href="#ek-i-trophy"/></svg>
+    <i class="sl-letter" style="left:466px;top:13px;width:78px;height:78px;--fs:36px">P</i>
+    <svg class="sl-ico" viewBox="0 0 100 100" style="left:1040px;top:15px;width:130px;height:130px;transform:rotate(12deg)"><use href="#ek-i-heart"/></svg>
+    <i class="sl-letter" style="left:68px;top:268px;width:100px;height:100px;--fs:46px">Y</i>
+    <i class="sl-letter" style="left:1137px;top:327px;width:95px;height:95px;--fs:44px">I</i>
+    <svg class="sl-ico" viewBox="0 0 100 100" style="left:102px;top:532px;width:125px;height:125px;transform:rotate(-15deg)"><use href="#ek-i-star"/></svg>
+    <i class="sl-letter" style="left:726px;top:613px;width:78px;height:78px;--fs:36px">A</i>
+    <svg class="sl-ico" viewBox="0 0 100 100" style="left:1045px;top:540px;width:110px;height:110px;transform:rotate(8deg)"><use href="#ek-i-gem"/></svg>
+  </div>
+  <div class="cover-center">
+    <div class="bubble">
+      <h1>До встречи<br>на уроке 6!</h1>
+      <p>Сегодня двойной прорыв: первый Python-скрипт и первая программа с нейросетью внутри — input, API, системная роль, цикл, файлы, цвета. На уроке 6 берём циклы и функции по-настоящему: соберём текстовую игру-приключение, где сюжет на лету генерирует нейросеть.</p>
+    </div>
+  </div>
+</section>
+</main>
+
+<div class="notes" id="notes">
+  <div class="notes__header">Заметки преподавателя &middot; N — скрыть</div>
+  <div class="notes__body" id="notesBody">—</div>
+</div>
+
+<div class="hint"><kbd>←</kbd><kbd>→</kbd> слайды &middot; <kbd>N</kbd> заметки &middot; <kbd>F</kbd> весь экран</div>
+
+<svg width="0" height="0" style="position:absolute" aria-hidden="true"><defs>
+<symbol id="ek-i-trophy" viewBox="0 0 100 100"><path fill="currentColor" d="M24 16h52v12h8c6 0 10 4 10 10 0 15-11 25-23 27-3 5-8 9-14 10v8h14c4 0 7 3 7 7v4H22v-4c0-4 3-7 7-7h14v-8c-6-1-11-5-14-10C17 63 6 53 6 38c0-6 4-10 10-10h8V16zM24 36h-7c-2 0-4 2-4 4 0 8 5 15 12 18-1-5-1-10-1-16v-6zM76 36v6c0 6 0 11-1 16 7-3 12-10 12-18 0-2-2-4-4-4h-7z"/></symbol>
+<symbol id="ek-i-heart" viewBox="0 0 100 100"><path fill="currentColor" d="M50 88C28 72 10 56 10 38 10 24 21 14 34 14c6 0 12 3 16 8 4-5 10-8 16-8 13 0 24 10 24 24 0 18-18 34-40 50z"/></symbol>
+<symbol id="ek-i-star" viewBox="0 0 100 100"><path fill="currentColor" d="M50 8l12 27 29 3-22 20 6 29-25-15-25 15 6-29L9 38l29-3z"/></symbol>
+<symbol id="ek-i-gem" viewBox="0 0 100 100"><path fill="currentColor" d="M30 12h40l18 24-38 52L12 36zM36 20l-12 16h20zM64 20l-8 16h20zM50 22l-9 14h18zM26 44l20 30-8-30zM62 44l-8 30 20-30zM46 44h8l-4 26z"/></symbol>
+</defs></svg>
+
+<script>
+/* ============ Автомасштаб сцены ============ */
+(function(){
+  'use strict';
+  var stage = document.getElementById('deck');
+  function fit(){
+    var w = window.innerWidth, h = window.innerHeight;
+    if (!w || !h) return;
+    var s = Math.min(w / 1320, h / 780);
+    if (document.fullscreenElement) s = Math.min(w / 1280, h / 720);
+    stage.style.transform = 'translate(-50%,-50%) scale(' + s + ')';
+    stage.style.borderRadius = document.fullscreenElement ? '0' : '18px';
+  }
+  window.addEventListener('resize', fit);
+  document.addEventListener('fullscreenchange', fit);
+  fit();
+})();
+
+/* ============ Навигация по слайдам ============ */
+(function(){
+  'use strict';
+  var slides = Array.prototype.slice.call(document.querySelectorAll('.slide'));
+  var total = slides.length;
+  var idx = 0;
+  document.getElementById('total').textContent = total;
+
+  var progressEl = document.getElementById('progress');
+  var currentEl = document.getElementById('current');
+  var notesPanel = document.getElementById('notes');
+  var notesBody = document.getElementById('notesBody');
+
+  slides.forEach(function(s, i){
+    if (s.classList.contains('slide--content')) s.setAttribute('data-page', i + 1);
+  });
+
+  function render(){
+    slides.forEach(function(s, i){
+      s.classList.remove('active', 'prev');
+      if (i === idx) s.classList.add('active');
+      else if (i < idx) s.classList.add('prev');
+    });
+    progressEl.style.width = ((idx + 1) / total * 100).toFixed(2) + '%';
+    currentEl.textContent = idx + 1;
+    notesBody.textContent = slides[idx].getAttribute('data-notes') || '—';
+  }
+
+  function go(n){ idx = Math.max(0, Math.min(total - 1, n)); render(); }
+  function next(){ go(idx + 1); }
+  function prev(){ go(idx - 1); }
+
+  document.addEventListener('keydown', function(e){
+    var active = document.activeElement;
+    if (active && (active.isContentEditable || active.tagName === 'TEXTAREA' || active.tagName === 'INPUT')) return;
+    switch (e.key){
+      case 'ArrowRight': case 'PageDown': case ' ':
+        e.preventDefault(); next(); break;
+      case 'ArrowLeft': case 'PageUp':
+        e.preventDefault(); prev(); break;
+      case 'Home': e.preventDefault(); go(0); break;
+      case 'End': e.preventDefault(); go(total - 1); break;
+      case 'f': case 'F': case 'а': case 'А':
+        e.preventDefault();
+        if (!document.fullscreenElement){ if (document.documentElement.requestFullscreen) document.documentElement.requestFullscreen(); }
+        else if (document.exitFullscreen) document.exitFullscreen();
+        break;
+      case 'n': case 'N': case 'т': case 'Т':
+        e.preventDefault(); notesPanel.classList.toggle('active'); break;
+      case 'Escape':
+        if (document.fullscreenElement && document.exitFullscreen) document.exitFullscreen();
+        notesPanel.classList.remove('active'); break;
+    }
+  });
+
+  var tx = 0, ty = 0;
+  document.addEventListener('touchstart', function(e){ tx = e.changedTouches[0].screenX; ty = e.changedTouches[0].screenY; }, { passive: true });
+  document.addEventListener('touchend', function(e){
+    var dx = e.changedTouches[0].screenX - tx, dy = e.changedTouches[0].screenY - ty;
+    if (Math.abs(dx) > 60 && Math.abs(dx) > Math.abs(dy)){ if (dx < 0) next(); else prev(); }
+  }, { passive: true });
+
+  document.addEventListener('click', function(e){
+    if (e.target.closest('a,button,input,textarea,code,pre,[contenteditable],.code-win,.term,.prompt-card,.quiz-box,.notes')) return;
+    var x = e.clientX, w = window.innerWidth;
+    if (x < w * 0.25) prev();
+    else if (x > w * 0.75) next();
+  });
+
+  render();
+})();
+
+/* ============ Квизы: показать ответ ============ */
+(function(){
+  'use strict';
+  Array.prototype.slice.call(document.querySelectorAll('.quiz-btn')).forEach(function(btn){
+    btn.addEventListener('click', function(e){
+      e.stopPropagation();
+      var box = btn.closest('.quiz-box');
+      var reveal = box && box.querySelector('.quiz-reveal');
+      if (!reveal) return;
+      var shown = reveal.classList.toggle('show');
+      btn.textContent = shown ? 'Скрыть ответ' : 'Показать ответ';
+    });
+  });
+})();
+</script>
+</body>
+</html>

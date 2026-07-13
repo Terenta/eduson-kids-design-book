@@ -18,27 +18,32 @@
 }
 *{box-sizing:border-box;margin:0;padding:0}
 body{font-family:var(--f-body);background:#F7F7FA;color:var(--ek-ink);-webkit-font-smoothing:antialiased}
-.wrap{max-width:900px;margin:0 auto;padding:64px 24px 96px}
-.crumb{font:600 13px var(--f-body);margin-bottom:36px}
+.wrap{max-width:920px;margin:0 auto;padding:60px 24px 96px}
+.crumb{font:600 13px var(--f-body);margin-bottom:34px}
 .crumb a{color:var(--ek-violet-deep);text-decoration:none}
 .crumb a:hover{text-decoration:underline}
 .crumb span{color:var(--ek-gray)}
 .hero-badge{display:inline-block;background:var(--ek-green);color:var(--ek-ink);font:800 15px/1 var(--f-head);padding:10px 18px;border-radius:11px;transform:rotate(-2deg);box-shadow:0 8px 20px rgba(23,23,28,.10);margin-bottom:22px}
 h1{font:800 clamp(34px,5vw,52px)/1.1 var(--f-head);letter-spacing:-.015em;margin-bottom:14px}
-.sub{font:500 18px/1.55 var(--f-body);color:#3C3C45;max-width:620px;margin-bottom:44px}
-.cards{display:flex;flex-direction:column;gap:18px}
-a.lesson{display:block;text-decoration:none;color:inherit;background:#fff;border:1.5px solid var(--ek-line);border-radius:22px;padding:26px 30px;position:relative;transition:transform .18s,box-shadow .18s,border-color .18s}
-a.lesson:hover{transform:translateY(-3px);border-color:var(--ek-violet-soft);box-shadow:0 18px 44px rgba(23,23,28,.10)}
-a.lesson .num{font:700 13px var(--f-mono);letter-spacing:.1em;text-transform:uppercase;color:var(--ek-violet-deep)}
-a.lesson h2{font:800 24px/1.25 var(--f-head);margin:8px 0 8px}
-a.lesson p{font:500 15.5px/1.55 var(--f-body);color:#3C3C45;max-width:640px}
-a.lesson .go{position:absolute;top:26px;right:28px;width:40px;height:40px;border-radius:50%;background:var(--ek-violet-bg);color:var(--ek-violet-deep);display:flex;align-items:center;justify-content:center;font:800 18px var(--f-head);transition:background .18s,color .18s}
+.sub{font:500 18px/1.55 var(--f-body);color:#3C3C45;max-width:640px;margin-bottom:8px}
+.module{margin-top:44px}
+.module-head{display:flex;align-items:baseline;gap:12px;margin-bottom:16px;padding-bottom:10px;border-bottom:2px solid var(--ek-line)}
+.module-head .mnum{font:800 13px/1 var(--f-mono);letter-spacing:.08em;text-transform:uppercase;color:#fff;background:var(--ek-violet);padding:7px 11px;border-radius:8px}
+.module-head h2{font:800 22px/1.2 var(--f-head)}
+.module-head .mcount{margin-left:auto;font:600 13px var(--f-body);color:var(--ek-gray)}
+.cards{display:flex;flex-direction:column;gap:14px}
+a.lesson{display:block;text-decoration:none;color:inherit;background:#fff;border:1.5px solid var(--ek-line);border-radius:20px;padding:22px 26px;position:relative;transition:transform .18s,box-shadow .18s,border-color .18s}
+a.lesson:hover{transform:translateY(-3px);border-color:var(--ek-violet-soft);box-shadow:0 16px 40px rgba(23,23,28,.10)}
+a.lesson .num{font:700 12.5px var(--f-mono);letter-spacing:.08em;text-transform:uppercase;color:var(--ek-violet-deep)}
+a.lesson h3{font:800 21px/1.25 var(--f-head);margin:7px 0 7px}
+a.lesson p{font:500 15px/1.5 var(--f-body);color:#3C3C45;max-width:660px}
+a.lesson .go{position:absolute;top:24px;right:26px;width:38px;height:38px;border-radius:50%;background:var(--ek-violet-bg);color:var(--ek-violet-deep);display:flex;align-items:center;justify-content:center;font:800 18px var(--f-head);transition:background .18s,color .18s}
 a.lesson:hover .go{background:var(--ek-violet);color:#fff}
-.chips{display:flex;gap:8px;flex-wrap:wrap;margin-top:14px}
-.chip{font:700 12.5px/1 var(--f-body);padding:7px 12px;border-radius:999px;background:var(--ek-violet-bg);color:var(--ek-violet-deep)}
+.chips{display:flex;gap:8px;flex-wrap:wrap;margin-top:13px}
+.chip{font:700 12px/1 var(--f-body);padding:6px 11px;border-radius:999px;background:var(--ek-violet-bg);color:var(--ek-violet-deep)}
 .chip--green{background:var(--ek-green-pale);color:var(--ek-green-deep)}
 .chip--gray{background:var(--ek-gray-light);color:#3C3C45}
-.foot{margin-top:46px;font:500 13px var(--f-mono);color:var(--ek-gray)}
+.foot{margin-top:48px;font:500 13px var(--f-mono);color:var(--ek-gray)}
 .foot kbd{background:var(--ek-gray-light);padding:2px 7px;border-radius:5px;color:var(--ek-ink);font-family:var(--f-mono);font-size:11px}
 </style>
 </head>
@@ -47,30 +52,42 @@ a.lesson:hover .go{background:var(--ek-violet);color:#fff}
   <div class="crumb"><a href="../">← Дизайн-бук Eduson Kids</a> <span>/ Уроки</span></div>
   <div class="hero-badge">Step 2 · 13–15 лет</div>
   <h1>Программирование с&nbsp;нейросетями</h1>
-  <p class="sub">Практические уроки модулей 3–4: пишете код в диалоге с нейросетью и сразу видите результат. Каждый урок — рабочий проект за 60 минут.</p>
+  <p class="sub">Практический курс: пишете код в диалоге с нейросетью и сразу видите результат. Каждый урок — рабочий проект за 60 минут.</p>
 
-  <div class="cards">
-    <a class="lesson" href="urok_10.html">
-      <span class="num">Занятие 10 · Модуль 3</span>
-      <h2>Своё веб-приложение в интернете</h2>
-      <p>AI-помощник на Streamlit: веб-страница на чистом Python, чат с нейросетью и публикация на Streamlit Cloud — с публичной ссылкой, которой можно делиться.</p>
-      <div class="chips"><span class="chip">Streamlit</span><span class="chip chip--green">DeepSeek API</span><span class="chip chip--gray">Streamlit Cloud</span></div>
-      <span class="go">→</span>
-    </a>
-    <a class="lesson" href="urok_11.html">
-      <span class="num">Занятие 11 · Модуль 4</span>
-      <h2>Как программы общаются с нейросетью</h2>
-      <p>Программа-журналист: генератор статей на openai SDK. Управляем длиной и креативностью ответов через max_tokens и temperature.</p>
-      <div class="chips"><span class="chip chip--green">DeepSeek API</span><span class="chip">openai SDK</span><span class="chip chip--gray">Python</span></div>
-      <span class="go">→</span>
-    </a>
-    <a class="lesson" href="urok_12.html">
-      <span class="num">Занятие 12 · Модуль 4</span>
-      <h2>Чат с AI, как в ChatGPT</h2>
-      <p>AI-собеседник с личностями на выбор — учитель, друг, пират, философ. Ответ печатается по словам, а чатом управляют команды /start, /help и /clear.</p>
-      <div class="chips"><span class="chip chip--green">DeepSeek API</span><span class="chip">Streaming</span><span class="chip chip--gray">System prompt</span></div>
-      <span class="go">→</span>
-    </a>
+  <div class="module">
+    <div class="module-head"><span class="mnum">Модуль 1</span><h2>Первые сайты в браузере</h2><span class="mcount">Занятия 1–4</span></div>
+    <div class="cards">
+      <a class="lesson" href="urok_1.html"><span class="num">Занятие 01</span><h3>Установка инструментов и первая веб-страница</h3><p>Ставим VS Code, знакомимся с DeepSeek и собираем первую страницу «Обо мне» через диалог с нейросетью.</p><div class="chips"><span class="chip">VS Code</span><span class="chip chip--green">DeepSeek</span><span class="chip chip--gray">HTML</span></div><span class="go">→</span></a>
+      <a class="lesson" href="urok_2.html"><span class="num">Занятие 02</span><h3>Сайт из трёх файлов и техники работы с AI</h3><p>Три файла — HTML, CSS, JS — и пять техник промптинга. Собираем карточку любимого персонажа.</p><div class="chips"><span class="chip">HTML/CSS/JS</span><span class="chip chip--green">5 техник промптинга</span></div><span class="go">→</span></a>
+      <a class="lesson" href="urok_3.html"><span class="num">Занятие 03</span><h3>Интерактивность: события и DOM</h3><p>Страница реагирует на клики и ввод. Список задач, который запоминает данные между перезагрузками.</p><div class="chips"><span class="chip">DOM</span><span class="chip chip--gray">localStorage</span></div><span class="go">→</span></a>
+      <a class="lesson" href="urok_4.html"><span class="num">Занятие 04</span><h3>Своя браузерная игра на Canvas</h3><p>Рисуем на Canvas и пишем игровой цикл. Классическая «Змейка» со счётом и рекордом.</p><div class="chips"><span class="chip">Canvas</span><span class="chip chip--gray">Игровой цикл</span></div><span class="go">→</span></a>
+    </div>
+  </div>
+
+  <div class="module">
+    <div class="module-head"><span class="mnum">Модуль 2</span><h2>Программы на Python с нейросетью</h2><span class="mcount">Занятия 5–8</span></div>
+    <div class="cards">
+      <a class="lesson" href="urok_5.html"><span class="num">Занятие 05</span><h3>Первая программа на Python с AI</h3><p>Выходим в терминал: первый Python-скрипт и советчик, который отвечает живой нейросетью.</p><div class="chips"><span class="chip">Python</span><span class="chip chip--green">DeepSeek API</span></div><span class="go">→</span></a>
+      <a class="lesson" href="urok_6.html"><span class="num">Занятие 06</span><h3>Циклы, функции и коллекции</h3><p>Функции, циклы, списки и словари. Текстовая игра-приключение, где сюжет придумывает AI.</p><div class="chips"><span class="chip">Python</span><span class="chip chip--gray">list/dict</span></div><span class="go">→</span></a>
+      <a class="lesson" href="urok_7.html"><span class="num">Занятие 07</span><h3>Работа с файлами и формат JSON</h3><p>Личный дневник: пишете запись — нейросеть подбирает теги, всё хранится в JSON и ищется по тегу.</p><div class="chips"><span class="chip chip--green">DeepSeek API</span><span class="chip chip--gray">JSON</span></div><span class="go">→</span></a>
+      <a class="lesson" href="urok_8.html"><span class="num">Занятие 08</span><h3>Работа с внешними API</h3><p>Берём живую погоду из интернета, а нейросеть весело её комментирует. Прячем ключи в .env.</p><div class="chips"><span class="chip">requests</span><span class="chip chip--gray">OpenWeather</span><span class="chip chip--gray">.env</span></div><span class="go">→</span></a>
+    </div>
+  </div>
+
+  <div class="module">
+    <div class="module-head"><span class="mnum">Модуль 3</span><h2>AI-приложения с публичной ссылкой</h2><span class="mcount">Занятия 9–10</span></div>
+    <div class="cards">
+      <a class="lesson" href="urok_9.html"><span class="num">Занятие 09</span><h3>Telegram-бот с языковой моделью</h3><p>Бот отвечает нейросетью прямо в мессенджере. Регистрируем его у BotFather и запускаем со своего компьютера.</p><div class="chips"><span class="chip">python-telegram-bot</span><span class="chip chip--green">DeepSeek API</span></div><span class="go">→</span></a>
+      <a class="lesson" href="urok_10.html"><span class="num">Занятие 10</span><h3>Своё веб-приложение в интернете</h3><p>AI-помощник на Streamlit с чат-интерфейсом и публичной ссылкой, которой можно поделиться.</p><div class="chips"><span class="chip">Streamlit</span><span class="chip chip--gray">Streamlit Cloud</span></div><span class="go">→</span></a>
+    </div>
+  </div>
+
+  <div class="module">
+    <div class="module-head"><span class="mnum">Модуль 4</span><h2>Углублённо с нейросетями</h2><span class="mcount">Занятия 11–12</span></div>
+    <div class="cards">
+      <a class="lesson" href="urok_11.html"><span class="num">Занятие 11</span><h3>Как программы общаются с нейросетью</h3><p>openai SDK, temperature и max_tokens. Программа-журналист, пишущая статьи на любую тему.</p><div class="chips"><span class="chip chip--green">DeepSeek API</span><span class="chip">openai SDK</span></div><span class="go">→</span></a>
+      <a class="lesson" href="urok_12.html"><span class="num">Занятие 12</span><h3>Чат с AI, как в ChatGPT</h3><p>Собеседник с личностями — учитель, друг, пират, философ. Ответ печатается по словам, чатом управляют команды /start, /help, /clear.</p><div class="chips"><span class="chip chip--green">DeepSeek API</span><span class="chip">Streaming</span><span class="chip chip--gray">System prompt</span></div><span class="go">→</span></a>
+    </div>
   </div>
 
   <div class="foot">В уроках: <kbd>←</kbd><kbd>→</kbd> — слайды · <kbd>N</kbd> — заметки преподавателя · <kbd>F</kbd> — во весь экран</div>

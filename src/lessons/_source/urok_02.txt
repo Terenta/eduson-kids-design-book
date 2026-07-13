@@ -1,0 +1,481 @@
+===== SLIDE 1/22 [COVER] =====
+[NOTES] Поприветствуйте группу. Скажите, что сегодня вы научитесь раскладывать проект на 3 файла и пользоваться 5 техниками промтинга. К концу урока у каждого будет интерактивная карточка любимого персонажа.
+[HTML]
+<div class="eyebrow">Step 2 · Модуль 1 · Урок 02</div>
+    <h1>Архитектура проекта<br>и продвинутый<br>промтинг.</h1>
+    <p class="subtitle">Разделим проект на 3 файла, изучим 5 техник промтинга и соберём карточку любимого персонажа с интерактивными эффектами.</p>
+    <div class="meta-row">
+      <span class="badge primary">
+        <svg class="icon" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+        60 минут
+      </span>
+      <span class="badge cyan">13–15 лет</span>
+      <span class="badge good">Практика</span>
+    </div>
+    <div class="chip-row" style="margin-top:20px">
+      <span class="badge neutral">HTML</span>
+      <span class="badge neutral">CSS</span>
+      <span class="badge neutral">JavaScript</span>
+      <span class="badge neutral">DeepSeek</span>
+      <span class="badge neutral">5 техник</span>
+    </div>
+
+===== SLIDE 2/22 =====
+[NOTES] План на 60 минут. Разбор ДЗ занимает 5 минут, после переходим к архитектуре.
+[HTML]
+<div class="eyebrow">Agenda · план занятия</div>
+    <h2>Как пройдут 60 минут</h2>
+    <div class="timeline">
+      <div class="timeline-row"><div class="time">0–5</div><div><div class="title">Разбор домашнего задания</div><div class="desc">Открываем 2-3 чужих диалога, разбираем удачные формулировки.</div></div></div>
+      <div class="timeline-row"><div class="time">5–15</div><div><div class="title">Архитектура простого сайта</div><div class="desc">Зачем 3 файла, что за что отвечает, как они связаны между собой.</div></div></div>
+      <div class="timeline-row"><div class="time">15–30</div><div><div class="title">5 техник промтинга</div><div class="desc">Роль · Контекст · Формат · Ограничения · Итерация.</div></div></div>
+      <div class="timeline-row"><div class="time">30–50</div><div><div class="title">Сборка карточки персонажа</div><div class="desc">3 файла, tilt-эффект, анимированные числа, биография по клику.</div></div></div>
+      <div class="timeline-row"><div class="time">50–55</div><div><div class="title">Если правка ломает код</div><div class="desc">Главное правило: фиксируйте точку отката.</div></div></div>
+      <div class="timeline-row"><div class="time">55–60</div><div><div class="title">Демо в группе</div><div class="desc">Скриншот карточки и один лучший промпт от каждого.</div></div></div>
+    </div>
+
+===== SLIDE 3/22 =====
+[NOTES] Идея урока: на уроке 1 вы делали проект в одном файле. Сегодня учимся раскладывать его на 3 файла — это пригодится для всех следующих проектов курса.
+[HTML]
+<div class="eyebrow">Идея урока</div>
+    <h2>Что нового сегодня</h2>
+    <div class="grid cols-2" style="margin-top:18px">
+      <div class="card accent">
+        <h3>Архитектура проекта</h3>
+        <p style="font-size:15.5px">Когда страница состоит из нескольких блоков с разным поведением, разработчики обычно разделяют код на три файла. У каждого файла своя понятная роль.</p>
+      </div>
+      <div class="card accent">
+        <h3>Продвинутый промтинг</h3>
+        <p style="font-size:15.5px">На уроке 1 мы давали готовые промпты. Сегодня учимся сочинять их сами, используя 5 техник, которые помогают нейросети точнее понять задачу.</p>
+      </div>
+    </div>
+    <p class="lead" style="margin-top:24px">К концу урока вы соберёте карточку любимого персонажа — с 3D-наклоном, анимированными числами и биографией, которая открывается по клику.</p>
+
+===== SLIDE 4/22 =====
+[NOTES] Покажите диаграмму. Аналогия: HTML — скелет страницы, CSS — её внешний вид, JS — поведение при действиях пользователя. Простая, ясная, запоминается.
+[HTML]
+<div class="eyebrow">Архитектура любого сайта</div>
+    <h2>Три файла — три роли</h2>
+    <div class="arch-row">
+      <div class="arch-card html">
+        <div class="file">index.html</div>
+        <div class="role"><strong>Структура</strong></div>
+        <div class="meta">скелет — что есть на странице</div>
+      </div>
+      <div class="arrow">+</div>
+      <div class="arch-card css">
+        <div class="file">style.css</div>
+        <div class="role"><strong>Внешний вид</strong></div>
+        <div class="meta">оформление — как это выглядит</div>
+      </div>
+      <div class="arrow">+</div>
+      <div class="arch-card js">
+        <div class="file">script.js</div>
+        <div class="role"><strong>Поведение</strong></div>
+        <div class="meta">реакция — что происходит при клике</div>
+      </div>
+    </div>
+    <div class="card" style="margin-top:24px">
+      <h3>Зачем разделять</h3>
+      <p style="font-size:15.5px; margin-top:6px">Когда вы хотите поменять цвет — вы открываете только <code class="inline">style.css</code>. Когда меняете логику — только <code class="inline">script.js</code>. Это экономит время и помогает не сломать работающие части проекта.</p>
+    </div>
+
+===== SLIDE 5/22 =====
+[NOTES] Покажите: файлы лежат рядом, но «знают друг о друге» через теги link и script в index.html.
+[HTML]
+<div class="eyebrow">Как файлы связаны</div>
+    <h2>Связь через index.html</h2>
+    <div class="grid cols-2">
+      <div>
+        <h3>Структура папки</h3>
+<pre><code class="language-bash">lesson-02/
+├── index.html  ← главный файл
+├── style.css   ← подключается через &lt;link&gt;
+└── script.js   ← подключается через &lt;script&gt;</code></pre>
+        <details style="margin-top:12px">
+          <summary>А что, если не подключить?</summary>
+          <div class="content">Файлы будут лежать рядом, но не «общаться» между собой. HTML-страница откроется без оформления — текст без цветов и отступов. JS не запустится — кнопки и эффекты работать не будут.</div>
+        </details>
+      </div>
+      <div>
+        <h3>Что внутри index.html</h3>
+<pre><code class="language-markup">&lt;!DOCTYPE html&gt;
+&lt;html&gt;
+&lt;head&gt;
+  &lt;link rel="stylesheet" href="style.css"&gt;
+&lt;/head&gt;
+&lt;body&gt;
+
+  &lt;!-- весь контент здесь --&gt;
+
+  &lt;script src="script.js"&gt;&lt;/script&gt;
+&lt;/body&gt;
+&lt;/html&gt;</code></pre>
+        <p style="font-size:13.5px; margin-top:10px; color:var(--muted)">
+          <code class="inline">&lt;link&gt;</code> ставится в <code class="inline">head</code>, чтобы стили загрузились до контента.<br>
+          <code class="inline">&lt;script&gt;</code> ставится в конце <code class="inline">body</code>, чтобы JS запускался после построения страницы.
+        </p>
+      </div>
+    </div>
+
+===== SLIDE 6/22 =====
+[NOTES] Меню. Это обзор, дальше каждая техника отдельным слайдом с примерами «без техники / с техникой». Дайте ученикам сфоткать.
+[HTML]
+<div class="eyebrow">Главная часть урока</div>
+    <h2>Пять техник продвинутого промтинга</h2>
+    <div class="grid cols-3" style="margin-top:8px">
+      <div class="step-card">
+        <span class="num">1</span>
+        <h3 style="margin-top:6px">Роль</h3>
+        <p style="font-size:14px">Кем должна быть нейросеть в этом ответе.</p>
+      </div>
+      <div class="step-card">
+        <span class="num">2</span>
+        <h3 style="margin-top:6px">Контекст</h3>
+        <p style="font-size:14px">Для кого и зачем вы делаете проект.</p>
+      </div>
+      <div class="step-card">
+        <span class="num">3</span>
+        <h3 style="margin-top:6px">Формат</h3>
+        <p style="font-size:14px">Как должен выглядеть ответ.</p>
+      </div>
+      <div class="step-card" style="margin-top:14px">
+        <span class="num">4</span>
+        <h3 style="margin-top:6px">Ограничения</h3>
+        <p style="font-size:14px">Что использовать не нужно.</p>
+      </div>
+      <div class="step-card" style="margin-top:14px">
+        <span class="num">5</span>
+        <h3 style="margin-top:6px">Итерация</h3>
+        <p style="font-size:14px">Точечные правки.</p>
+      </div>
+    </div>
+    <div class="card warn" style="margin-top:20px">
+      <p style="font-size:15.5px">Заведите файл <code class="inline">prompts.md</code> в папке курса. Записывайте удачные промпты — пригодится на следующих уроках.</p>
+    </div>
+
+===== SLIDE 7/22 =====
+[NOTES] Роль задаёт стиль ответа. Если попросить «дизайнера Apple» — получится одно решение, если попросить «художника Ghibli» — другое.
+[HTML]
+<div class="eyebrow">Техника 1 · Роль</div>
+    <h2>Укажите, кем должна быть нейросеть</h2>
+    <div class="vs-grid">
+      <div class="vs-col minimal">
+        <h4>Без роли</h4>
+        <p>«Напиши код для карточки.»</p>
+        <p class="note">Нейросеть выберет стиль на своё усмотрение.</p>
+      </div>
+      <div class="vs-col detailed">
+        <h4>С ролью</h4>
+        <p>«Ты <em>senior фронтенд-разработчик</em> с опытом в Apple и Stripe. Напиши код для карточки <em>в стиле Apple</em>: минималистично, много воздуха, лёгкие тени.»</p>
+        <p class="note">Ответ будет в характерном стиле компании.</p>
+      </div>
+    </div>
+    <div class="card" style="margin-top:18px">
+      <p style="font-size:15.5px"><strong>Полезные роли:</strong> senior-дизайнер Apple, principal-инженер Google, креативный директор Pixar, художник студии Ghibli, UX-дизайнер из Linear.</p>
+    </div>
+
+===== SLIDE 8/22 =====
+[NOTES] Контекст — для кого делаете. Помогает выбрать стиль и тон.
+[HTML]
+<div class="eyebrow">Техника 2 · Контекст</div>
+    <h2>Расскажите, для кого делаете</h2>
+    <div class="vs-grid">
+      <div class="vs-col minimal">
+        <h4>Без контекста</h4>
+        <p>«Сделай мне сайт.»</p>
+        <p class="note">Нейросеть не знает аудиторию и выбирает усреднённое решение.</p>
+      </div>
+      <div class="vs-col detailed">
+        <h4>С контекстом</h4>
+        <p>«Я делаю сайт-визитку для <em>портфолио школьника 14 лет</em>. Зрители — <em>преподаватели колледжа</em>, в который я хочу поступить. Цель — впечатление аккуратности и вкуса.»</p>
+        <p class="note">Нейросеть подберёт стиль под конкретную аудиторию.</p>
+      </div>
+    </div>
+
+===== SLIDE 9/22 =====
+[NOTES] Формат вывода — как должен выглядеть ответ. Если не указать, нейросеть может выдать длинный текст с объяснениями.
+[HTML]
+<div class="eyebrow">Техника 3 · Формат</div>
+    <h2>Скажите, как ответить</h2>
+    <div class="vs-grid">
+      <div class="vs-col minimal">
+        <h4>Без формата</h4>
+        <p>«Расскажи, как сделать кнопку.»</p>
+        <p class="note">Ответ будет с объяснениями, придётся фильтровать.</p>
+      </div>
+      <div class="vs-col detailed">
+        <h4>С форматом</h4>
+        <p>«Ответь <em>только готовым кодом</em>, без объяснений. <em>Один блок ```html</em> — один файл. Если нужны три файла — <em>три блока с подписью имени файла сверху</em>.»</p>
+        <p class="note">Ответ компактный, готов к копированию.</p>
+      </div>
+    </div>
+    <div class="card" style="margin-top:18px">
+      <p style="font-size:15.5px"><strong>Полезные форматы:</strong> «таблицей», «списком из N пунктов», «JSON», «псевдокодом», «диаграммой через ASCII-арт».</p>
+    </div>
+
+===== SLIDE 10/22 =====
+[NOTES] Ограничения — что использовать не нужно. Например, без библиотек, без emoji, не более N строк.
+[HTML]
+<div class="eyebrow">Техника 4 · Ограничения</div>
+    <h2>Укажите, чего использовать не нужно</h2>
+    <div class="vs-grid">
+      <div class="vs-col minimal">
+        <h4>Без ограничений</h4>
+        <p>«Сделай интерактивную карточку.»</p>
+        <p class="note">Нейросеть может подключить библиотеки, которые не нужны учебному проекту.</p>
+      </div>
+      <div class="vs-col detailed">
+        <h4>С ограничениями</h4>
+        <p>«Сделай карточку. Ограничения: <em>без библиотек</em> (никаких jQuery, Bootstrap, React). Только чистый HTML/CSS/JS. <em>Не более 80 строк CSS</em>. <em>Не используй !important</em>.»</p>
+        <p class="note">Код будет компактный и понятный.</p>
+      </div>
+    </div>
+    <div class="card" style="margin-top:18px">
+      <p style="font-size:15.5px"><strong>Полезные ограничения:</strong> «без сторонних библиотек», «без классов и фреймворков», «не более N строк», «работает в одном файле», «не используй устаревшие теги».</p>
+    </div>
+
+===== SLIDE 11/22 =====
+[NOTES] Самая важная техника на курсе. Если хотите изменить деталь — явно скажите: «оставь всё как есть, измени только Х».
+[HTML]
+<div class="eyebrow">Техника 5 · Итерация</div>
+    <h2>Делайте точечные правки</h2>
+    <div class="vs-grid">
+      <div class="vs-col minimal">
+        <h4>Слишком общая правка</h4>
+        <p>«Перепиши всё, чтобы было лучше.»</p>
+        <p class="note">Нейросеть может переписать весь код, и работающие части перестанут работать.</p>
+      </div>
+      <div class="vs-col detailed">
+        <h4>Точечная правка</h4>
+        <p>«<em>Оставь весь код как есть.</em> Измени <em>только одно</em>: в файле <code class="inline">style.css</code>, в селекторе <code class="inline">.button</code>, поменяй цвет фона с <code class="inline">#7C3AED</code> на <code class="inline">#06B6D4</code>. Верни мне <em>только этот изменённый кусок</em>.»</p>
+        <p class="note">Изменится только нужное место.</p>
+      </div>
+    </div>
+    <div class="card accent" style="margin-top:18px">
+      <p style="font-size:16px; color:#E2E8F0"><strong>Полезная формула:</strong> «Оставь всё как есть. Измени только Х. Верни только изменённый кусок».</p>
+    </div>
+
+===== SLIDE 12/22 =====
+[NOTES] Главный проект урока. Каждый выбирает любимого персонажа — Гарри Поттер, Месси, Доктор Стрэндж, кто угодно.
+[HTML]
+<div class="eyebrow">Практика · 20 минут</div>
+    <h2>Карточка любимого персонажа</h2>
+    <div class="grid cols-2">
+      <div>
+        <h3>Что должно быть на карточке</h3>
+        <ul class="check-list">
+          <li>Имя, аватар, краткое описание</li>
+          <li>3 характеристики: Сила, Ум, Харизма (числа от 1 до 100)</li>
+          <li>При наведении — <strong>3D-наклон</strong> в сторону курсора (tilt)</li>
+          <li>При клике — <strong>раскрывается биография</strong></li>
+          <li>Стеклянный эффект (backdrop blur)</li>
+        </ul>
+      </div>
+      <div class="card accent">
+        <h3>Как соберём</h3>
+        <ul class="check-list">
+          <li>3 файла: <code class="inline">index.html</code> · <code class="inline">style.css</code> · <code class="inline">script.js</code></li>
+          <li>Без библиотек</li>
+          <li>Чистый HTML, CSS, JavaScript</li>
+          <li>Запускаем через Live Server</li>
+        </ul>
+        <p style="font-size:14px; margin-top:14px; color:var(--muted)">Персонажа выбирайте сами: Гарри Поттер, Лионель Месси, Капитан Америка, Кратос…</p>
+      </div>
+    </div>
+
+===== SLIDE 13/22 =====
+[NOTES] Стартовый промпт собирает в себе все 5 техник: роль, контекст, формат, ограничения. Дайте ученикам скопировать целиком.
+[HTML]
+<div class="eyebrow">Промпт #1 · стартовый</div>
+    <h2>Промпт со всеми пятью техниками</h2>
+    <div class="prompt-box">
+<span class="h">→ Скопируйте в новый чат DeepSeek</span>
+Ты <em>senior фронтенд-разработчик в стиле Apple/Linear</em>.
+Я делаю карточку любимого персонажа — <em>Гарри Поттера</em> (замените на своего).
+Зрители — мои одноклассники в школьном чате.
+
+Требования:
+- <em>Три файла</em>: index.html, style.css, script.js
+- В index.html — структура: имя, аватар (placeholder div), описание, три характеристики (Сила, Ум, Харизма) с числами 1-100
+- В style.css — тёмная тема, акцент <em>золотой #D4AF37</em>, стеклянный эффект (backdrop-filter blur), tilt 3D при наведении
+- В script.js — при клике на карточку показывается всплывающий блок с биографией (3-5 предложений)
+- <em>Без библиотек</em>, чистый код, должно работать в браузере без сервера
+
+Ответь <em>тремя блоками кода</em>, по одному на каждый файл, с подписью имени файла сверху.</div>
+
+===== SLIDE 14/22 =====
+[NOTES] Покажите на проекторе: создаём 3 файла, копируем 3 блока кода, сохраняем, запускаем Live Server.
+[HTML]
+<div class="eyebrow">Создание проекта</div>
+    <h2>Три файла, три блока кода</h2>
+    <div class="grid cols-2">
+      <div>
+        <ol class="num-list">
+          <li>В VS Code откройте папку <code class="inline">D:/vibe-coding/lesson-02/</code></li>
+          <li>Создайте 3 файла: <code class="inline">index.html</code>, <code class="inline">style.css</code>, <code class="inline">script.js</code></li>
+          <li>В DeepSeek нажмите Copy на первом блоке (HTML) → вставьте в <code class="inline">index.html</code></li>
+          <li>Тем же способом — со вторым (CSS) и третьим (JS)</li>
+          <li>Сохраните все три файла (<code class="inline">Ctrl+S</code> в каждом)</li>
+          <li>Правый клик по <code class="inline">index.html</code> → <strong>Open with Live Server</strong></li>
+        </ol>
+      </div>
+      <div class="card warn">
+        <h3>Если страница пустая</h3>
+        <p style="font-size:14.5px; margin-top:8px">Откройте DevTools (F12) → вкладка <strong>Console</strong>. Там будет ошибка красным цветом. Скопируйте текст ошибки и отправьте в DeepSeek с вопросом «как исправить?».</p>
+        <p style="font-size:14px; margin-top:10px; color:#FCD34D">В большинстве случаев нейросеть исправляет за один ответ.</p>
+      </div>
+    </div>
+
+===== SLIDE 15/22 =====
+[NOTES] Первая правка — добавляем настоящий аватар. Используем технику Итерации: «измени только Х, остальное не трогай».
+[HTML]
+<div class="eyebrow">Правка 1 · аватар</div>
+    <h2>Точечная правка через диалог</h2>
+    <div class="prompt-box">
+<span class="h">→ В тот же чат DeepSeek</span>
+Замени placeholder-аватар на <em>круглую картинку 140×140 пикселей</em>.
+Картинку возьми по ссылке https://api.dicebear.com/7.x/adventurer/svg?seed=Harry
+
+Изменения <em>только в index.html</em> и в селекторе <em>.avatar в style.css</em>.
+Остальной код не трогай.
+
+Верни мне только изменённые куски.</div>
+    <p style="margin-top:14px; font-size:14.5px; color:var(--muted)">Замените <code class="inline">seed=Harry</code> на имя вашего персонажа.</p>
+
+===== SLIDE 16/22 =====
+[NOTES] Вторая правка — в JS. Анимация чисел от 0 до значений. Покажите, как нейросеть добавляет функцию, не трогая существующие.
+[HTML]
+<div class="eyebrow">Правка 2 · анимация чисел</div>
+    <h2>Добавляем поведение в JS</h2>
+    <div class="prompt-box">
+<span class="h">→ В тот же чат</span>
+В script.js добавь функцию: при загрузке страницы числа характеристик
+(Сила, Ум, Харизма) <em>анимируются от 0 до своих значений за 1 секунду</em>.
+
+Не трогай другие функции.
+Добавь новую и вызови её при <em>DOMContentLoaded</em>.
+
+Верни только новый код, который нужно добавить.</div>
+    <details style="margin-top:14px">
+      <summary>Что значит DOMContentLoaded?</summary>
+      <div class="content">Это событие, которое срабатывает, когда страница полностью загрузилась. Анимировать числа до загрузки бесполезно — на экране их ещё нет.</div>
+    </details>
+
+===== SLIDE 17/22 =====
+[NOTES] Самая зрелищная правка. Tilt 3D — карточка наклоняется в сторону курсора.
+[HTML]
+<div class="eyebrow">Правка 3 · 3D-наклон</div>
+    <h2>Эффект «наклон в сторону курсора»</h2>
+    <div class="prompt-box">
+<span class="h">→ В тот же чат</span>
+Сейчас при наведении карточка просто увеличивается.
+Сделай эффект <em>3D-наклона</em>: карточка <em>наклоняется в сторону курсора</em>,
+как в интерфейсах с глубиной (например, на промо-страницах Apple).
+
+Реализуй на <em>чистом JS в script.js</em>, через
+transform: rotateX(...) rotateY(...) и событие mousemove.
+
+<em>Без библиотек</em>. Только то, что уже подключено.</div>
+
+===== SLIDE 18/22 =====
+[NOTES] Главный навык: фиксируйте точки отката. Перед серьёзной правкой — копия. Иначе можно случайно потерять час работы.
+[HTML]
+<div class="eyebrow">Полезный навык</div>
+    <h2>Если правка ломает работающий код</h2>
+    <div class="grid cols-2">
+      <div>
+        <h3 style="color:var(--accent-2)">Точка отката</h3>
+        <p style="font-size:16px"><strong>Перед серьёзной правкой сохраняйте копию.</strong></p>
+        <ol class="num-list" style="margin-top:14px">
+          <li>Скопируйте <code class="inline">index.html</code> в <code class="inline">index_v2.html</code></li>
+          <li>Сделайте правку</li>
+          <li>Если результат не подходит — удалите изменённый файл, переименуйте копию обратно</li>
+        </ol>
+        <p style="font-size:13.5px; margin-top:14px; color:var(--muted)">С урока 3 будем делать это автоматически через Git. Пока — копируем руками.</p>
+      </div>
+      <div class="card warn">
+        <h3>Если нейросеть «зациклилась»</h3>
+        <p style="font-size:15px; margin-top:8px">Иногда правки приводят к одной и той же ошибке. Откройте <strong>новый чат</strong> в DeepSeek.</p>
+        <p style="font-size:15px; margin-top:8px">В первом сообщении приложите <em>весь актуальный код</em> (3 файла) и опишите, что нужно сделать.</p>
+        <p style="font-size:14px; margin-top:14px; color:#FCD34D">Длинные диалоги начинают «забываться». Свежий чат начинает с нуля.</p>
+      </div>
+    </div>
+
+===== SLIDE 19/22 =====
+[NOTES] Простой вопрос для проверки понимания. Подождите 10–15 секунд, потом разберите варианты ответов.
+[HTML]
+<div class="eyebrow">Проверка</div>
+    <h2>Изучите ситуацию и ответьте на вопрос</h2>
+    <div class="quiz-card">
+      <span class="q-num">Вопрос</span>
+      <p class="q-text">Вы сделали 5 правок подряд, последняя — добавление tilt-эффекта. После неё клик по карточке перестал открывать биографию. Какой промпт описывает ситуацию точнее всего?</p>
+    </div>
+    <details style="margin-top:18px">
+      <summary>Подсказка</summary>
+      <div class="content">
+        <p>Хороший промпт: «После добавления tilt-эффекта перестал срабатывать обработчик click на карточке. Скорее всего, mousemove или transform мешает событию click. Как исправить, не убирая tilt? Верни только изменённый кусок script.js.»</p>
+        <p>Здесь есть и описание ситуации, и гипотеза, и точечная правка, и формат ответа.</p>
+      </div>
+    </details>
+
+===== SLIDE 20/22 =====
+[NOTES] Закрепление. 5 правил, которые ученик должен запомнить.
+[HTML]
+<div class="eyebrow">Запомните</div>
+    <h2>Пять полезных привычек</h2>
+    <div class="kv-row">
+      <div class="k">01 · Три файла</div>
+      <div class="v">Любой проект разбиваем на структуру (HTML), оформление (CSS), поведение (JS).</div>
+    </div>
+    <div class="kv-row">
+      <div class="k">02 · Маленькие промпты</div>
+      <div class="v">Одна правка — один промпт. Так проще сохранять контроль над проектом.</div>
+    </div>
+    <div class="kv-row">
+      <div class="k">03 · «Оставь всё как есть»</div>
+      <div class="v">Полезная фраза для точечных правок. Помогает нейросети не «расходиться».</div>
+    </div>
+    <div class="kv-row">
+      <div class="k">04 · Точка отката</div>
+      <div class="v">Перед серьёзным изменением — копия файла. Спасает время и работу.</div>
+    </div>
+    <div class="kv-row">
+      <div class="k">05 · Контекст устаревает</div>
+      <div class="v">Когда чат стал длинным и нейросеть путается — открывайте новый, прикладывайте актуальный код.</div>
+    </div>
+
+===== SLIDE 21/22 =====
+[NOTES] ДЗ: галерея из 3 героев + фильтр. Это шаг от одного компонента к мини-приложению.
+[HTML]
+<div class="eyebrow">Домашнее задание · около 30 минут</div>
+    <h2>Сделайте галерею из трёх персонажей</h2>
+    <div class="grid cols-3">
+      <div class="card">
+        <h3>HTML</h3>
+        <p style="font-size:14.5px">Дополните <code class="inline">index.html</code> ещё двумя карточками. Получится 3 персонажа в одном проекте.</p>
+      </div>
+      <div class="card">
+        <h3>CSS</h3>
+        <p style="font-size:14.5px">Оформите <em>grid-сетку</em>: на десктопе — 3 в ряд, на мобильнике — 1 в ряд. Используйте <code class="inline">@media</code>.</p>
+      </div>
+      <div class="card">
+        <h3>JS</h3>
+        <p style="font-size:14.5px">Добавьте <em>фильтр сверху</em>: кнопки «Все / Спорт / Кино / Игры». При клике показываются только нужные карточки.</p>
+      </div>
+    </div>
+    <div class="card warn" style="margin-top:22px">
+      <p style="font-size:15px">Пришлите в чат: скриншот галереи и один <em>самый удачный промпт</em> из своих за это задание.</p>
+    </div>
+
+===== SLIDE 22/22 [FINAL] =====
+[NOTES] Закройте урок. Расскажите, что будет на следующем уроке: добавляем Python.
+[HTML]
+<div class="eyebrow">Урок 2 завершён</div>
+    <div class="outro-big">До встречи<br>на уроке 3.</div>
+    <p class="lead">На следующем уроке: первое знакомство с Python. Подход остаётся прежним — формулируете задачу, нейросеть пишет код, вы запускаете и проверяете.</p>
+    <div class="chip-row" style="margin-top:30px">
+      <span class="badge primary">Урок 3 · Первый Python-скрипт</span>
+      <span class="badge cyan">Та же связка</span>
+      <span class="badge good">Новый язык</span>
+    </div>

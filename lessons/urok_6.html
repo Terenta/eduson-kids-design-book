@@ -1,0 +1,1163 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Урок 6 — Циклы, функции и коллекции | Eduson Kids</title>
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter+Tight:wght@600;700;800;900&family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;700&display=swap">
+
+<style>
+/* ============ Дизайн-токены Eduson Kids ============ */
+:root{
+  --ek-violet:#8C7FF6; --ek-violet-soft:#A79EF9; --ek-violet-deep:#6F61E8; --ek-violet-bg:#F0EEFE;
+  --ek-green:#3DF79D; --ek-green-soft:#7BF9BD; --ek-green-mint:#C9F7E3; --ek-green-pale:#E7FDF2; --ek-green-deep:#0FBF6E;
+  --ek-ink:#17171C; --ek-gray:#8F8F98; --ek-gray-light:#EFEFF2; --ek-line:#E3E3EA;
+  --ek-red:#FF6B6B; --ek-red-soft:#FF8A8A; --ek-red-deep:#E04848; --ek-red-pale:#FFECEC;
+  --f-head:'Inter Tight','Inter','Segoe UI',system-ui,sans-serif;
+  --f-body:'Inter','Segoe UI',system-ui,sans-serif;
+  --f-mono:'JetBrains Mono','Cascadia Mono','Consolas',monospace;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{height:100%;overflow:hidden}
+body{font-family:var(--f-body);background:#E9E9F1;color:var(--ek-ink);-webkit-font-smoothing:antialiased}
+
+/* ============ Хром: прогресс, счётчик, подсказка ============ */
+.progress{position:fixed;top:0;left:0;right:0;height:4px;background:rgba(23,23,28,.08);z-index:100}
+.progress__fill{height:100%;width:0%;background:var(--ek-violet);transition:width 300ms ease}
+.counter{position:fixed;top:14px;right:18px;z-index:90;font:600 13px var(--f-body);color:var(--ek-gray);background:#fff;border:1px solid var(--ek-line);padding:6px 14px;border-radius:999px;font-variant-numeric:tabular-nums}
+.counter b{color:var(--ek-ink)}
+.hint{position:fixed;bottom:12px;left:50%;transform:translateX(-50%);z-index:90;font:500 11px var(--f-body);color:var(--ek-gray);background:#fff;border:1px solid var(--ek-line);padding:6px 14px;border-radius:999px;letter-spacing:.03em}
+.hint kbd{font-family:var(--f-mono);background:var(--ek-gray-light);padding:1px 6px;border-radius:4px;font-size:10px;margin:0 2px;color:var(--ek-ink)}
+
+/* ============ Сцена 1280×720 ============ */
+.stage{position:absolute;left:50%;top:50%;width:1280px;height:720px;transform:translate(-50%,-50%);border-radius:18px;overflow:hidden;box-shadow:0 30px 90px rgba(23,23,28,.18);background:#fff}
+.slide{position:absolute;inset:0;background:#fff;opacity:0;transform:translateY(26px);transition:opacity 280ms ease,transform 280ms ease;pointer-events:none;font-family:var(--f-head)}
+.slide.active{opacity:1;transform:none;pointer-events:auto}
+.slide.prev{transform:translateY(-26px)}
+.slide--violet{background:var(--ek-violet)}
+.slide--green{background:var(--ek-green)}
+
+/* Номер страницы на контентных слайдах */
+.slide--content::after{content:attr(data-page);position:absolute;right:54px;bottom:30px;font:800 30px/1 var(--f-head);color:var(--ek-ink);opacity:.5}
+
+/* ============ Декор «Орбита» ============ */
+.sl-orbit{position:absolute;inset:0;pointer-events:none}
+.slide--violet .sl-orbit{--decor:#A79EF9;--letter:#C4BEFA}
+.slide--green .sl-orbit{--decor:#7BF9BD;--letter:#C4FCE0}
+.sl-ring{position:absolute;left:50%;top:50%;width:1040px;height:660px;transform:translate(-50%,-50%);border:3px solid var(--decor);border-radius:50%;opacity:.9}
+.sl-ico{position:absolute;color:var(--decor)}
+.sl-letter{position:absolute;border-radius:50%;background:var(--decor);color:var(--letter);display:flex;align-items:center;justify-content:center;font:800 var(--fs,40px)/1 var(--f-head);font-style:normal}
+
+/* ============ Каверы: карточка-окно и спич-бабл ============ */
+.cover-center{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);z-index:2}
+.cover-card{position:relative;width:860px;background:#fff;border-radius:28px;box-shadow:0 30px 80px rgba(23,23,28,.18)}
+.card-top{display:flex;justify-content:space-between;align-items:center;padding:24px 30px 0}
+.win-dots{display:flex;gap:9px}
+.win-dots i{width:13px;height:13px;border-radius:50%;background:var(--ek-violet)}
+.win-close{position:relative;width:22px;height:22px}
+.win-close::before,.win-close::after{content:"";position:absolute;left:-1px;top:9px;width:24px;height:4px;border-radius:2px;background:var(--ek-violet)}
+.win-close::before{transform:rotate(45deg)}
+.win-close::after{transform:rotate(-45deg)}
+.cover-card .badge{position:absolute;left:50%;top:-30px;transform:translateX(-50%) rotate(-4deg)}
+.cover-card h1{padding:26px 64px 30px;text-align:center;font:800 50px/1.14 var(--f-head);letter-spacing:-.015em;color:var(--ek-ink)}
+.cover-card .cover-sub{padding:0 80px 34px;text-align:center;font:500 19px/1.5 var(--f-body);color:#3C3C45}
+.cover-card .cover-chips{display:flex;justify-content:center;gap:10px;flex-wrap:wrap;padding:0 40px 40px}
+.bubble{position:relative;width:660px;background:#EFEFF1;border-radius:30px;padding:56px 70px;text-align:center}
+.bubble::after{content:"";position:absolute;right:56px;bottom:-24px;width:0;height:0;border-left:38px solid transparent;border-top:28px solid #EFEFF1}
+.bubble h1{font:800 42px/1.25 var(--f-head);letter-spacing:-.01em;color:var(--ek-ink)}
+.bubble p{margin-top:16px;font:500 18px/1.5 var(--f-body);color:#3C3C45}
+
+/* ============ Стикер-бейдж и чипы ============ */
+.badge{display:inline-block;background:var(--ek-green);color:var(--ek-ink);font:800 24px/1 var(--f-head);padding:13px 22px;border-radius:13px;transform:rotate(-3deg);box-shadow:0 10px 24px rgba(23,23,28,.10)}
+.badge--violet{background:var(--ek-violet);color:#fff}
+.badge--sm{font-size:16px;padding:9px 16px;border-radius:10px}
+.chip{display:inline-block;font:700 14px/1 var(--f-body);padding:8px 14px;border-radius:999px;background:var(--ek-violet-bg);color:var(--ek-violet-deep)}
+.chip--green{background:var(--ek-green-pale);color:var(--ek-green-deep)}
+.chip--gray{background:var(--ek-gray-light);color:#3C3C45}
+
+/* ============ Контентные слайды ============ */
+.sl-body{position:absolute;inset:0;padding:56px 80px 62px;display:flex;flex-direction:column;gap:16px;overflow:hidden}
+h2{font:800 38px/1.16 var(--f-head);letter-spacing:-.01em;color:var(--ek-ink)}
+.acc{color:var(--ek-violet-deep)}
+.sl-body>p, .col p{font:500 18px/1.5 var(--f-body);color:#3C3C45}
+.code-chip{font-family:var(--f-mono);font-weight:700;font-size:.88em;background:var(--ek-violet-bg);color:var(--ek-violet-deep);padding:2px 8px;border-radius:8px;white-space:nowrap}
+.hl{color:var(--ek-violet-deep);font-weight:700}
+.out-chip{font-family:var(--f-mono);font-weight:700;font-size:.88em;background:var(--ek-green-pale);color:#0B7A48;padding:2px 8px;border-radius:8px;white-space:nowrap}
+
+.grid-2{display:grid;grid-template-columns:1fr 1fr;gap:22px;align-items:start}
+.grid-3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:18px;align-items:stretch}
+
+.info-card{background:#F5F5F9;border-radius:18px;padding:18px 22px;font:500 16px/1.55 var(--f-body);color:#3C3C45}
+.info-card h3{font:800 19px/1.3 var(--f-head);color:var(--ek-ink);margin-bottom:8px}
+.ek-note{background:var(--ek-violet-bg);border-left:4px solid var(--ek-violet);border-radius:0 14px 14px 0;padding:14px 20px;font:600 17px/1.5 var(--f-body);color:#3C3560}
+.ek-note--green{background:var(--ek-green-pale);border-left-color:var(--ek-green-deep);color:#0B5B39}
+.ek-note--red{background:var(--ek-red-pale);border-left-color:var(--ek-red);color:#7A2E2E}
+
+ul.clean{list-style:none;display:flex;flex-direction:column;gap:10px}
+ul.clean li{display:flex;gap:14px;align-items:flex-start;font:500 17.5px/1.5 var(--f-body);color:#3C3C45}
+ul.clean li::before{content:'—';flex:0 0 auto;color:var(--ek-violet-deep);font-weight:800}
+
+ol.steps{list-style:none;counter-reset:step;display:flex;flex-direction:column;gap:12px}
+ol.steps li{counter-increment:step;display:flex;gap:16px;align-items:center;padding:14px 20px;background:#F5F5F9;border-radius:16px;font:500 17.5px/1.45 var(--f-body);color:#2E2E36}
+ol.steps li::before{content:counter(step);flex:0 0 40px;height:40px;display:flex;align-items:center;justify-content:center;border-radius:50%;background:var(--ek-violet);font:800 18px var(--f-head);color:#fff}
+ol.steps li:last-child::before{background:var(--ek-green);color:var(--ek-ink)}
+ol.steps.steps--tight{gap:8px}
+ol.steps.steps--tight li{padding:9px 16px;font-size:15.5px;gap:12px}
+ol.steps.steps--tight li::before{flex-basis:32px;height:32px;font-size:14px}
+
+.q-label{font:700 13px/1 var(--f-head);letter-spacing:.08em;text-transform:uppercase;color:var(--ek-gray)}
+
+/* ============ План занятия (agenda) ============ */
+.agenda{display:flex;flex-direction:column;gap:8px}
+.agenda-row{display:flex;gap:16px;align-items:center;padding:10px 18px;background:#F5F5F9;border-radius:14px}
+.agenda-row .t{flex:0 0 84px;text-align:center;font:800 14px/1 var(--f-mono);color:var(--ek-ink);background:var(--ek-green);border-radius:999px;padding:8px 0}
+.agenda-row .tt{font:700 16.5px/1.3 var(--f-head);color:var(--ek-ink)}
+.agenda-row .dd{font:500 14px/1.4 var(--f-body);color:var(--ek-gray)}
+
+/* ============ Ключ-значение (привычки, шпаргалки) ============ */
+.kv{display:flex;flex-direction:column}
+.kv-row{display:grid;grid-template-columns:250px 1fr;gap:18px;align-items:start;padding:11px 4px;border-bottom:1.5px solid var(--ek-line)}
+.kv-row:last-child{border-bottom:none}
+.kv-row .k{font:800 14px/1.35 var(--f-head);letter-spacing:.05em;text-transform:uppercase;color:var(--ek-violet-deep);padding-top:2px}
+.kv-row .v{font:500 16.5px/1.5 var(--f-body);color:#3C3C45}
+
+/* ============ Окно кода (статичное) ============ */
+.code-win{background:#fff;border:2.5px solid var(--ek-ink);border-radius:16px;overflow:hidden;font-family:var(--f-mono);box-shadow:10px 10px 0 rgba(140,127,246,.14)}
+.code-head{display:flex;align-items:center;justify-content:space-between;padding:9px 16px;border-bottom:2px solid var(--ek-ink)}
+.code-head .win-dots i{width:11px;height:11px}
+.lang-badge{font:700 11px var(--f-mono);letter-spacing:.14em;color:var(--ek-gray)}
+.code-body{padding:14px 20px;font:500 14.5px/1.6 var(--f-mono);color:var(--ek-ink);white-space:pre;overflow:auto;max-height:400px;tab-size:4}
+.code-body .cm{color:var(--ek-gray)}
+.code-body .st{color:var(--ek-green-deep)}
+.code-body .kw{color:var(--ek-violet-deep);font-weight:700}
+
+/* ============ Терминал (тёмное окно) ============ */
+.term{background:var(--ek-ink);border-radius:16px;overflow:hidden;font-family:var(--f-mono);box-shadow:10px 10px 0 rgba(23,23,28,.12)}
+.term-head{display:flex;align-items:center;justify-content:space-between;padding:9px 16px;border-bottom:1px solid rgba(255,255,255,.14)}
+.term-head .win-dots i{width:11px;height:11px;background:var(--ek-green)}
+.term-head .lang-badge{color:rgba(255,255,255,.5)}
+.term-body{padding:14px 20px;font:500 14.5px/1.62 var(--f-mono);color:var(--ek-green);white-space:pre-wrap;word-break:break-word;overflow:auto;max-height:420px}
+.term-body .usr{color:#fff}
+.term-body .dim{color:rgba(255,255,255,.55)}
+
+/* ============ Промпт-карточка (диалог с DeepSeek) ============ */
+.prompt-card{position:relative;background:var(--ek-violet-bg);border:2.5px solid var(--ek-violet);border-radius:18px;padding:20px 26px 18px;box-shadow:10px 10px 0 rgba(140,127,246,.18)}
+.prompt-card .pc-tag{position:absolute;top:-16px;left:22px;background:var(--ek-violet);color:#fff;font:800 14px/1 var(--f-head);padding:9px 16px;border-radius:10px;transform:rotate(-2deg);box-shadow:0 8px 18px rgba(23,23,28,.12)}
+.prompt-card .pc-text{margin-top:6px;font:500 15px/1.62 var(--f-mono);color:#2E2A52;white-space:pre-wrap}
+.prompt-card .pc-text .hl{color:var(--ek-violet-deep)}
+.prompt-card--copy .pc-tag{background:var(--ek-green);color:var(--ek-ink)}
+
+/* ============ Сравнение (vs) ============ */
+.vs{display:grid;grid-template-columns:1fr 1fr;gap:20px;align-items:stretch}
+.vs-col{border-radius:18px;padding:20px 24px}
+.vs-col h4{font:800 15px/1 var(--f-head);letter-spacing:.08em;text-transform:uppercase;margin-bottom:12px}
+.vs-col p{font:500 16px/1.55 var(--f-body)}
+.vs-col .note{margin-top:12px;font:500 13.5px/1.4 var(--f-body);opacity:.75}
+.vs-col--plain{background:var(--ek-gray-light);color:#3C3C45}
+.vs-col--plain h4{color:var(--ek-gray)}
+.vs-col--win{background:var(--ek-green-pale);color:#124F35;border:2px solid var(--ek-green-soft)}
+.vs-col--win h4{color:var(--ek-green-deep)}
+
+/* ============ Квиз с раскрытием ответа ============ */
+.quiz-box{background:#F5F5F9;border:2.5px solid var(--ek-ink);border-radius:18px;padding:22px 26px;box-shadow:10px 10px 0 rgba(61,247,157,.25)}
+.quiz-box .q-num{display:inline-block;background:var(--ek-green);color:var(--ek-ink);font:800 13px/1 var(--f-head);letter-spacing:.08em;text-transform:uppercase;padding:8px 14px;border-radius:999px;margin-bottom:14px}
+.quiz-box .q-text{font:700 21px/1.42 var(--f-head);color:var(--ek-ink)}
+.quiz-answer{margin-top:16px}
+.quiz-btn{border:0;border-radius:12px;padding:12px 22px;font:800 15px/1 var(--f-head);cursor:pointer;background:var(--ek-violet);color:#fff;transition:background .15s}
+.quiz-btn:hover{background:var(--ek-violet-deep)}
+.quiz-reveal{display:none;margin-top:14px;background:var(--ek-green-pale);border-left:4px solid var(--ek-green-deep);border-radius:0 14px 14px 0;padding:14px 20px;font:500 16.5px/1.55 var(--f-body);color:#0B5B39}
+.quiz-reveal.show{display:block}
+.quiz-reveal p+p{margin-top:8px}
+
+/* Появление контента */
+.slide.active .info-card,.slide.active ul.clean li,.slide.active ol.steps li,.slide.active .grid-2>*,.slide.active .grid-3>*,.slide.active .agenda-row,.slide.active .kv-row{animation:reveal 450ms ease backwards}
+.slide.active .info-card:nth-child(2),.slide.active ul.clean li:nth-child(2),.slide.active ol.steps li:nth-child(2),.slide.active .grid-2>*:nth-child(2),.slide.active .grid-3>*:nth-child(2),.slide.active .agenda-row:nth-child(2),.slide.active .kv-row:nth-child(2){animation-delay:80ms}
+.slide.active ul.clean li:nth-child(3),.slide.active ol.steps li:nth-child(3),.slide.active .grid-3>*:nth-child(3),.slide.active .agenda-row:nth-child(3),.slide.active .kv-row:nth-child(3){animation-delay:160ms}
+.slide.active ol.steps li:nth-child(4),.slide.active .agenda-row:nth-child(4),.slide.active .kv-row:nth-child(4){animation-delay:240ms}
+.slide.active ol.steps li:nth-child(5),.slide.active .agenda-row:nth-child(5),.slide.active .kv-row:nth-child(5){animation-delay:320ms}
+.slide.active .agenda-row:nth-child(6),.slide.active ol.steps li:nth-child(6),.slide.active .kv-row:nth-child(6){animation-delay:400ms}
+.slide.active .agenda-row:nth-child(7),.slide.active ol.steps li:nth-child(7),.slide.active .kv-row:nth-child(7){animation-delay:480ms}
+@keyframes reveal{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:translateY(0)}}
+@media (prefers-reduced-motion:reduce){.slide.active .info-card,.slide.active ul.clean li,.slide.active ol.steps li,.slide.active .grid-2>*,.slide.active .grid-3>*,.slide.active .agenda-row,.slide.active .kv-row{animation:none}}
+
+/* ============ Заметки преподавателя ============ */
+.notes{position:fixed;bottom:0;left:0;right:0;background:#fff;border-top:1px solid var(--ek-line);box-shadow:0 -16px 40px rgba(23,23,28,.10);padding:20px 40px;z-index:95;max-height:40vh;overflow-y:auto;transform:translateY(100%);transition:transform 300ms ease}
+.notes.active{transform:translateY(0)}
+.notes__header{font:800 11px var(--f-head);letter-spacing:.2em;text-transform:uppercase;color:var(--ek-violet-deep);margin-bottom:8px}
+.notes__body{font:500 15px/1.55 var(--f-body);color:#3C3C45}
+
+:focus-visible{outline:3px solid var(--ek-violet-soft);outline-offset:2px;border-radius:6px}
+::-webkit-scrollbar{width:8px;height:8px}
+::-webkit-scrollbar-track{background:transparent}
+::-webkit-scrollbar-thumb{background:rgba(23,23,28,.15);border-radius:4px}
+</style>
+</head>
+<body>
+
+<div class="progress"><div class="progress__fill" id="progress"></div></div>
+<div class="counter"><b id="current">1</b> / <span id="total">38</span></div>
+
+<main class="stage" id="deck">
+<section class="slide slide--violet active"
+  data-notes="Поприветствуйте. Сегодня соберём настоящую ролевую игру, где сюжет придумывает нейросеть. Новые инструменты — циклы, функции и словари — мы возьмём ровно в том объёме, который нужен для игры. К концу урока у каждого — играбельное приключение в терминале.">
+<div class="sl-orbit">
+    <i class="sl-ring"></i>
+    <svg class="sl-ico" viewBox="0 0 100 100" style="left:75px;top:20px;width:150px;height:150px;transform:rotate(-10deg)"><use href="#ek-i-trophy"/></svg>
+    <i class="sl-letter" style="left:466px;top:13px;width:78px;height:78px;--fs:36px">R</i>
+    <svg class="sl-ico" viewBox="0 0 100 100" style="left:1040px;top:15px;width:130px;height:130px;transform:rotate(12deg)"><use href="#ek-i-heart"/></svg>
+    <i class="sl-letter" style="left:68px;top:268px;width:100px;height:100px;--fs:46px">P</i>
+    <i class="sl-letter" style="left:1137px;top:327px;width:95px;height:95px;--fs:44px">G</i>
+    <svg class="sl-ico" viewBox="0 0 100 100" style="left:102px;top:532px;width:125px;height:125px;transform:rotate(-15deg)"><use href="#ek-i-star"/></svg>
+    <i class="sl-letter" style="left:726px;top:613px;width:78px;height:78px;--fs:36px">AI</i>
+    <svg class="sl-ico" viewBox="0 0 100 100" style="left:1045px;top:540px;width:110px;height:110px;transform:rotate(8deg)"><use href="#ek-i-gem"/></svg>
+  </div>
+  <div class="cover-center">
+    <div class="cover-card">
+      <div class="badge">Урок №6</div>
+      <div class="card-top"><span class="win-dots"><i></i><i></i><i></i></span><span class="win-close"></span></div>
+      <h1>Игра-приключение<br>с&nbsp;сюжетом от&nbsp;AI</h1>
+      <p class="cover-sub">Соберём текстовую ролевую игру, где гейм-мастером работает нейросеть: она придумывает подземелье и сюжет, а вы делаете выборы. Циклы, функции и словари — внутри.</p>
+      <div class="cover-chips"><span class="chip">Python</span><span class="chip chip--green">DeepSeek API</span><span class="chip chip--gray">циклы и функции</span><span class="chip chip--gray">list / dict</span></div>
+    </div>
+  </div>
+</section>
+
+<section class="slide slide--content"
+  data-notes="План. Теории — минимум: уже на 12-й минуте каждый запускает функцию-разминку, к 30-й — каркас игры, где первую сцену подземелья генерирует нейросеть. Дальше — 5 правок, как на прошлых уроках.">
+<div class="sl-body">
+  <div>
+    <div class="q-label">Agenda · план занятия</div>
+    <h2>Как пройдут <span class="acc">60 минут</span></h2>
+  </div>
+  <div class="agenda">
+    <div class="agenda-row"><span class="t">0–5</span><div><div class="tt">Разбор ДЗ</div><div class="dd">Смотрим прокачанные советчики: характеры, память, ASCII-лого.</div></div></div>
+    <div class="agenda-row"><span class="t">5–12</span><div><div class="tt">Функции и циклы</div><div class="dd">Минимум теории — только чтобы собрать игру.</div></div></div>
+    <div class="agenda-row"><span class="t">12–20</span><div><div class="tt">Промпт-разминка</div><div class="dd">Маленькая функция: промпт → код → запуск.</div></div></div>
+    <div class="agenda-row"><span class="t">20–32</span><div><div class="tt">Каркас игры</div><div class="dd">Нейросеть генерирует первую сцену подземелья.</div></div></div>
+    <div class="agenda-row"><span class="t">32–48</span><div><div class="tt">5 правок через диалог</div><div class="dd">Игровой цикл → функции → бросок кубика → HP и инвентарь → концовки и цвет.</div></div></div>
+    <div class="agenda-row"><span class="t">48–55</span><div><div class="tt">Мини-вопросы и отладка</div><div class="dd">Читаем ошибки, проверяем понимание.</div></div></div>
+    <div class="agenda-row"><span class="t">55–60</span><div><div class="tt">Демо в группе</div><div class="dd">Каждый играет в своё приключение.</div></div></div>
+  </div>
+</div>
+</section>
+
+<section class="slide slide--content"
+  data-notes="Откройте 2-3 прокачанных советчика. Разбирайте диалог с нейросетью, а не только результат. Главное — память через список messages: это первое знакомство со списками, сегодня они станут главным инструментом игры.">
+<div class="sl-body">
+  <div>
+    <div class="q-label">Разбор ДЗ урока 5</div>
+    <h2>Смотрим прокачанные <span class="acc">советчики</span></h2>
+  </div>
+  <p>Открываем 2–3 присланных советчика и разбираем именно <span class="hl">диалог с нейросетью</span>: четвёртый характер, память разговора, ASCII-логотип.</p>
+  <div class="grid-3" style="margin-top:8px">
+    <div class="info-card">
+      <h3>Что сработало</h3>
+      <p>Память через список <span class="code-chip">messages</span> — первое знакомство со списками. Сегодня списки и словари станут главным инструментом.</p>
+    </div>
+    <div class="info-card">
+      <h3>Что переделывали</h3>
+      <p>Где забыли отправлять <span class="hl">весь</span> список <span class="code-chip">messages</span> — советчик не помнил прошлые реплики.</p>
+    </div>
+    <div class="info-card">
+      <h3>Вывод</h3>
+      <p>Точная формулировка плюс проверка после каждой правки. Сегодня тот же подход.</p>
+    </div>
+  </div>
+</div>
+</section>
+
+<section class="slide slide--content"
+  data-notes="Главная мысль: у DeepSeek новая роль — гейм-мастер. Раньше он писал код и давал советы, теперь ведёт целую игру: придумывает локации, врагов, повороты сюжета. Мы пишем движок, нейросеть наполняет его сюжетом.">
+<div class="sl-body">
+  <div>
+    <div class="q-label">Идея урока</div>
+    <h2>Нейросеть становится <span class="acc">гейм-мастером</span></h2>
+  </div>
+  <p>На уроке 5 нейросеть отвечала на вопросы. Сегодня она <span class="hl">ведёт целую игру</span> — придумывает подземелье, врагов и повороты сюжета, и каждый раз заново.</p>
+  <div class="ek-note" style="margin-top:6px">Вы пишете <b>движок</b> игры: циклы крутят ход за ходом, функции делят программу на кусочки, словарь помнит здоровье и инвентарь. А нейросеть наполняет движок <b>живым сюжетом</b>.</div>
+  <p>Идея урока 6: большую программу <b>делим на функции</b>, <b>повторяем циклами</b>, <b>помним через словари</b>.</p>
+</div>
+</section>
+
+<section class="slide slide--content"
+  data-notes="Функция — это команда, которую программист придумал сам. Объясните на greet: дали имя кусочку кода и зовём по имени сколько угодно раз. Параметры в скобках, return отдаёт результат наружу.">
+<div class="sl-body">
+  <div>
+    <div class="q-label">Новый инструмент</div>
+    <h2>Что такое <span class="acc">функция</span></h2>
+  </div>
+  <p>Функция — <span class="hl">команда, которую вы придумали сами</span>: дали имя кусочку кода и зовёте его по имени, сколько нужно.</p>
+  <div class="code-win">
+    <div class="code-head"><span class="win-dots"><i></i><i></i><i></i></span><span class="lang-badge">PYTHON</span></div>
+    <div class="code-body"><span class="kw">def</span> greet(name):          <span class="cm"># создаём функцию greet</span>
+    print(f<span class="st">"Привет, {name}!"</span>)
+
+greet(<span class="st">"Артём"</span>)            <span class="cm"># зовём её по имени</span></div>
+  </div>
+  <div class="kv" style="margin-top:12px">
+    <div class="kv-row"><div class="k">def</div><div class="v">Создаёт функцию и даёт ей имя.</div></div>
+    <div class="kv-row"><div class="k">вызов</div><div class="v"><span class="code-chip">greet("Артём")</span> — запускает код функции.</div></div>
+    <div class="kv-row"><div class="k">return</div><div class="v">Возвращает результат наружу, чтобы сохранить его в переменную.</div></div>
+  </div>
+</div>
+</section>
+
+<section class="slide slide--content"
+  data-notes="Сравнение без функций и с функциями. Главная мысль — декомпозиция: большую задачу делим на маленькие понятные кусочки. Так устроены все большие программы, включая нашу игру.">
+<div class="sl-body">
+  <div>
+    <div class="q-label">Зачем это нужно</div>
+    <h2>Зачем делить программу на <span class="acc">функции</span></h2>
+  </div>
+  <div class="vs" style="margin-top:6px">
+    <div class="vs-col vs-col--plain">
+      <h4>Без функций</h4>
+      <p>Одна гигантская простыня кода. Один и тот же кусок копируешь снова и снова, ошибку искать невозможно.</p>
+      <p class="note">Так писать игру нереально.</p>
+    </div>
+    <div class="vs-col vs-col--win">
+      <h4>С функциями</h4>
+  <p>Программа из понятных блоков: <span class="code-chip">ask_master()</span>, <span class="code-chip">show()</span>, <span class="code-chip">main()</span>. Каждый кусок можно проверить отдельно и переиспользовать.</p>
+      <p class="note">Это декомпозиция — большую задачу делим на маленькие.</p>
+    </div>
+  </div>
+  <p>Именно так устроены <span class="hl">все большие программы</span> — от игр до нейросетей.</p>
+</div>
+</section>
+
+<section class="slide slide--content"
+  data-notes="Цикл повторяет блок кода. for — повторить N раз или пройти по списку, while — пока условие истинно. Подведите к мысли: игра — это while-цикл, который крутится ход за ходом, пока герой жив.">
+<div class="sl-body">
+  <div>
+    <div class="q-label">Новый инструмент</div>
+    <h2>Что такое <span class="acc">цикл</span></h2>
+  </div>
+  <p>Цикл <span class="hl">повторяет блок кода</span>, чтобы не писать одно и то же руками.</p>
+  <div class="code-win">
+    <div class="code-head"><span class="win-dots"><i></i><i></i><i></i></span><span class="lang-badge">PYTHON</span></div>
+    <div class="code-body"><span class="kw">for</span> i <span class="kw">in</span> range(3):        <span class="cm"># повторить ровно 3 раза</span>
+    print(<span class="st">"Шаг"</span>, i)
+
+<span class="kw">while</span> hp &gt; 0:             <span class="cm"># повторять, пока герой жив</span>
+    hp = hp - 10           <span class="cm"># каждый ход герой теряет силы</span></div>
+  </div>
+  <div class="ek-note" style="margin-top:12px"><span class="code-chip">for</span> — повторить N раз или пройти по списку. <span class="code-chip">while</span> — повторять, пока условие истинно. <b>Игра — это цикл</b>: ход за ходом, пока герой не победит или не падёт.</div>
+</div>
+</section>
+
+<section class="slide slide--content"
+  data-notes="Никакой долгой подготовки: сразу просим у DeepSeek маленькую функцию и запускаем. Промпт с ролью и форматом — техники урока 2 работают и здесь. Дети копируют промпт целиком.">
+<div class="sl-body">
+  <div>
+    <div class="q-label">Промпт #1 · разминка</div>
+    <h2>Кубик за <span class="acc">две минуты</span></h2>
+  </div>
+  <p>Не будем долго готовиться — попросим у DeepSeek маленькую функцию и сразу запустим её в терминале.</p>
+  <div class="prompt-card" style="margin-top:14px">
+    <span class="pc-tag">→ Новый чат DeepSeek</span>
+    <div class="pc-text">Ты — опытный Python-разработчик и наставник школьника.
+Напиши маленький скрипт warmup.py: функция roll_dice() бросает
+игральный кубик — случайное число от 1 до 6 — и возвращает его.
+Вызови её три раза в цикле for и каждый раз печатай результат.
+Только стандартная библиотека Python.
+Прокомментируй код для новичка и ответь одним блоком кода.</div>
+  </div>
+</div>
+</section>
+
+<section class="slide slide--content"
+  data-notes="Фундамент урока: дождитесь, пока у всех три броска появятся в терминале. На живом коде показываем сразу три кита игры: функция, цикл, случайность. Не идите дальше, пока не запустилось у каждого.">
+<div class="sl-body">
+  <div>
+    <div class="q-label">Запуск и разбор</div>
+    <h2>Запускаем первую <span class="acc">функцию</span></h2>
+  </div>
+  <div class="grid-2" style="margin-top:6px">
+    <div>
+      <ol class="steps steps--tight">
+        <li>В папке <span class="code-chip">vibe-coding</span> создайте папку <span class="code-chip">lesson-06</span></li>
+        <li>Создайте <span class="code-chip">warmup.py</span> и вставьте код из ответа</li>
+        <li>Сохраните: <span class="code-chip">Ctrl+S</span></li>
+        <li>Выполните <span class="code-chip">python warmup.py</span></li>
+      </ol>
+      <div class="ek-note ek-note--green" style="margin-top:12px">Видим три броска кубика? Функция, цикл и случайность за пять минут — фундамент игры готов.</div>
+    </div>
+    <div class="kv">
+      <div class="kv-row"><div class="k">def roll_dice()</div><div class="v">Наша первая функция.</div></div>
+      <div class="kv-row"><div class="k">for _ in range(3)</div><div class="v">Повторили бросок трижды.</div></div>
+      <div class="kv-row"><div class="k">random.randint(1, 6)</div><div class="v">Случайное число — кубик.</div></div>
+    </div>
+  </div>
+</div>
+</section>
+
+<section class="slide slide--content"
+  data-notes="Шпаргалка по трём типичным проблемам запуска. Почините у всех — эти же команды и папка нужны дальше для самой игры.">
+<div class="sl-body">
+  <div>
+    <div class="q-label">Типичные ситуации запуска</div>
+    <h2>Если <span class="acc">warmup.py</span> не запустился</h2>
+  </div>
+  <div class="grid-3" style="margin-top:8px">
+    <div class="ek-note ek-note--red">
+      <h3>python is not recognized</h3>
+      <p>Python не добавлен в PATH. Переустановите с галочкой <b>Add to PATH</b> — или зовите преподавателя.</p>
+    </div>
+    <div class="ek-note ek-note--red">
+      <h3>can't open file</h3>
+      <p>Терминал смотрит в другую папку. Откройте папку <span class="code-chip">lesson-06</span> в VS Code и терминал заново.</p>
+    </div>
+    <div class="ek-note ek-note--red">
+      <h3>IndentationError</h3>
+      <p>Сбит отступ. Тело функции и цикла сдвинуто на 4 пробела — не ломайте отступы при копировании.</p>
+    </div>
+  </div>
+</div>
+</section>
+
+<section class="slide slide--content"
+  data-notes="Вводим две коллекции. Список — как рюкзак с вещами по порядку, словарь — как анкета с подписанными полями. Не углубляйтесь: главное, что игре нужно где-то хранить состояние.">
+<div class="sl-body">
+  <div>
+    <div class="q-label">Новый инструмент</div>
+    <h2>Список и <span class="acc">словарь</span></h2>
+  </div>
+  <p>Чтобы игра помнила, что происходит с героем, ей нужно <span class="hl">хранилище</span>. В Python их два главных: список и словарь.</p>
+  <div class="code-win">
+    <div class="code-head"><span class="win-dots"><i></i><i></i><i></i></span><span class="lang-badge">PYTHON</span></div>
+    <div class="code-body">inventory = [<span class="st">"факел"</span>, <span class="st">"ключ"</span>]          <span class="cm"># список (list) — набор по порядку</span>
+state = {<span class="st">"hp"</span>: 100, <span class="st">"name"</span>: <span class="st">"Артём"</span>}   <span class="cm"># словарь (dict) — пары ключ-значение</span>
+print(state[<span class="st">"hp"</span>])                      <span class="cm"># 100 — берём значение по ключу</span></div>
+  </div>
+  <div class="grid-2" style="margin-top:8px">
+    <div class="info-card">
+      <h3>Список</h3>
+      <p>Набор значений по порядку, в квадратных скобках <span class="code-chip">[ ]</span> через запятую. Удобно для инвентаря.</p>
+    </div>
+    <div class="info-card">
+      <h3>Словарь</h3>
+      <p>Пары <span class="hl">«ключ»: значение</span> в фигурных скобках <span class="code-chip">{ }</span>. Значение достаём по ключу: <span class="code-chip">state["hp"]</span>.</p>
+    </div>
+  </div>
+</div>
+</section>
+
+<section class="slide slide--content"
+  data-notes="Покажите, что один словарь state хранит всю память героя. -= уменьшает число, .append добавляет в список. Это понадобится в правке 4.">
+<div class="sl-body">
+  <div>
+    <div class="q-label">Память героя</div>
+    <h2>Один словарь — <span class="acc">вся память</span> игры</h2>
+  </div>
+  <div class="code-win">
+    <div class="code-head"><span class="win-dots"><i></i><i></i><i></i></span><span class="lang-badge">PYTHON</span></div>
+    <div class="code-body">state = {<span class="st">"hp"</span>: 100, <span class="st">"inventory"</span>: []}
+
+state[<span class="st">"hp"</span>] -= 20                  <span class="cm"># получили урон — стало 80</span>
+state[<span class="st">"inventory"</span>].append(<span class="st">"меч"</span>)   <span class="cm"># нашли предмет — он в рюкзаке</span></div>
+  </div>
+  <div class="grid-2" style="margin-top:8px">
+    <div class="info-card">
+      <h3>Меняем число</h3>
+      <p><span class="code-chip">-=</span> уменьшает значение. Так у героя убывает здоровье.</p>
+    </div>
+    <div class="info-card">
+      <h3>Добавляем в список</h3>
+      <p><span class="code-chip">.append(...)</span> кладёт предмет в конец инвентаря.</p>
+    </div>
+  </div>
+  <div class="ek-note">Весь прогресс героя — <b>жив ли он и что у него есть</b> — лежит в одном словаре <span class="code-chip">state</span>.</div>
+</div>
+</section>
+
+<section class="slide slide--content"
+  data-notes="Напомните урок 5: программа уже умеет вызывать DeepSeek через requests. Новое — системная роль делает из нейросети мастера игры. Подчеркните: меняешь роль — меняется мир.">
+<div class="sl-body">
+  <div>
+    <div class="q-label">Как это работает</div>
+    <h2>Нейросеть в роли <span class="acc">гейм-мастера</span></h2>
+  </div>
+  <p>На уроке 5 наша программа уже разговаривала с DeepSeek через <span class="code-chip">requests</span>. Сегодня — то же самое, но <span class="hl">системная роль</span> превращает нейросеть в мастера игры.</p>
+  <div class="info-card" style="margin-top:8px">
+    <h3>Системная роль</h3>
+    <p>«Ты — мастер ролевой игры. Веди игрока по подземелью, описывай сцену и заканчивай тремя вариантами действий».</p>
+  </div>
+  <div class="ek-note">Меняешь системную роль — <b>меняется весь мир игры</b>: подземелье, космос или сказка. Промпт живёт внутри программы.</div>
+</div>
+</section>
+
+<section class="slide slide--content"
+  data-notes="Прочитайте цель вслух. Подчеркните: сцены генерирует нейросеть, поэтому приключение у каждого своё. Узнаёте слева — теория, делаете справа — практика.">
+<div class="sl-body">
+  <div>
+    <div class="q-label">Goal · что будет в конце</div>
+    <h2>Цель <span class="acc">урока</span></h2>
+  </div>
+  <div class="ek-note ek-note--green">К 55-й минуте у каждого — играбельное приключение в терминале: нейросеть генерирует сцены подземелья, вы выбираете действия, у героя есть HP и инвентарь, игра идёт до победы или гибели.</div>
+  <div class="grid-2" style="margin-top:8px">
+    <div class="info-card">
+      <h3>Узнаете</h3>
+      <ul class="clean">
+        <li>Что такое функции <span class="code-chip">def</span> и зачем делить программу на части</li>
+        <li>Как работают циклы <span class="code-chip">while</span> и <span class="code-chip">for</span></li>
+        <li>Как списки и словари хранят состояние игры</li>
+      </ul>
+    </div>
+    <div class="info-card">
+      <h3>Сделаете</h3>
+      <ul class="clean">
+        <li>Соберёте движок игры</li>
+        <li>Сделаете DeepSeek гейм-мастером игры</li>
+        <li>Сыграете в собственную игру</li>
+      </ul>
+    </div>
+  </div>
+</div>
+</section>
+
+<section class="slide slide--content"
+  data-notes="Покажите живой запуск игры — соберите заранее. Сделайте пару ходов, чтобы группа увидела, как мастер придумывает сцену под выбор игрока.">
+<div class="sl-body">
+  <div>
+    <div class="q-label">Демо результата</div>
+    <h2>Что соберём <span class="acc">сегодня</span></h2>
+  </div>
+  <div class="term">
+    <div class="term-head"><span class="win-dots"><i></i><i></i><i></i></span><span class="lang-badge">ТЕРМИНАЛ</span></div>
+    <div class="term-body">⚔️ ПОДЗЕМЕЛЬЯ И ДРАКОНЫ
+Имя героя: <span class="usr">Артём</span>
+Артём, ты у входа в тёмную пещеру. С потолка капает вода, вдалеке рык.
+1 — войти внутрь   2 — осмотреться   3 — позвать на помощь
+&gt; <span class="usr">1</span>
+Факел освещает кости на полу и блеск золота. Из мрака выходит
+гоблин с ржавым кинжалом.
+❤️ HP: 100   🎒 факел
+1 — атаковать   2 — отступить   3 — бросить золото
+&gt; <span class="usr">...</span></div>
+  </div>
+  <p style="margin-top:8px">Каждую сцену придумывает <span class="hl">нейросеть</span> — приключение у каждого в классе своё.</p>
+</div>
+</section>
+
+<section class="slide slide--content"
+  data-notes="Подготовка: game.py рядом с warmup.py, затем pip install requests. Если ставили на уроке 5 — pip напишет already satisfied. Дождитесь, пока установка пройдёт у всех.">
+<div class="sl-body">
+  <div>
+    <div class="q-label">Подготовка</div>
+    <h2>Папка lesson-06 и <span class="acc">requests</span></h2>
+  </div>
+  <div class="grid-2">
+    <div>
+      <ol class="steps">
+        <li>Папка <span class="code-chip">lesson-06</span> уже есть — в ней лежит <span class="code-chip">warmup.py</span></li>
+        <li>Создайте файл <span class="code-chip">game.py</span></li>
+        <li>В терминале выполните <span class="code-chip">pip install requests</span> — библиотека для запросов в интернет</li>
+      </ol>
+    </div>
+    <div>
+      <div class="term">
+        <div class="term-head"><span class="win-dots"><i></i><i></i><i></i></span><span class="lang-badge">ПАПКА</span></div>
+        <div class="term-body">D:/vibe-coding/lesson-06/
+├── warmup.py
+└── game.py</div>
+      </div>
+      <div class="ek-note ek-note--red">Если <span class="code-chip">requests</span> уже ставили на уроке 5 — <span class="code-chip">pip</span> напишет <span class="out-chip">Requirement already satisfied</span>. Это нормально.</div>
+    </div>
+  </div>
+</div>
+</section>
+
+<section class="slide slide--content"
+  data-notes="Скопировать промпт целиком в новый чат DeepSeek. url и модель уже в промпте — нейросеть соберёт рабочий запрос сама. Первая сцена приходит от мастера.">
+<div class="sl-body">
+  <div>
+    <div class="q-label">Промпт #2 · стартовый</div>
+    <h2>Каркас <span class="acc">игры</span></h2>
+  </div>
+  <div class="prompt-card">
+    <span class="pc-tag">→ Новый чат DeepSeek</span>
+    <div class="pc-text">Ты — <span class="hl">опытный Python-разработчик</span>.
+Напиши game.py — текстовую ролевую игру с DeepSeek API в роли гейм-мастера.
+
+Что должен делать каркас:
+- печатает заголовок «⚔️ ПОДЗЕМЕЛЬЯ И ДРАКОНЫ»
+- спрашивает имя героя через input
+- отправляет запрос в DeepSeek API: url <span class="hl">https://api.deepseek.com/chat/completions</span>, модель <span class="hl">deepseek-chat</span>, библиотека requests
+- системная роль: «Ты — мастер текстовой ролевой игры. Веди игрока по мрачному фэнтези-подземелью, описывай сцену ярко в 2-3 предложениях и всегда заканчивай тремя вариантами действий»
+- первым сообщением user отправь «Начни приключение для героя по имени {имя}»
+- печатает сгенерированную стартовую сцену
+
+Ключ — в константе API_KEY в начале файла, я вставлю свой.
+Прокомментируй код для новичка. Ответь одним блоком кода.</div>
+  </div>
+</div>
+</section>
+
+<section class="slide slide--content"
+  data-notes="Раздайте ключи заранее и проверьте интернет на машинах. Первый запрос к API — дождитесь, пока у каждого появится стартовая сцена.">
+<div class="sl-body">
+  <div>
+    <div class="q-label">Запуск каркаса</div>
+    <h2>Вставляем ключ и <span class="acc">запускаем</span></h2>
+  </div>
+  <ol class="steps">
+    <li>Скопируйте код из ответа DeepSeek в <span class="code-chip">game.py</span></li>
+    <li>Замените <span class="code-chip">sk-...</span> на ключ, который выдал преподаватель</li>
+    <li>Сохраните файл (<span class="code-chip">Ctrl+S</span>)</li>
+    <li>Выполните <span class="code-chip">python game.py</span></li>
+    <li>Введите имя героя</li>
+  </ol>
+  <div class="ek-note ek-note--red">Ключ — <b>в кавычках и без пробелов</b>. На скриншотах для домашки ключ замазываем.</div>
+</div>
+</section>
+
+<section class="slide slide--content"
+  data-notes="Дайте момент прочувствовать: нейросеть только что придумала подземелье лично для их героя. Попросите перезапустить — начало будет другим. Дальше учим игру идти ходами.">
+<div class="sl-body">
+  <div>
+    <div class="q-label">Момент урока</div>
+    <h2>Нейросеть придумала вам <span class="acc">подземелье</span></h2>
+  </div>
+  <p>Вы только что получили первую сцену, сгенерированную мастером <span class="hl">лично для вашего героя</span>. Никто в классе не увидит ровно такую же.</p>
+  <div class="ek-note ek-note--green">Перезапустите игру — начало будет <b>другим</b>: мастер придумывает мир заново при каждом запуске.</div>
+  <div class="ek-note">Пока это <b>одна</b> сцена. Сейчас научим игру идти ход за ходом — через цикл и функции.</div>
+</div>
+</section>
+
+<section class="slide slide--content"
+  data-notes="Пробегитесь по четырём ситуациям. Чаще всего — забыли pip install requests или ключ вставлен с лишним пробелом. Помогите лично тем, у кого мастер молчит, остальные сверяются со слайдом.">
+<div class="sl-body">
+  <div>
+    <div class="q-label">Если игра не ответила</div>
+    <h2>Типичные ситуации <span class="acc">запуска</span></h2>
+  </div>
+  <div class="kv">
+    <div class="kv-row"><div class="k">ModuleNotFoundError</div><div class="v">Библиотека <span class="code-chip">requests</span> не установлена. В терминале: <span class="code-chip">pip install requests</span> — и запускайте снова.</div></div>
+    <div class="kv-row"><div class="k">401 Unauthorized</div><div class="v">Ключ скопирован не целиком или с пробелом. Проверьте константу <span class="code-chip">API_KEY</span>: ключ начинается с <span class="code-chip">sk-</span> и стоит в кавычках.</div></div>
+    <div class="kv-row"><div class="k">«Игра молчит»</div><div class="v">5–10 секунд тишины — это <span class="hl">мастер придумывает сцену</span>. Нормально. Дождитесь ответа.</div></div>
+    <div class="kv-row"><div class="k">ConnectionError</div><div class="v">Программа не достучалась до интернета. Проверьте Wi-Fi и запустите ещё раз.</div></div>
+  </div>
+</div>
+</section>
+
+<section class="slide slide--content"
+  data-notes="Первая правка идёт в тот же чат. После неё игра превращается в настоящее приключение. Дождитесь, пока у всех работает ход за ходом и слово «выход», потом идём дальше.">
+<div class="sl-body">
+  <div>
+    <div class="q-label">Правка 1 · игра идёт по кругу</div>
+    <h2>От одной сцены к целому <span class="acc">приключению</span></h2>
+  </div>
+  <div class="prompt-card prompt-card--copy">
+    <span class="pc-tag">→ В тот же чат</span>
+    <div class="pc-text">Сейчас игра показывает одну сцену и закрывается. Сделай игровой цикл:
+- После каждой сцены спрашивай выбор игрока через <span class="hl">input</span>: «Твой ход (1/2/3 или опиши действие): »
+- Отправляй выбор мастеру следующим сообщением и печатай новую сцену
+- Цикл повторяется, пока игрок не введёт <span class="hl">«выход»</span>
+- Чтобы мастер помнил сюжет — храни все сообщения в списке <span class="hl">messages</span> и отправляй его целиком при каждом запросе
+
+Верни весь файл.</div>
+  </div>
+</div>
+</section>
+
+<section class="slide slide--content"
+  data-notes="Минимум теории про цикл: while True крутит игру, break выходит. Главное — список messages растёт, поэтому мастер помнит прошлые ходы. Свяжите с памятью советчика из ДЗ урока 5.">
+<div class="sl-body">
+  <div>
+    <div class="q-label">Разбор кода</div>
+    <h2>Цикл игры и <span class="acc">память сюжета</span></h2>
+  </div>
+  <div class="code-win">
+    <div class="code-head"><span class="win-dots"><i></i><i></i><i></i></span><span class="lang-badge">PYTHON</span></div>
+    <div class="code-body">messages = [{<span class="st">"role"</span>: <span class="st">"system"</span>, <span class="st">"content"</span>: <span class="st">"Ты — мастер игры…"</span>}]
+
+<span class="kw">while</span> <span class="kw">True</span>:                              <span class="cm"># игра идёт по кругу</span>
+    choice = input(<span class="st">"Твой ход: "</span>)
+    <span class="kw">if</span> choice.lower() == <span class="st">"выход"</span>:
+        <span class="kw">break</span>                            <span class="cm"># выйти из игры</span>
+    messages.append({<span class="st">"role"</span>: <span class="st">"user"</span>, <span class="st">"content"</span>: choice})
+    scene = ask_master(messages)         <span class="cm"># мастер придумывает сцену</span>
+    messages.append({<span class="st">"role"</span>: <span class="st">"assistant"</span>, <span class="st">"content"</span>: scene})</div>
+  </div>
+  <p><span class="code-chip">while True</span> крутит игру ход за ходом, <span class="code-chip">break</span> — выход. Список <span class="code-chip">messages</span> растёт, поэтому мастер <span class="hl">помнит прошлые ходы</span> — как память советчика из ДЗ урока 5.</p>
+</div>
+</section>
+
+<section class="slide slide--content"
+  data-notes="Ключевая правка урока: декомпозиция. Игра работает, но код длинный. Разложим на функции. Подчеркните: поведение не меняется, меняется только порядок.">
+<div class="sl-body">
+  <div>
+    <div class="q-label">Правка 2 · наводим порядок</div>
+    <h2>Разбираем игру на <span class="acc">функции</span></h2>
+  </div>
+  <p>Игра работает, но код стал длинным и запутанным. Разложим его на <span class="hl">функции</span> — отдельные понятные кусочки.</p>
+  <div class="prompt-card prompt-card--copy">
+    <span class="pc-tag">→ В тот же чат</span>
+    <div class="pc-text">Раздели game.py на функции, поведение не меняй:
+- <span class="hl">ask_master(messages)</span> — отправляет запрос в DeepSeek и возвращает текст сцены
+- <span class="hl">show(text)</span> — красиво печатает текст сцены
+- <span class="hl">main()</span> — собирает игру: спрашивает имя героя, крутит игровой цикл
+
+В самом конце файла вызови <span class="hl">main()</span>. Верни весь файл.</div>
+  </div>
+</div>
+</section>
+
+<section class="slide slide--content"
+  data-notes="Покажите: каждая функция — отдельный блок с понятным именем. return отдаёт результат наружу. main() собирает блоки вместе. Не углубляйтесь в каждый символ.">
+<div class="sl-body">
+  <div>
+    <div class="q-label">Разбор кода</div>
+    <h2>Каждая функция — отдельный <span class="acc">блок</span></h2>
+  </div>
+  <div class="code-win">
+    <div class="code-head"><span class="win-dots"><i></i><i></i><i></i></span><span class="lang-badge">PYTHON</span></div>
+    <div class="code-body">headers = {<span class="st">"Authorization"</span>: f<span class="st">"Bearer {API_KEY}"</span>}   <span class="cm"># пропуск с ключом</span>
+
+<span class="kw">def</span> ask_master(messages):
+    response = requests.post(url, headers=headers,
+                             json={<span class="st">"model"</span>: <span class="st">"deepseek-chat"</span>, <span class="st">"messages"</span>: messages})
+    <span class="kw">return</span> response.json()[<span class="st">"choices"</span>][0][<span class="st">"message"</span>][<span class="st">"content"</span>]
+
+<span class="kw">def</span> show(text):
+    print(text)</div>
+  </div>
+  <div class="ek-note ek-note--green">Каждая функция — <b>блок с понятным именем</b>: <span class="code-chip">ask_master</span> ходит к нейросети, <span class="code-chip">show</span> печатает, <span class="code-chip">main</span> собирает их вместе. <span class="code-chip">return</span> отдаёт результат наружу. Теперь игру проще чинить и улучшать: каждый кусок отдельно.</div>
+</div>
+</section>
+
+<section class="slide slide--content"
+  data-notes="Зафиксируйте идею «чёрного ящика»: дал данные на вход, получил результат на выход. Параметры — вход, return — выход. Это пригодится на всех уроках Python.">
+<div class="sl-body">
+  <div>
+    <div class="q-label">Полезное знание</div>
+    <h2>Параметры и <span class="acc">return</span></h2>
+  </div>
+  <p>Функции общаются двумя способами: <span class="hl">параметры</span> — что передаём внутрь, <span class="hl">return</span> — что функция отдаёт наружу.</p>
+  <div class="code-win">
+    <div class="code-head"><span class="win-dots"><i></i><i></i><i></i></span><span class="lang-badge">PYTHON</span></div>
+    <div class="code-body"><span class="kw">def</span> add(a, b):       <span class="cm"># a и b — параметры (вход)</span>
+    <span class="kw">return</span> a + b     <span class="cm"># return — результат (выход)</span>
+
+result = add(2, 3)   <span class="cm"># result = 5</span></div>
+  </div>
+  <div class="ek-note">Функция — это <b>«чёрный ящик»</b>: дал данные на вход, получил результат на выход. Игрок не знает, что внутри <span class="code-chip">ask_master</span> живёт нейросеть, — он получает готовую сцену.</div>
+</div>
+</section>
+
+<section class="slide slide--content"
+  data-notes="Правка 3 возвращает функцию roll_dice из разминки — функции переиспользуются. Дайте побросать кубик в игре и порадоваться, как удача и неудача меняют сюжет.">
+<div class="sl-body">
+  <div>
+    <div class="q-label">Правка 3 · бросок кубика</div>
+    <h2>Удача решает, как повернётся <span class="acc">сюжет</span></h2>
+  </div>
+  <div class="prompt-card prompt-card--copy">
+    <span class="pc-tag">→ В тот же чат</span>
+    <div class="pc-text">Добавь случайность настоящей RPG. Перед отправкой хода мастеру брось кубик функцией <span class="hl">roll_dice()</span> (число 1–6, как в warmup.py):
+- Если выпало <span class="hl">1</span> — припиши к сообщению мастеру пометку «(герою не повезло — пусть случится осложнение)»
+- Если выпало <span class="hl">6</span> — припиши «(герою повезло — пусть случится удача)»
+
+Так нейросеть учтёт удачу в сюжете. Верни весь файл.</div>
+  </div>
+</div>
+</section>
+
+<section class="slide slide--content"
+  data-notes="Покажите: одна функция (ход игры) зовёт другую (roll_dice) — функции соединяются в цепочку. Пометка в choice меняет сцену, которую придумает мастер.">
+<div class="sl-body">
+  <div>
+    <div class="q-label">Разбор кода</div>
+    <h2>Функция зовёт <span class="acc">функцию</span></h2>
+  </div>
+  <div class="code-win">
+    <div class="code-head"><span class="win-dots"><i></i><i></i><i></i></span><span class="lang-badge">PYTHON</span></div>
+    <div class="code-body">luck = roll_dice()                  <span class="cm"># бросаем кубик из warmup.py</span>
+<span class="kw">if</span> luck == 1:
+    choice += <span class="st">" (герою не повезло — осложнение)"</span>
+<span class="kw">elif</span> luck == 6:
+    choice += <span class="st">" (герою повезло — удача)"</span></div>
+  </div>
+  <div class="ek-note ek-note--green">Одна функция (ход игры) зовёт другую (<span class="code-chip">roll_dice</span>) — функции соединяются в цепочку. Пометка в <span class="code-chip">choice</span> меняет сцену, которую придумает мастер. Бросьте кубик несколько раз — увидите, как удача и неудача поворачивают сюжет.</div>
+</div>
+</section>
+
+<section class="slide slide--content"
+  data-notes="Правка 4 вводит словарь и список. После запуска покажите строку с HP и инвентарём под сценой. Предупредите: мастер не всегда дописывает маркер [HP-20] или [+меч] — иногда HP и инвентарь меняются, иногда нет; на демо это нормально, надёжную механику добьём на следующих уроках. Если группа отстаёт по времени — правки 4 и 5 можно перенести в домашнее задание.">
+<div class="sl-body">
+  <div>
+    <div class="q-label">Правка 4 · характеристики героя</div>
+    <h2>HP и <span class="acc">инвентарь</span></h2>
+  </div>
+  <div class="prompt-card prompt-card--copy">
+    <span class="pc-tag">→ В тот же чат</span>
+    <div class="pc-text">Дай герою состояние через словарь <span class="hl">state = {"hp": 100, "inventory": []}</span>:
+- После каждой сцены печатай строку «❤️ HP: {hp}  🎒 {предметы}»
+- Попроси мастера в системной роли иногда дописывать в конце ответа служебную строчку вида <span class="hl">[HP-20]</span> или <span class="hl">[+меч]</span>
+- Программа находит эту строчку, уменьшает <span class="hl">state["hp"]</span> или добавляет предмет в список <span class="hl">inventory</span>
+
+Верни весь файл.</div>
+  </div>
+</div>
+</section>
+
+<section class="slide slide--content"
+  data-notes="Покажите словарь и список в работе. Главная мысль: один словарь state — это вся память героя. Дайте сфотографировать.">
+<div class="sl-body">
+  <div>
+    <div class="q-label">Разбор кода</div>
+    <h2>Словарь и список <span class="acc">в деле</span></h2>
+  </div>
+  <div class="code-win">
+    <div class="code-head"><span class="win-dots"><i></i><i></i><i></i></span><span class="lang-badge">PYTHON</span></div>
+    <div class="code-body">state = {<span class="st">"hp"</span>: 100, <span class="st">"inventory"</span>: []}   <span class="cm"># память героя</span>
+
+state[<span class="st">"hp"</span>] -= 20                       <span class="cm"># получили урон</span>
+state[<span class="st">"inventory"</span>].append(<span class="st">"меч"</span>)        <span class="cm"># нашли предмет</span>
+
+print(f<span class="st">"❤️ HP: {state['hp']}   🎒 {', '.join(state['inventory'])}"</span>)</div>
+  </div>
+  <div class="ek-note">Словарь <span class="code-chip">state</span> хранит характеристики по ключу, список <span class="code-chip">inventory</span> — найденные предметы. <span class="code-chip">.append</span> добавляет, <span class="code-chip">-=</span> снимает HP, <span class="code-chip">', '.join</span> склеивает список в строку. Один словарь <span class="code-chip">state</span> — <span class="hl">вся память героя</span>.</div>
+</div>
+</section>
+
+<section class="slide slide--content"
+  data-notes="Финальная правка собирает игру воедино: появляется проигрыш и атмосфера цвета. Дождитесь, пока у всех заработает, потом идём к разбору. Это самый зрелищный момент — игра выглядит как настоящая.">
+<div class="sl-body">
+  <div>
+    <div class="q-label">Правка 5 · победа, гибель и атмосфера</div>
+    <h2>Концовки и <span class="acc">цвет</span></h2>
+  </div>
+  <div class="prompt-card prompt-card--copy" style="margin-top:6px">
+    <span class="pc-tag">→ В тот же чат</span>
+    <div class="pc-text">Добавь в игру концовки и цвет:
+- Если state["hp"] стал 0 или меньше — напечатай красным
+  «💀 Ты пал в подземелье. Игра окончена» и выйди из цикла
+- Если игрок ввёл «выход» — попрощайся
+
+Раскрась вывод ANSI-кодами, без сторонних библиотек:
+- заголовок — фиолетовым
+- сцены мастера — обычным цветом
+- строку HP — красным
+- найденные предметы — зелёным
+
+Заведи в начале файла константы вроде RED = '\033[31m'
+и RESET = '\033[0m'. Верни весь файл.</div>
+  </div>
+</div>
+</section>
+
+<section class="slide slide--content"
+  data-notes="Разбор двух вещей сразу: как красить терминал и как заканчивать игру. Подчеркните: break нужен и для гибели героя, и для слова «выход». Если цвета не появились — пусть запускают во встроенном терминале VS Code.">
+<div class="sl-body">
+  <div>
+    <div class="q-label">Разбор кода</div>
+    <h2>Цвет и <span class="acc">конец игры</span></h2>
+  </div>
+  <p>Терминал понимает <b>специальные последовательности</b>: <span class="code-chip">\033[..m</span> переключает цвет, <span class="code-chip">\033[0m</span> возвращает обычный. А проверка HP решает, когда игра окончена:</p>
+  <div class="code-win">
+    <div class="code-head"><span class="win-dots"><i></i><i></i><i></i></span><span class="lang-badge">PYTHON</span></div>
+    <div class="code-body">VIOLET = <span class="st">'\033[35m'</span>   <span class="cm"># заголовок</span>
+RED    = <span class="st">'\033[31m'</span>   <span class="cm"># урон и гибель</span>
+GREEN  = <span class="st">'\033[92m'</span>   <span class="cm"># находки</span>
+RESET  = <span class="st">'\033[0m'</span>    <span class="cm"># вернуть обычный вид</span>
+
+<span class="kw">if</span> state[<span class="st">"hp"</span>] &lt;= 0:
+    <span class="kw">print</span>(<span class="st">f"{RED}💀 Ты пал в подземелье.{RESET}"</span>)
+    <span class="kw">break</span>          <span class="cm"># выходим из игрового цикла</span></div>
+  </div>
+  <div class="ek-note ek-note--red">Цвета видны во встроенном терминале VS Code. В старых системных консолях они могут не появиться — это <b>не ошибка вашего кода</b>.</div>
+</div>
+</section>
+
+<section class="slide slide--content"
+  data-notes="Вопрос про return — самая частая ошибка с функциями. Дайте 10–15 секунд, потом раскройте ответ. Свяжите с ask_master: без return сцена не дойдёт до main.">
+<div class="sl-body">
+  <div>
+    <div class="q-label">Проверка · вопрос 1</div>
+    <h2>Изучите ситуацию и <span class="acc">ответьте</span></h2>
+  </div>
+  <div class="quiz-box">
+    <span class="q-num">Вопрос 1</span>
+    <p class="q-text">Тимур написал функцию <span class="code-chip">def ask_master(messages):</span>, внутри посчитал ответ в переменную <span class="code-chip">scene</span>, но забыл строку <span class="code-chip">return scene</span>. В main он пишет <span class="code-chip">text = ask_master(messages)</span> — и в <span class="code-chip">text</span> оказывается <span class="code-chip">None</span> (пусто). Почему?</p>
+    <div class="quiz-answer">
+      <button class="quiz-btn" type="button">Показать ответ</button>
+      <div class="quiz-reveal">
+        <p>Без <b>return</b> функция ничего не отдаёт наружу, а переменная <span class="code-chip">scene</span> живёт только внутри функции и исчезает, когда функция заканчивается.</p>
+        <p>Нужно добавить <b>return scene</b> — тогда результат вернётся в <span class="code-chip">text</span>, и сцену будет видно.</p>
+      </div>
+    </div>
+  </div>
+</div>
+</section>
+
+<section class="slide slide--content"
+  data-notes="Вопрос про состояние и цикл. Очень частая ошибка новичка — создавать словарь внутри цикла. Свяжите с привычкой: состояние создаём один раз до цикла.">
+<div class="sl-body">
+  <div>
+    <div class="q-label">Проверка · вопрос 2</div>
+    <h2>Изучите ситуацию и <span class="acc">ответьте</span></h2>
+  </div>
+  <div class="quiz-box">
+    <span class="q-num">Вопрос 2</span>
+    <p class="q-text">Лиза хочет, чтобы за каждый ход HP падал на 10: она написала <span class="code-chip">state["hp"] -= 10</span>. Но HP в игре всегда остаётся 100. Оказалось, строку <span class="code-chip">state = {"hp": 100}</span> она поставила <b>внутри</b> цикла <span class="code-chip">while</span>. Где ошибка?</p>
+    <div class="quiz-answer">
+      <button class="quiz-btn" type="button">Показать ответ</button>
+      <div class="quiz-reveal">
+        <p>Словарь <span class="code-chip">state</span> создаётся заново на каждом ходу, поэтому память героя каждый раз <b>обнуляется</b> до 100.</p>
+        <p>Создавать <span class="code-chip">state</span> нужно <b>один раз до цикла</b>, а внутри цикла — только менять его значения.</p>
+      </div>
+    </div>
+  </div>
+</div>
+</section>
+
+<section class="slide slide--content"
+  data-notes="Научите читать traceback снизу вверх — пригодится на всех уроках Python. Напомните привычку: непонятную ошибку целиком копируем в DeepSeek. Три поломки справа — самые частые именно в этой игре.">
+<div class="sl-body">
+  <div>
+    <div class="q-label">Отладка</div>
+    <h2>Читаем <span class="acc">ошибки</span> игры</h2>
+  </div>
+  <div class="grid-2">
+    <div class="col">
+      <p><span class="hl">Traceback — снизу вверх.</span> Последняя строка — <b>что</b> случилось (KeyError, TypeError…), строкой выше — <b>где</b>.</p>
+      <div class="term" style="margin-top:14px">
+        <div class="term-head"><span class="win-dots"><i></i><i></i><i></i></span><span class="lang-badge">ТЕРМИНАЛ</span></div>
+        <div class="term-body"><span class="dim">Traceback (most recent call last):
+  File "game.py", line 21, in main
+    print(state["hp"])</span>
+<span class="usr">KeyError: 'hp'</span></div>
+      </div>
+    </div>
+    <div class="info-card">
+      <h3>Частые поломки</h3>
+      <ul class="clean">
+        <li><b>KeyError 'hp'</b> — опечатка в ключе словаря: проверьте кавычки и имя ключа</li>
+        <li><b>В переменной None</b> — забыли <span class="code-chip">return</span> в функции</li>
+        <li><b>Мастер отвечает невпопад</b> — проверьте, что <span class="code-chip">messages</span> растёт и отправляется целиком</li>
+      </ul>
+      <p style="margin-top:12px;font-size:14px;color:var(--ek-gray)">Непонятную ошибку целиком копируем в чат DeepSeek — привычка из прошлых уроков.</p>
+    </div>
+  </div>
+</div>
+</section>
+
+<section class="slide slide--content"
+  data-notes="5 привычек урока. Дайте сфотографировать слайд. Особо подчеркните первые две: функции-кубики и return — это главное, что уносят с урока.">
+<div class="sl-body">
+  <div>
+    <div class="q-label">Запомните</div>
+    <h2>Привычки <span class="acc">программиста</span></h2>
+  </div>
+  <div class="kv">
+    <div class="kv-row"><div class="k">01 · Функции — кубики</div><div class="v">Большую задачу делим на маленькие <span class="code-chip">def</span> с понятными именами.</div></div>
+    <div class="kv-row"><div class="k">02 · return отдаёт результат</div><div class="v">Без <span class="code-chip">return</span> функция молчит и возвращает <span class="code-chip">None</span>.</div></div>
+    <div class="kv-row"><div class="k">03 · Состояние — до цикла</div><div class="v">Словарь <span class="code-chip">state</span> создаём один раз перед <span class="code-chip">while</span>, внутри только меняем.</div></div>
+    <div class="kv-row"><div class="k">04 · Список и словарь</div><div class="v"><span class="code-chip">list</span> — упорядоченный набор, <span class="code-chip">dict</span> — пары ключ-значение.</div></div>
+    <div class="kv-row"><div class="k">05 · Промпт — характер программы</div><div class="v">Системная роль решает, какой мир построит мастер.</div></div>
+  </div>
+</div>
+</section>
+
+<section class="slide slide--content"
+  data-notes="Чек-лист завершения игры. Кто отметил всё — пусть даст соседу сыграть. У соседа получится другое приключение — это и есть магия AI-мастера.">
+<div class="sl-body">
+  <div>
+    <div class="q-label">Чек-лист</div>
+    <h2>Готовность <span class="acc">к 55-й минуте</span></h2>
+  </div>
+  <div class="grid-2">
+    <div class="info-card">
+      <h3 style="color:var(--ek-green-deep)">Готово</h3>
+      <ul class="clean">
+        <li><span class="code-chip">game.py</span> запускается командой <span class="code-chip">python game.py</span></li>
+        <li>Нейросеть генерирует стартовую сцену подземелья</li>
+        <li>Код разложен на функции <span class="code-chip">ask_master</span>, <span class="code-chip">show</span>, <span class="code-chip">main</span></li>
+      </ul>
+    </div>
+    <div class="info-card">
+      <h3 style="color:var(--ek-violet-deep)">Работает</h3>
+      <ul class="clean">
+        <li>Игра идёт по кругу — выборы рождают новые сцены</li>
+        <li>У героя есть HP и инвентарь через словарь и список</li>
+        <li>Есть концовка — гибель или выход — и цветной вывод</li>
+      </ul>
+    </div>
+  </div>
+  <div class="ek-note ek-note--green">Всё отмечено? Дайте соседу сыграть в вашу игру — у него получится своё приключение.</div>
+</div>
+</section>
+
+<section class="slide slide--content"
+  data-notes="ДЗ — прокачать игру, примерно 30 минут. Каждое улучшение — отдельный диалог с DeepSeek, не всё сразу. Напомните про ключ на скриншотах.">
+<div class="sl-body">
+  <div>
+    <div class="q-label">Домашнее задание · около 30 минут</div>
+    <h2>Прокачайте свою <span class="acc">игру</span></h2>
+  </div>
+  <p>Три улучшения — каждое через отдельный диалог с DeepSeek:</p>
+  <div class="grid-3">
+    <div class="info-card">
+      <h3>Свой жанр</h3>
+      <p>Поменяйте системную роль мастера — космос, киберпанк или сказка — и мир игры полностью изменится.</p>
+    </div>
+    <div class="info-card">
+      <h3>Сундук с сокровищами</h3>
+      <p>Добавьте функцию <span class="code-chip">open_chest()</span>: через <span class="code-chip">random.choice</span> она достаёт случайный предмет из списка и кладёт его в инвентарь.</p>
+    </div>
+    <div class="info-card">
+      <h3>Карта приключения</h3>
+      <p>Сохраняйте каждую сцену в файл <span class="code-chip">adventure.txt</span> — как историю советчика на уроке 5, режим <span class="code-chip">'a'</span>.</p>
+    </div>
+  </div>
+  <div class="ek-note ek-note--red">Пришлите скриншот игры — <b>ключ скройте!</b> Ваш самый удачный промпт — отдельным сообщением.</div>
+</div>
+</section>
+
+<section class="slide slide--green"
+  data-notes="Закройте урок. Сегодня вы написали движок игры и доверили нейросети роль гейм-мастера. На уроке 7 — файлы и JSON, личный дневник с AI-тегами.">
+<div class="sl-orbit">
+    <i class="sl-ring"></i>
+    <svg class="sl-ico" viewBox="0 0 100 100" style="left:75px;top:20px;width:150px;height:150px;transform:rotate(-10deg)"><use href="#ek-i-trophy"/></svg>
+    <i class="sl-letter" style="left:466px;top:13px;width:78px;height:78px;--fs:36px">G</i>
+    <svg class="sl-ico" viewBox="0 0 100 100" style="left:1040px;top:15px;width:130px;height:130px;transform:rotate(12deg)"><use href="#ek-i-heart"/></svg>
+    <i class="sl-letter" style="left:68px;top:268px;width:100px;height:100px;--fs:46px">A</i>
+    <i class="sl-letter" style="left:1137px;top:327px;width:95px;height:95px;--fs:44px">M</i>
+    <svg class="sl-ico" viewBox="0 0 100 100" style="left:102px;top:532px;width:125px;height:125px;transform:rotate(-15deg)"><use href="#ek-i-star"/></svg>
+    <i class="sl-letter" style="left:726px;top:613px;width:78px;height:78px;--fs:36px">E</i>
+    <svg class="sl-ico" viewBox="0 0 100 100" style="left:1045px;top:540px;width:110px;height:110px;transform:rotate(8deg)"><use href="#ek-i-gem"/></svg>
+  </div>
+  <div class="cover-center">
+    <div class="bubble">
+      <h1>До встречи<br>на уроке 7!</h1>
+      <p>Сегодня вы собрали движок игры — функции, циклы и словари — и доверили нейросети роль гейм-мастера. На уроке 7 научим программу по-настоящему запоминать данные: файлы и формат JSON. Соберём личный дневник, которому AI сам подбирает теги.</p>
+    </div>
+  </div>
+</section>
+</main>
+
+<div class="notes" id="notes">
+  <div class="notes__header">Заметки преподавателя &middot; N — скрыть</div>
+  <div class="notes__body" id="notesBody">—</div>
+</div>
+
+<div class="hint"><kbd>←</kbd><kbd>→</kbd> слайды &middot; <kbd>N</kbd> заметки &middot; <kbd>F</kbd> весь экран</div>
+
+<svg width="0" height="0" style="position:absolute" aria-hidden="true"><defs>
+<symbol id="ek-i-trophy" viewBox="0 0 100 100"><path fill="currentColor" d="M24 16h52v12h8c6 0 10 4 10 10 0 15-11 25-23 27-3 5-8 9-14 10v8h14c4 0 7 3 7 7v4H22v-4c0-4 3-7 7-7h14v-8c-6-1-11-5-14-10C17 63 6 53 6 38c0-6 4-10 10-10h8V16zM24 36h-7c-2 0-4 2-4 4 0 8 5 15 12 18-1-5-1-10-1-16v-6zM76 36v6c0 6 0 11-1 16 7-3 12-10 12-18 0-2-2-4-4-4h-7z"/></symbol>
+<symbol id="ek-i-heart" viewBox="0 0 100 100"><path fill="currentColor" d="M50 88C28 72 10 56 10 38 10 24 21 14 34 14c6 0 12 3 16 8 4-5 10-8 16-8 13 0 24 10 24 24 0 18-18 34-40 50z"/></symbol>
+<symbol id="ek-i-star" viewBox="0 0 100 100"><path fill="currentColor" d="M50 8l12 27 29 3-22 20 6 29-25-15-25 15 6-29L9 38l29-3z"/></symbol>
+<symbol id="ek-i-gem" viewBox="0 0 100 100"><path fill="currentColor" d="M30 12h40l18 24-38 52L12 36zM36 20l-12 16h20zM64 20l-8 16h20zM50 22l-9 14h18zM26 44l20 30-8-30zM62 44l-8 30 20-30zM46 44h8l-4 26z"/></symbol>
+</defs></svg>
+
+<script>
+/* ============ Автомасштаб сцены ============ */
+(function(){
+  'use strict';
+  var stage = document.getElementById('deck');
+  function fit(){
+    var w = window.innerWidth, h = window.innerHeight;
+    if (!w || !h) return;
+    var s = Math.min(w / 1320, h / 780);
+    if (document.fullscreenElement) s = Math.min(w / 1280, h / 720);
+    stage.style.transform = 'translate(-50%,-50%) scale(' + s + ')';
+    stage.style.borderRadius = document.fullscreenElement ? '0' : '18px';
+  }
+  window.addEventListener('resize', fit);
+  document.addEventListener('fullscreenchange', fit);
+  fit();
+})();
+
+/* ============ Навигация по слайдам ============ */
+(function(){
+  'use strict';
+  var slides = Array.prototype.slice.call(document.querySelectorAll('.slide'));
+  var total = slides.length;
+  var idx = 0;
+  document.getElementById('total').textContent = total;
+
+  var progressEl = document.getElementById('progress');
+  var currentEl = document.getElementById('current');
+  var notesPanel = document.getElementById('notes');
+  var notesBody = document.getElementById('notesBody');
+
+  slides.forEach(function(s, i){
+    if (s.classList.contains('slide--content')) s.setAttribute('data-page', i + 1);
+  });
+
+  function render(){
+    slides.forEach(function(s, i){
+      s.classList.remove('active', 'prev');
+      if (i === idx) s.classList.add('active');
+      else if (i < idx) s.classList.add('prev');
+    });
+    progressEl.style.width = ((idx + 1) / total * 100).toFixed(2) + '%';
+    currentEl.textContent = idx + 1;
+    notesBody.textContent = slides[idx].getAttribute('data-notes') || '—';
+  }
+
+  function go(n){ idx = Math.max(0, Math.min(total - 1, n)); render(); }
+  function next(){ go(idx + 1); }
+  function prev(){ go(idx - 1); }
+
+  document.addEventListener('keydown', function(e){
+    var active = document.activeElement;
+    if (active && (active.isContentEditable || active.tagName === 'TEXTAREA' || active.tagName === 'INPUT')) return;
+    switch (e.key){
+      case 'ArrowRight': case 'PageDown': case ' ':
+        e.preventDefault(); next(); break;
+      case 'ArrowLeft': case 'PageUp':
+        e.preventDefault(); prev(); break;
+      case 'Home': e.preventDefault(); go(0); break;
+      case 'End': e.preventDefault(); go(total - 1); break;
+      case 'f': case 'F': case 'а': case 'А':
+        e.preventDefault();
+        if (!document.fullscreenElement){ if (document.documentElement.requestFullscreen) document.documentElement.requestFullscreen(); }
+        else if (document.exitFullscreen) document.exitFullscreen();
+        break;
+      case 'n': case 'N': case 'т': case 'Т':
+        e.preventDefault(); notesPanel.classList.toggle('active'); break;
+      case 'Escape':
+        if (document.fullscreenElement && document.exitFullscreen) document.exitFullscreen();
+        notesPanel.classList.remove('active'); break;
+    }
+  });
+
+  var tx = 0, ty = 0;
+  document.addEventListener('touchstart', function(e){ tx = e.changedTouches[0].screenX; ty = e.changedTouches[0].screenY; }, { passive: true });
+  document.addEventListener('touchend', function(e){
+    var dx = e.changedTouches[0].screenX - tx, dy = e.changedTouches[0].screenY - ty;
+    if (Math.abs(dx) > 60 && Math.abs(dx) > Math.abs(dy)){ if (dx < 0) next(); else prev(); }
+  }, { passive: true });
+
+  document.addEventListener('click', function(e){
+    if (e.target.closest('a,button,input,textarea,code,pre,[contenteditable],.code-win,.term,.prompt-card,.quiz-box,.notes')) return;
+    var x = e.clientX, w = window.innerWidth;
+    if (x < w * 0.25) prev();
+    else if (x > w * 0.75) next();
+  });
+
+  render();
+})();
+
+/* ============ Квизы: показать ответ ============ */
+(function(){
+  'use strict';
+  Array.prototype.slice.call(document.querySelectorAll('.quiz-btn')).forEach(function(btn){
+    btn.addEventListener('click', function(e){
+      e.stopPropagation();
+      var box = btn.closest('.quiz-box');
+      var reveal = box && box.querySelector('.quiz-reveal');
+      if (!reveal) return;
+      var shown = reveal.classList.toggle('show');
+      btn.textContent = shown ? 'Скрыть ответ' : 'Показать ответ';
+    });
+  });
+})();
+</script>
+</body>
+</html>

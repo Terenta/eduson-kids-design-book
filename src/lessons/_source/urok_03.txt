@@ -1,0 +1,691 @@
+===== SLIDE 1/38 [COVER] =====
+[NOTES] Поздоровайтесь. Сегодня страницы научатся реагировать на действия пользователя — клики, ввод, отметки. К концу урока — рабочий список задач, который сохраняет данные между перезагрузками.
+[HTML]
+<div class="eyebrow">Step 2 · Модуль 1 · Урок 03</div>
+<h1>Интерактивность<br>через события<br>и DOM.</h1>
+<p class="subtitle">Научимся слушать действия пользователя, менять страницу из JavaScript и сохранять данные локально. Соберём список задач, который не теряется при перезагрузке.</p>
+<div class="meta-row">
+  <span class="badge primary">60 минут</span>
+  <span class="badge cyan">13–15 лет</span>
+  <span class="badge good">Практика</span>
+</div>
+<div class="chip-row" style="margin-top:20px">
+  <span class="badge neutral">JavaScript</span>
+  <span class="badge neutral">DOM events</span>
+  <span class="badge neutral">localStorage</span>
+  <span class="badge neutral">DeepSeek</span>
+</div>
+
+===== SLIDE 2/38 =====
+[NOTES] План на 60 минут. Подчеркните: основное время — на сборку списка задач. Это первый проект, который сохраняет данные.
+[HTML]
+<div class="eyebrow">Agenda · план занятия</div>
+<h2>Как пройдут 60 минут</h2>
+<div class="timeline">
+  <div class="timeline-row"><div class="time">0–5</div><div><div class="title">Разбор домашнего задания</div><div class="desc">Смотрим 2-3 присланные карточки персонажа, разбираем удачные промпты.</div></div></div>
+  <div class="timeline-row"><div class="time">5–15</div><div><div class="title">DOM и события</div><div class="desc">Карта страницы и сигналы пользователя.</div></div></div>
+  <div class="timeline-row"><div class="time">15–25</div><div><div class="title">Стартовый промпт</div><div class="desc">Соберём каркас списка задач из 3 файлов.</div></div></div>
+  <div class="timeline-row"><div class="time">25–45</div><div><div class="title">5 правок через диалог</div><div class="desc">Добавление, удаление, чекбокс, localStorage, анимация.</div></div></div>
+  <div class="timeline-row"><div class="time">45–55</div><div><div class="title">Отладка и проверка</div><div class="desc">Console, мини-вопросы для группы.</div></div></div>
+  <div class="timeline-row"><div class="time">55–60</div><div><div class="title">Демо в группе</div><div class="desc">Скриншоты результата и разбор удачных промптов.</div></div></div>
+</div>
+
+===== SLIDE 3/38 =====
+[NOTES] Откройте 2-3 присланные карточки персонажа. Разбираем: какой промпт сработал с первого раза, где пришлось переформулировать. Главная мысль — точные формулировки экономят время.
+[HTML]
+<div class="eyebrow">Разбор ДЗ урока 2</div>
+<h2>Смотрим карточки персонажей</h2>
+<p class="lead">Открываем 2-3 присланные работы и разбираем именно <em>диалог с нейросетью</em>, а не только результат.</p>
+<div class="grid cols-3" style="margin-top:28px">
+  <div class="card">
+    <h3>Что сработало</h3>
+    <p style="font-size:14.5px">Промпты с ролью («ты senior-разработчик») и форматом («ответь тремя блоками»).</p>
+  </div>
+  <div class="card">
+    <h3>Что переделывали</h3>
+    <p style="font-size:14.5px">Где забыли «оставь всё как есть» — нейросеть переписала лишнее.</p>
+  </div>
+  <div class="card">
+    <h3>Вывод</h3>
+    <p style="font-size:14.5px">Точная формулировка экономит время. Сегодня применяем эти же техники.</p>
+  </div>
+</div>
+
+===== SLIDE 4/38 =====
+[NOTES] Объясните спокойно: до этого страница была статичной. Сегодня делаем настоящую реакцию — пользователь что-то делает, страница меняется в ответ.
+[HTML]
+<div class="eyebrow">Идея урока</div>
+<h2>Что значит «страница интерактивна»</h2>
+<p class="lead">Интерактивная страница умеет <em>отвечать на действия пользователя</em>: клик по кнопке, ввод текста, отметку чекбокса, прокрутку, наведение мыши.</p>
+<div class="card accent" style="margin-top:28px">
+  <p style="font-size:17px; color:#E2E8F0">Кнопка с hover-эффектом из урока 2 — это ещё не интерактивность. Настоящая интерактивность — когда после действия пользователя <strong>меняется содержимое страницы</strong>: появляется новый элемент, обновляется текст, сохраняются данные.</p>
+</div>
+
+===== SLIDE 5/38 =====
+[NOTES] Приведите примеры из жизни подростка. Любое приложение, которым он пользуется — это набор реакций на события.
+[HTML]
+<div class="eyebrow">Примеры</div>
+<h2>Интерактивность вокруг нас</h2>
+<div class="grid cols-2" style="margin-top:8px">
+  <div class="card">
+    <h3>Telegram</h3>
+    <p style="font-size:14.5px">Нажал на сообщение — появилось меню. Напечатал текст — кнопка «отправить» стала активной.</p>
+  </div>
+  <div class="card">
+    <h3>Игры в браузере</h3>
+    <p style="font-size:14.5px">Нажал стрелку — персонаж пошёл. Кликнул по врагу — у него убавилось здоровье.</p>
+  </div>
+  <div class="card">
+    <h3>Формы и анкеты</h3>
+    <p style="font-size:14.5px">Ввёл короткий пароль — появилась подсказка «слишком короткий».</p>
+  </div>
+  <div class="card">
+    <h3>Списки и чек-листы</h3>
+    <p style="font-size:14.5px">Отметил задачу — она зачеркнулась. Перезагрузил — она осталась на месте.</p>
+  </div>
+</div>
+<p class="lead" style="margin-top:22px">Сегодня соберём последнее — <em>список задач</em>.</p>
+
+===== SLIDE 6/38 =====
+[NOTES] Главная схема урока: действие → событие → реакция. Запомнить.
+[HTML]
+<div class="eyebrow">Как это устроено</div>
+<h2>Три шага интерактивности</h2>
+<div class="grid cols-3" style="margin-top:24px">
+  <div class="step-card">
+    <span class="num">1</span>
+    <h3 style="margin-top:6px">Действие</h3>
+    <p style="font-size:14px">Пользователь нажимает кнопку, печатает текст, отмечает чекбокс.</p>
+  </div>
+  <div class="step-card">
+    <span class="num">2</span>
+    <h3 style="margin-top:6px">Событие</h3>
+    <p style="font-size:14px">Браузер замечает действие и отправляет «событие» (event) в JavaScript.</p>
+  </div>
+  <div class="step-card">
+    <span class="num">3</span>
+    <h3 style="margin-top:6px">Реакция</h3>
+    <p style="font-size:14px">Скрипт получает событие и меняет страницу: добавляет элемент, обновляет текст, сохраняет данные.</p>
+  </div>
+</div>
+<div class="card accent" style="margin-top:22px">
+  <p style="font-size:16px; color:#E2E8F0">Сегодня учимся ловить эти события и менять страницу в ответ — через диалог с DeepSeek.</p>
+</div>
+
+===== SLIDE 7/38 =====
+[NOTES] DOM — Document Object Model. Объясните как карту: страница в памяти браузера представлена деревом. JS может ходить по нему и менять любую веточку.
+[HTML]
+<div class="eyebrow">Карта страницы</div>
+<h2>Что такое DOM</h2>
+<p class="lead">DOM (Document Object Model) — это <em>модель страницы в памяти браузера</em>. Каждый тег HTML превращается в узел, к которому можно обратиться из JavaScript.</p>
+<div class="grid cols-2" style="margin-top:24px">
+  <div class="card">
+    <h3>HTML — это текст</h3>
+    <p style="font-size:14.5px">То, что вы пишете в файле <code class="inline">index.html</code>.</p>
+  </div>
+  <div class="card accent">
+    <h3>DOM — это объекты</h3>
+    <p style="font-size:14.5px">То, во что браузер превращает HTML, чтобы JS мог это менять «на лету».</p>
+  </div>
+</div>
+
+===== SLIDE 8/38 =====
+[NOTES] Покажите дерево. Каждый вложенный тег — ветка. Из любого узла можно дойти до любого другого.
+[HTML]
+<div class="eyebrow">DOM — это дерево</div>
+<h2>Страница как дерево элементов</h2>
+<div class="grid cols-2">
+  <div>
+    <h3>HTML</h3>
+<pre><code class="language-markup">&lt;body&gt;
+  &lt;h1&gt;Мои задачи&lt;/h1&gt;
+  &lt;input id="field"&gt;
+  &lt;button id="add"&gt;Добавить&lt;/button&gt;
+  &lt;ul id="list"&gt;
+    &lt;li&gt;Купить хлеб&lt;/li&gt;
+  &lt;/ul&gt;
+&lt;/body&gt;</code></pre>
+  </div>
+  <div>
+    <h3>Дерево DOM</h3>
+<pre><code class="language-bash">body
+├── h1            "Мои задачи"
+├── input#field
+├── button#add    "Добавить"
+└── ul#list
+    └── li        "Купить хлеб"</code></pre>
+    <p style="font-size:13.5px; margin-top:10px; color:var(--muted)">JS умеет дойти до любого узла и изменить его.</p>
+  </div>
+</div>
+
+===== SLIDE 9/38 =====
+[NOTES] Два главных способа: getElementById и querySelector. Покажите оба.
+[HTML]
+<div class="eyebrow">Шаг 1 работы с DOM</div>
+<h2>Как JavaScript находит элемент</h2>
+<div class="grid cols-2">
+  <div>
+    <h3>По id</h3>
+<pre><code class="language-javascript">// HTML: &lt;button id="add"&gt;
+const btn = document.getElementById('add');
+
+// Современный универсальный способ
+const btn2 = document.querySelector('#add');</code></pre>
+  </div>
+  <div>
+    <h3>По классу или тегу</h3>
+<pre><code class="language-javascript">// Первый элемент с классом .task
+const t = document.querySelector('.task');
+
+// ВСЕ элементы &lt;li&gt; — список
+const all = document.querySelectorAll('li');</code></pre>
+  </div>
+</div>
+<div class="card warn" style="margin-top:18px">
+  <p style="font-size:14.5px"><strong>Правило:</strong> <code class="inline">querySelector</code> возвращает <em>один</em> элемент (первый совпавший). <code class="inline">querySelectorAll</code> — <em>список</em> всех совпавших.</p>
+</div>
+
+===== SLIDE 10/38 =====
+[NOTES] Три главных операции: поменять текст, добавить/убрать класс, создать новый элемент.
+[HTML]
+<div class="eyebrow">Шаг 2 работы с DOM</div>
+<h2>Как JavaScript меняет элемент</h2>
+<pre><code class="language-javascript">// 1. Поменять текст
+document.querySelector('h1').textContent = 'Привет!';
+
+// 2. Добавить / убрать CSS-класс
+element.classList.add('done');
+element.classList.remove('done');
+element.classList.toggle('done');   // есть → убрать, нет → добавить
+
+// 3. Создать новый элемент и вставить
+const li = document.createElement('li');
+li.textContent = 'Новая задача';
+document.querySelector('ul').appendChild(li);
+
+// 4. Удалить элемент
+li.remove();</code></pre>
+<p style="font-size:14px; margin-top:14px; color:var(--muted)">Этих 4 операций хватит, чтобы собрать список задач целиком.</p>
+
+===== SLIDE 11/38 =====
+[NOTES] Событие — это «сигнал», который браузер отправляет, когда что-то произошло. JS только подписывается на нужные.
+[HTML]
+<div class="eyebrow">Сигналы от пользователя</div>
+<h2>Что такое событие</h2>
+<p class="lead">Событие (event) — это <em>сигнал от браузера</em>: что-то произошло. Клик, ввод символа, отметка чекбокса, нажатие клавиши. JavaScript не «следит» постоянно — он <strong>подписывается</strong> на нужные события и ждёт.</p>
+<div class="card accent" style="margin-top:24px">
+  <p style="font-size:16px; color:#E2E8F0">Аналогия: вы не стоите весь день у двери. Вы вешаете <em>звонок</em>. Когда придёт гость — звонок сработает. <code class="inline">addEventListener</code> — это и есть «повесить звонок».</p>
+</div>
+
+===== SLIDE 12/38 =====
+[NOTES] Таблица главных событий. Сегодня используем click, input, change.
+[HTML]
+<div class="eyebrow">Справочник</div>
+<h2>Главные виды событий</h2>
+<div class="kv-row"><div class="k">click</div><div class="v">Клик мышью по элементу. Кнопки, ссылки, любые блоки.</div></div>
+<div class="kv-row"><div class="k">input</div><div class="v">Пользователь печатает в поле ввода. Срабатывает на каждый символ.</div></div>
+<div class="kv-row"><div class="k">change</div><div class="v">Значение изменилось и поле потеряло фокус. Чекбоксы, выпадающие списки.</div></div>
+<div class="kv-row"><div class="k">submit</div><div class="v">Отправка формы (нажатие Enter или кнопки в форме).</div></div>
+<div class="kv-row"><div class="k">keydown</div><div class="v">Нажата клавиша на клавиатуре. Пригодится на уроке 4 для игры.</div></div>
+<div class="kv-row"><div class="k">mouseover</div><div class="v">Курсор навёлся на элемент. Часто заменяют CSS-эффектом <code class="inline">:hover</code>.</div></div>
+
+===== SLIDE 13/38 =====
+[NOTES] Синтаксис подписки на событие. Это сердце всей интерактивности.
+[HTML]
+<div class="eyebrow">Главная команда урока</div>
+<h2>addEventListener — как подписаться</h2>
+<pre><code class="language-javascript">const btn = document.getElementById('add');
+
+btn.addEventListener('click', () =&gt; {
+  console.log('Кнопку нажали!');
+  // здесь — реакция: добавить задачу
+});</code></pre>
+<div class="grid cols-3" style="margin-top:18px">
+  <div class="card">
+    <h3>btn</h3>
+    <p style="font-size:14px">На каком элементе слушаем</p>
+  </div>
+  <div class="card">
+    <h3>'click'</h3>
+    <p style="font-size:14px">Какое событие ждём</p>
+  </div>
+  <div class="card">
+    <h3>() =&gt; { ... }</h3>
+    <p style="font-size:14px">Что делать, когда событие случилось</p>
+  </div>
+</div>
+
+===== SLIDE 14/38 =====
+[NOTES] Прочитайте цель вслух. Подчеркните: результат — рабочий список задач, которым можно пользоваться каждый день.
+[HTML]
+<div class="eyebrow">Goal · что будет в конце</div>
+<h2>Цель урока</h2>
+<div class="card accent">
+  <p class="lead" style="color:#E2E8F0">Собрать рабочий <strong>список задач</strong> через диалог с DeepSeek. Задачи добавляются, удаляются, отмечаются выполненными и сохраняются между перезагрузками страницы.</p>
+</div>
+<div class="grid cols-2" style="margin-top:28px">
+  <div>
+    <h3 style="color:var(--accent-2)">Узнаете</h3>
+    <ul class="check-list">
+      <li>Что такое DOM и события в браузере</li>
+      <li>Как JavaScript изменяет страницу</li>
+      <li>Зачем нужен localStorage и как он работает</li>
+    </ul>
+  </div>
+  <div>
+    <h3 style="color:var(--accent)">Сделаете</h3>
+    <ul class="check-list">
+      <li>Каркас списка задач из 3 файлов</li>
+      <li>Добавление и удаление задач</li>
+      <li>Чекбоксы «выполнено»</li>
+      <li>Сохранение между перезагрузками</li>
+    </ul>
+  </div>
+</div>
+
+===== SLIDE 15/38 =====
+[NOTES] Покажите готовый список (можно собрать заранее). Скажите: вот что будет у каждого к 55-й минуте.
+[HTML]
+<div class="eyebrow">Демо результата</div>
+<h2>Что соберём сегодня</h2>
+<p class="lead">К концу урока у каждого — такой список:</p>
+<div class="card" style="margin-top:20px; max-width:520px">
+  <h3 style="margin-bottom:14px">📋 Мои задачи</h3>
+  <div style="display:flex; gap:8px; margin-bottom:14px">
+    <div style="flex:1; background:rgba(255,255,255,0.05); border:1px solid var(--border); border-radius:8px; padding:8px 12px; font-size:14px; color:var(--muted)">Что нужно сделать…</div>
+    <div style="background:var(--accent); color:#fff; border-radius:8px; padding:8px 16px; font-size:14px">Добавить</div>
+  </div>
+  <div style="display:flex; align-items:center; gap:10px; padding:8px 0; border-bottom:1px solid var(--border)"><span>☑</span><span style="text-decoration:line-through; color:var(--muted); flex:1">Сделать ДЗ по уроку 2</span><span style="color:var(--bad)">×</span></div>
+  <div style="display:flex; align-items:center; gap:10px; padding:8px 0; border-bottom:1px solid var(--border)"><span>☐</span><span style="flex:1">Доделать список задач</span><span style="color:var(--bad)">×</span></div>
+  <div style="display:flex; align-items:center; gap:10px; padding:8px 0"><span>☐</span><span style="flex:1">Показать другу</span><span style="color:var(--bad)">×</span></div>
+</div>
+
+===== SLIDE 16/38 =====
+[NOTES] Структура та же, что на уроке 2 — продолжаем привычку 3 файлов.
+[HTML]
+<div class="eyebrow">Структура проекта</div>
+<h2>Папка lesson-03</h2>
+<div class="grid cols-2">
+  <div>
+    <ol class="num-list">
+      <li>На диске <code class="inline">D:</code> в папке <code class="inline">vibe-coding</code> создайте <code class="inline">lesson-03</code></li>
+      <li>В VS Code: <code class="inline">File → Open Folder → lesson-03</code></li>
+      <li>Создайте 3 файла: <code class="inline">index.html</code>, <code class="inline">style.css</code>, <code class="inline">script.js</code></li>
+    </ol>
+  </div>
+  <div>
+    <h3>Что должно быть</h3>
+<pre><code class="language-bash">D:/vibe-coding/lesson-03/
+├── index.html
+├── style.css
+└── script.js</code></pre>
+    <div class="card warn" style="margin-top:14px">
+      <p style="font-size:14px">Те же 3 файла, что на уроке 2. Привычка раскладывать проект на структуру / оформление / поведение остаётся весь курс.</p>
+    </div>
+  </div>
+</div>
+
+===== SLIDE 17/38 =====
+[NOTES] Используем все техники промтинга с урока 2: роль, контекст, формат, ограничения. Дайте скопировать.
+[HTML]
+<div class="eyebrow">Промпт #1 · стартовый</div>
+<h2>Каркас списка задач</h2><div class="prompt-box"><span class="h">→ Новый чат DeepSeek</span>
+Ты <em>senior фронтенд-разработчик в стиле Linear/Notion</em>.
+Я делаю <em>список задач</em> — будем пользоваться им каждый день.
+
+Требования:
+- <em>Три файла</em>: index.html, style.css, script.js
+- В index.html — заголовок «Мои задачи», поле ввода + кнопка «Добавить», ниже пустой <em>&lt;ul id="list"&gt;</em>
+- В style.css — тёмная тема, акцент <em>фиолетовый #7C3AED</em>, мягкие отступы, скруглённые углы, лёгкая тень у карточки списка
+- В script.js — пока ничего, просто пустой файл (логику добавим в правках)
+- <em>Без библиотек</em>, чистый код
+
+Ответь <em>тремя блоками</em>, по одному на каждый файл, с подписью имени файла сверху.</div>
+
+===== SLIDE 18/38 =====
+[NOTES] Создаём 3 файла, копируем 3 блока, запускаем Live Server. Кнопка пока не работает — это нормально.
+[HTML]
+<div class="eyebrow">Из чата в проект</div>
+<h2>Забираем код и запускаем</h2>
+<ol class="num-list">
+  <li>В ответе DeepSeek нажмите <strong>Copy</strong> над первым блоком (HTML)</li>
+  <li>Вставьте в <code class="inline">index.html</code>, сохраните (<code class="inline">Ctrl+S</code>)</li>
+  <li>Так же со вторым (CSS) и третьим (JS) блоком</li>
+  <li>Правый клик по <code class="inline">index.html</code> → <strong>Open with Live Server</strong></li>
+</ol>
+<div class="card accent" style="margin-top:18px">
+  <p style="font-size:15px">Сейчас вы видите заголовок, поле ввода и кнопку «Добавить». <strong>Кнопка пока не работает</strong> — логику добавим в следующих правках. Это нормально.</p>
+</div>
+
+===== SLIDE 19/38 =====
+[NOTES] Шпаргалка по первому запуску. Указывайте на этот слайд во время практики.
+[HTML]
+<div class="eyebrow">Если каркас не открылся</div>
+<h2>Типичные ситуации запуска</h2>
+<div class="kv-row"><div class="k">страница белая</div><div class="v">Файл не сохранён (★ в имени) или скопирован не весь блок. Нажмите <code class="inline">Ctrl+S</code>, проверьте код.</div></div>
+<div class="kv-row"><div class="k">нет «Go Live»</div><div class="v">Расширение Live Server не активно. Перезапустите VS Code, проверьте вкладку Extensions.</div></div>
+<div class="kv-row"><div class="k">стили не применились</div><div class="v">В <code class="inline">index.html</code> нет тега <code class="inline">&lt;link rel="stylesheet" href="style.css"&gt;</code>. Проверьте.</div></div>
+<div class="kv-row"><div class="k">любая ошибка</div><div class="v">Скопируйте текст ошибки из консоли (F12) и отправьте в DeepSeek с вопросом «как исправить?».</div></div>
+
+===== SLIDE 20/38 =====
+[NOTES] Первая логика. Учим JS слушать клик и добавлять новый <li>.
+[HTML]
+<div class="eyebrow">Правка 1 · добавление задач</div>
+<h2>Учим кнопку реагировать на клик</h2><div class="prompt-box"><span class="h">→ В тот же чат</span>
+В script.js напиши логику:
+- При клике на кнопку «Добавить» <em>прочитай текст из поля ввода</em>
+- Если поле <em>не пустое</em> — добавь новый &lt;li&gt; с этим текстом в &lt;ul id="list"&gt;
+- После добавления <em>очисти поле ввода</em>
+- Используй <em>addEventListener</em>
+
+Изменения только в script.js. Не трогай index.html и style.css. Верни только содержимое script.js.</div>
+
+===== SLIDE 21/38 =====
+[NOTES] Откройте сгенерированный script.js. Покажите построчно, как он работает. Дети должны понимать, что им дала нейросеть.
+[HTML]
+<div class="eyebrow">Разбор кода</div>
+<h2>Что сгенерировала нейросеть</h2>
+<pre><code class="language-javascript">const field = document.getElementById('field');   // поле ввода
+const addBtn = document.getElementById('add');     // кнопка
+const list = document.getElementById('list');      // &lt;ul&gt;
+
+addBtn.addEventListener('click', () =&gt; {           // подписка на клик
+  const text = field.value.trim();                 // что ввели
+  if (text === '') return;                          // пусто — выходим
+
+  const li = document.createElement('li');          // новый &lt;li&gt;
+  li.textContent = text;                            // вставили текст
+  list.appendChild(li);                             // добавили в список
+
+  field.value = '';                                 // очистили поле
+});</code></pre>
+<p style="font-size:14px; margin-top:12px; color:var(--muted)">Прочитайте вслух каждую строку. Это ровно те 4 операции DOM со слайда 10.</p>
+
+===== SLIDE 22/38 =====
+[NOTES] Удаление по клику. На каждой задаче — кнопка крестик.
+[HTML]
+<div class="eyebrow">Правка 2 · удаление</div>
+<h2>Каждая задача с кнопкой «×»</h2><div class="prompt-box"><span class="h">→ В тот же чат</span>
+Доработай script.js:
+- При создании каждого &lt;li&gt; <em>добавляй внутрь него кнопку «×»</em> справа от текста
+- При клике на эту кнопку <em>удаляй именно её &lt;li&gt;</em>
+- В style.css добавь оформление кнопки: круглая, серая, при наведении — красная
+
+Изменения в script.js и style.css. Верни только изменённые блоки.</div>
+
+===== SLIDE 23/38 =====
+[NOTES] Важная концепция. Объясните, почему обработчик вешается на саму кнопку «×», а не на весь список.
+[HTML]
+<div class="eyebrow">Важная тонкость</div>
+<h2>Почему обработчик — на самой кнопке</h2>
+<div class="grid cols-2">
+  <div class="card warn">
+    <h3>✕ Частая ошибка</h3>
+    <p style="font-size:14.5px">Повесить один обработчик на весь <code class="inline">&lt;ul&gt;</code> — клик по любому месту удаляет всё подряд.</p>
+  </div>
+  <div class="card good">
+    <h3>✓ Правильно</h3>
+    <p style="font-size:14.5px">Для каждой кнопки «×» — свой обработчик, который знает свой <code class="inline">&lt;li&gt;</code> и удаляет только его.</p>
+  </div>
+</div>
+<pre style="margin-top:16px"><code class="language-javascript">const del = document.createElement('button');
+del.textContent = '×';
+del.addEventListener('click', () =&gt; {
+  li.remove();                 // удаляем именно ЭТОТ li
+});
+li.appendChild(del);</code></pre>
+
+===== SLIDE 24/38 =====
+[NOTES] Чекбокс выполнено. Добавляем визуальный индикатор + класс .done.
+[HTML]
+<div class="eyebrow">Правка 3 · отметка «выполнено»</div>
+<h2>Чекбокс на каждой задаче</h2><div class="prompt-box"><span class="h">→ В тот же чат</span>
+Доработай:
+- В каждом &lt;li&gt; <em>слева от текста</em> добавь <em>чекбокс</em> (input type="checkbox")
+- При отметке чекбокса задаче добавляется класс <em>done</em>
+- В style.css для класса <em>.done</em>: серый цвет текста, зачёркнутый текст (text-decoration: line-through)
+
+Изменения в script.js и style.css. Верни только изменённые блоки.</div>
+
+===== SLIDE 25/38 =====
+[NOTES] Сохранение в localStorage. Это магия — задачи остаются после перезагрузки.
+[HTML]
+<div class="eyebrow">Правка 4 · сохранение</div>
+<h2>Задачи не теряются при перезагрузке</h2><div class="prompt-box"><span class="h">→ В тот же чат</span>
+Добавь сохранение в <em>localStorage</em>:
+- При любом изменении (добавление, удаление, отметка) <em>сохраняй массив задач</em> в localStorage
+- При загрузке страницы — <em>прочитай задачи из localStorage</em> и отрисуй их
+
+Каждая задача — объект с двумя полями: <em>{ text: string, done: boolean }</em>.
+
+Изменения только в script.js. Верни целиком обновлённый script.js.</div>
+
+===== SLIDE 26/38 =====
+[NOTES] Краткое объяснение, как работает localStorage. Привязан к домену сайта.
+[HTML]
+<div class="eyebrow">Полезное знание</div>
+<h2>Что такое localStorage</h2>
+<div class="grid cols-2">
+  <div>
+    <p>localStorage — это <strong>маленькое хранилище в браузере</strong>. Данные не исчезают при перезагрузке и закрытии вкладки.</p>
+    <ul class="check-list" style="margin-top:10px">
+      <li>До ~5 МБ на один сайт</li>
+      <li>Хранит только <em>строки</em> (ключ → значение)</li>
+      <li>Привязан к домену: другой сайт не увидит ваши данные</li>
+    </ul>
+  </div>
+  <div>
+<pre><code class="language-javascript">// Сохранить
+localStorage.setItem('tasks', '...');
+
+// Прочитать
+const saved = localStorage.getItem('tasks');
+
+// Удалить
+localStorage.removeItem('tasks');</code></pre>
+  </div>
+</div>
+
+===== SLIDE 27/38 =====
+[NOTES] localStorage хранит строки. Массив объектов — через JSON.stringify туда и JSON.parse обратно.
+[HTML]
+<div class="eyebrow">Ключевой приём</div>
+<h2>Массив → строка → массив</h2>
+<p>localStorage хранит только <strong>строки</strong>. Массив задач превращаем в строку и обратно:</p>
+<pre style="margin-top:14px"><code class="language-javascript">const tasks = [
+  { text: 'Купить хлеб', done: false },
+  { text: 'Сделать ДЗ',  done: true  },
+];
+
+// Сохранить: массив → строка JSON
+localStorage.setItem('tasks', JSON.stringify(tasks));
+
+// Прочитать: строка JSON → массив
+const saved = localStorage.getItem('tasks');
+const restored = saved ? JSON.parse(saved) : [];</code></pre>
+<div class="card warn" style="margin-top:14px">
+  <p style="font-size:14px"><strong>stringify</strong> — «упаковать» в строку. <strong>parse</strong> — «распаковать» обратно. Без них в localStorage попадёт <code class="inline">[object Object]</code>.</p>
+</div>
+
+===== SLIDE 28/38 =====
+[NOTES] Финальная косметическая правка. Плавное появление и исчезновение задач.
+[HTML]
+<div class="eyebrow">Правка 5 · анимация</div>
+<h2>Плавное появление и удаление</h2><div class="prompt-box"><span class="h">→ В тот же чат</span>
+Сделай анимации:
+- Новая задача <em>плавно появляется</em> (opacity 0 → 1, выезжает на 8px снизу) за 200мс
+- При удалении задача <em>плавно исчезает</em> (opacity 1 → 0, scale 1 → 0.95) за 200мс, и только потом удаляется из DOM
+
+Используй CSS-переходы. Не трогай логику добавления/удаления — только добавь классы и переходы.
+
+Изменения в style.css и небольшие правки в script.js. Верни изменённые блоки.</div>
+
+===== SLIDE 29/38 =====
+[NOTES] Объясните, как работает transition. Это анимация «между двумя состояниями».
+[HTML]
+<div class="eyebrow">Полезное знание</div>
+<h2>Как работают CSS-переходы</h2>
+<p><code class="inline">transition</code> плавно анимирует изменение свойства между двумя состояниями.</p>
+<pre style="margin-top:14px"><code class="language-css">.task {
+  opacity: 1;
+  transform: translateY(0);
+  transition: opacity 200ms, transform 200ms;  /* что и за сколько */
+}
+
+/* класс, который добавляет JS при удалении */
+.task.removing {
+  opacity: 0;
+  transform: scale(0.95);
+}</code></pre>
+<p style="font-size:14px; margin-top:12px; color:var(--muted)">JS только добавляет/убирает класс — всю плавность делает CSS. Это быстро и не нагружает страницу.</p>
+
+===== SLIDE 30/38 =====
+[NOTES] Простой вопрос. Подождите 10-15 секунд, потом раскройте ответ.
+[HTML]
+<div class="eyebrow">Проверка · вопрос 1</div>
+<h2>Изучите ситуацию и ответьте</h2>
+<div class="quiz-card">
+  <span class="q-num">Вопрос</span>
+  <p class="q-text">Вы добавили в localStorage 5 задач. Открыли тот же сайт в режиме «инкогнито» — задач там нет. Почему?</p>
+</div>
+<details style="margin-top:18px">
+  <summary>Ответ</summary>
+  <div class="content">
+    <p>Режим «инкогнито» использует <em>отдельное</em> хранилище. Когда вы закрываете окно инкогнито, всё содержимое localStorage очищается. Это не баг, а защита приватности.</p>
+    <p>В обычной вкладке localStorage сохраняется, пока пользователь сам его не очистит.</p>
+  </div>
+</details>
+
+===== SLIDE 31/38 =====
+[NOTES] Второй вопрос — про скрипт в head. Частая ошибка.
+[HTML]
+<div class="eyebrow">Проверка · вопрос 2</div>
+<h2>Изучите ситуацию и ответьте</h2>
+<div class="quiz-card">
+  <span class="q-num">Вопрос</span>
+  <p class="q-text">Кнопка «Добавить» не реагирует на клик. В консоли — ошибка <code>Cannot read properties of null</code> на строке <code>addBtn.addEventListener(...)</code>. В чём причина?</p>
+</div>
+<details style="margin-top:18px">
+  <summary>Ответ</summary>
+  <div class="content">
+    <p>Скрипт подключён в <code>&lt;head&gt;</code> и выполняется <em>до</em> того, как браузер построил кнопку. <code>getElementById('add')</code> вернул <code>null</code> — кнопки ещё нет.</p>
+    <p>Решение: перенести <code>&lt;script src="script.js"&gt;&lt;/script&gt;</code> в самый конец <code>&lt;body&gt;</code>.</p>
+  </div>
+</details>
+
+===== SLIDE 32/38 =====
+[NOTES] Научите открывать DevTools. F12 → Console. Это главный инструмент отладки.
+[HTML]
+<div class="eyebrow">Инструмент отладки</div>
+<h2>Console — главный друг</h2>
+<div class="grid cols-2">
+  <div>
+    <h3>Как открыть</h3>
+    <ol class="num-list">
+      <li>В браузере нажмите <code class="inline">F12</code></li>
+      <li>Перейдите на вкладку <strong>Console</strong></li>
+      <li>Красные строки — ошибки в коде</li>
+    </ol>
+  </div>
+  <div>
+    <h3>Печать своих сообщений</h3>
+<pre><code class="language-javascript">console.log('Кнопка нажата');
+console.log('Сейчас задач:', tasks.length);
+console.log(tasks);   // покажет весь массив</code></pre>
+    <p style="font-size:13.5px; margin-top:8px; color:var(--muted)">Если непонятно, что происходит — печатайте состояние.</p>
+  </div>
+</div>
+
+===== SLIDE 33/38 =====
+[NOTES] Шпаргалка по проблемам с событиями.
+[HTML]
+<div class="eyebrow">Если событие не срабатывает</div>
+<h2>Типичные ситуации</h2>
+<div class="kv-row"><div class="k">кнопка не реагирует</div><div class="v">Скрипт в <code class="inline">&lt;head&gt;</code> и выполняется до DOM. Перенесите <code class="inline">&lt;script&gt;</code> в конец <code class="inline">&lt;body&gt;</code>.</div></div>
+<div class="kv-row"><div class="k">Cannot read of null</div><div class="v">id в HTML и в JS не совпадают. Проверьте написание.</div></div>
+<div class="kv-row"><div class="k">localStorage пустой</div><div class="v">Сохраняли через Live Server, открыли через <code class="inline">file://</code>. Это разные хранилища — используйте Live Server везде.</div></div>
+<div class="kv-row"><div class="k">удаляется всё сразу</div><div class="v">Обработчик на родителе вместо самой кнопки. Скопируйте код в DeepSeek с вопросом «почему все элементы удаляются?».</div></div>
+
+===== SLIDE 34/38 =====
+[NOTES] 5 привычек урока. Дайте сфотографировать.
+[HTML]
+<div class="eyebrow">Запомните</div>
+<h2>Полезные привычки на сегодня</h2>
+<div class="kv-row"><div class="k">01 · DOM = карта</div><div class="v">Каждый видимый элемент доступен из JS через id или querySelector.</div></div>
+<div class="kv-row"><div class="k">02 · События — сигналы</div><div class="v">click, input, change. Браузер сам отправляет, JS подписывается через addEventListener.</div></div>
+<div class="kv-row"><div class="k">03 · Скрипт — в конце body</div><div class="v">Так JS запускается после построения страницы, элементы уже доступны.</div></div>
+<div class="kv-row"><div class="k">04 · localStorage хранит строки</div><div class="v">Объекты и массивы — через <code class="inline">JSON.stringify</code> / <code class="inline">JSON.parse</code>.</div></div>
+<div class="kv-row"><div class="k">05 · Console — друг</div><div class="v">F12 → Console показывает ошибки и сообщения <code class="inline">console.log</code>.</div></div>
+
+===== SLIDE 35/38 =====
+[NOTES] Чек-лист завершения. Пройдите по пунктам, ученики поднимают руку, если готово.
+[HTML]
+<div class="eyebrow">Финальная проверка</div>
+<h2>Что должно быть к 55-й минуте</h2>
+<div class="grid cols-2">
+  <div>
+    <h3 style="color:var(--accent-2)">Готово</h3>
+    <ul class="check-list">
+      <li>Папка <code class="inline">lesson-03</code> с 3 файлами</li>
+      <li>Список открывается через Live Server</li>
+      <li>Задачи добавляются по кнопке</li>
+      <li>Каждая задача удаляется по «×»</li>
+    </ul>
+  </div>
+  <div>
+    <h3 style="color:var(--accent)">Работает</h3>
+    <ul class="check-list">
+      <li>Чекбокс зачёркивает задачу</li>
+      <li>После перезагрузки задачи на месте</li>
+      <li>Появление/удаление плавное</li>
+      <li>Прошло минимум 4 правки через диалог</li>
+    </ul>
+  </div>
+</div>
+
+===== SLIDE 36/38 =====
+[NOTES] ДЗ — расширения списка. Каждое — отдельная правка через диалог.
+[HTML]
+<div class="eyebrow">Домашнее задание · около 30 минут</div>
+<h2>Расширьте свой список</h2>
+<p class="lead">Через диалог с DeepSeek добавьте 3 функции:</p>
+<div class="grid cols-3" style="margin-top:18px">
+  <div class="card">
+    <h3>Приоритеты</h3>
+    <p style="font-size:14.5px">У каждой задачи — выпадающий список «Низкий / Средний / Высокий». Высокий — красная метка слева.</p>
+  </div>
+  <div class="card">
+    <h3>Фильтр</h3>
+    <p style="font-size:14.5px">Кнопки сверху: «Все / Активные / Выполненные». При клике показываются только нужные задачи.</p>
+  </div>
+  <div class="card">
+    <h3>Счётчик</h3>
+    <p style="font-size:14.5px">Внизу: «Осталось задач: N». Цифра обновляется при отметке выполненных.</p>
+  </div>
+</div>
+<div class="card warn" style="margin-top:22px">
+  <p style="font-size:15px">Пришлите скриншот списка с задачами + ваш самый удачный промпт за это задание.</p>
+</div>
+
+===== SLIDE 37/38 =====
+[NOTES] Расширенная шпаргалка по проблемам. Держите под рукой на следующих уроках.
+[HTML]
+<div class="eyebrow">Шпаргалка</div>
+<h2>Что делать, если…</h2>
+<div class="kv-row"><div class="k">страница белая</div><div class="v">Файл не сохранён или пустой. <code class="inline">Ctrl+S</code> и проверьте код.</div></div>
+<div class="kv-row"><div class="k">кнопка молчит</div><div class="v">Скрипт в head или id не совпадает. Скрипт — в конец body.</div></div>
+<div class="kv-row"><div class="k">задачи пропали</div><div class="v">Открыли через file:// вместо Live Server. Запускайте через Live Server.</div></div>
+<div class="kv-row"><div class="k">в хранилище мусор</div><div class="v">Забыли <code class="inline">JSON.stringify</code>/<code class="inline">parse</code>. Отдайте код в DeepSeek.</div></div>
+<div class="kv-row"><div class="k">нейросеть переписала всё</div><div class="v">Промпт без «оставь всё как есть». Переформулируйте на точечную правку.</div></div>
+
+===== SLIDE 38/38 [FINAL] =====
+[NOTES] Закройте урок. Следующий — собственная игра в браузере на Canvas.
+[HTML]
+<div class="eyebrow">Урок 3 завершён</div>
+<div class="outro-big">До встречи<br>на уроке 4.</div>
+<p class="lead">На следующем уроке — своя браузерная игра. Будем работать с холстом (Canvas), движением и игровым циклом.</p>
+<div class="chip-row" style="margin-top:30px">
+  <span class="badge primary">Урок 4 · Своя браузерная игра</span>
+  <span class="badge cyan">HTML5 Canvas</span>
+  <span class="badge good">Игровой цикл</span>
+</div>

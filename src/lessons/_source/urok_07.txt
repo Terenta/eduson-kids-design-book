@@ -1,0 +1,619 @@
+===== SLIDE 1/38 [COVER] =====
+[NOTES] Поприветствуйте. Сегодня соберём личный дневник с автоматическими тегами: ученик пишет запись, а нейросеть подбирает теги и настроение. Новое — файлы и формат JSON: данные будем хранить структурированно, чтобы программа могла их искать и фильтровать. К концу урока у каждого будет рабочий дневник в терминале.
+[HTML]
+<div class="eyebrow">Step 2 · Модуль 2 · Урок 07</div>
+<h1>Файлы и формат<br>JSON.</h1>
+<p class="subtitle">Соберём личный дневник: вы пишете запись, нейросеть подбирает теги и настроение, данные сохраняются структурированно в файле и находятся по тегу.</p>
+<div class="meta-row">
+  <span class="badge primary">60 минут</span>
+  <span class="badge cyan">13–15 лет</span>
+  <span class="badge good">Практика</span>
+</div>
+<div class="chip-row" style="margin-top:20px">
+  <span class="badge neutral">Python</span>
+  <span class="badge neutral">Файлы</span>
+  <span class="badge neutral">JSON</span>
+  <span class="badge neutral">DeepSeek API</span>
+</div>
+
+===== SLIDE 2/38 =====
+[NOTES] План. Теории даём ровно столько, сколько нужно для практики: к 12-й минуте каждый сохраняет и читает JSON-файл, к 30-й — запускает каркас дневника, где записи тегирует нейросеть. Дальше — 5 последовательных правок, как на прошлых уроках.
+[HTML]
+<div class="eyebrow">Agenda · план занятия</div>
+<h2>Как пройдут 60 минут</h2>
+<div class="timeline">
+  <div class="timeline-row"><div class="time">0–5</div><div><div class="title">Разбор ДЗ</div><div class="desc">Смотрим доработанные игры: свой жанр, сундук, карта приключения.</div></div></div>
+  <div class="timeline-row"><div class="time">5–12</div><div><div class="title">Файлы и JSON</div><div class="desc">Коротко разбираем только то, что нужно для дневника.</div></div></div>
+  <div class="timeline-row"><div class="time">12–20</div><div><div class="title">Промпт-разминка</div><div class="desc">warmup.py: сохранить словарь в JSON и прочитать обратно.</div></div></div>
+  <div class="timeline-row"><div class="time">20–30</div><div><div class="title">Каркас дневника</div><div class="desc">Меню, функции и AI-теги к записям.</div></div></div>
+  <div class="timeline-row"><div class="time">30–48</div><div><div class="title">5 правок через диалог</div><div class="desc">Сохранение → AI-теги → показать записи → поиск → настроение и цвет.</div></div></div>
+  <div class="timeline-row"><div class="time">48–55</div><div><div class="title">Мини-вопросы и отладка</div><div class="desc">Читаем ошибки JSON, проверяем понимание.</div></div></div>
+  <div class="timeline-row"><div class="time">55–60</div><div><div class="title">Демо в группе</div><div class="desc">Каждый делает запись и ищет её по тегу.</div></div></div>
+</div>
+
+===== SLIDE 3/38 =====
+[NOTES] Откройте 1-2 доработанные игры (на весь блок 5 минут). Разбирайте диалог с нейросетью, а не только результат. Подведите к главному: сцены сохраняли в adventure.txt плоским текстом, поэтому такой файл трудно искать и фильтровать. Сегодня данные будем хранить так, чтобы программа могла с ними работать.
+[HTML]
+<div class="eyebrow">Разбор ДЗ урока 6</div>
+<h2>Смотрим доработанные игры</h2>
+<p class="lead">Открываем 2–3 присланные игры и разбираем именно <em>диалог с нейросетью</em>: свой жанр, сундук с сокровищами, карту приключения.</p>
+<div class="grid cols-3" style="margin-top:24px">
+  <div class="card">
+    <h3>Что сработало</h3>
+    <p style="font-size:14.5px">Точечные промпты: свой жанр через системную роль мастера, <code class="inline">open_chest()</code> через <code class="inline">random.choice</code>.</p>
+  </div>
+  <div class="card">
+    <h3>Что переделывали</h3>
+    <p style="font-size:14.5px">Где забыли «не трогай остальной код» — нейросеть заодно ломала рабочую функцию.</p>
+  </div>
+  <div class="card">
+    <h3>Вывод</h3>
+    <p style="font-size:14.5px">Сцены сохраняли в <code class="inline">adventure.txt</code> режимом <code class="inline">'a'</code> — но такой плоский текст нельзя искать. Сегодня научимся хранить с умом.</p>
+  </div>
+</div>
+
+===== SLIDE 4/38 =====
+[NOTES] Главная мысль: две новинки. Первая — структурированное хранение в JSON вместо плоского текста. Вторая — нейросеть помогает разметить данные: подбирает теги и настроение к записи. Ученик пишет дневник, DeepSeek работает как помощник по разметке текста.
+[HTML]
+<div class="eyebrow">Идея урока</div>
+<h2>Программа, которая помнит и понимает</h2>
+<p class="lead">На уроках 5–6 данные складывали <em>плоским текстом</em> (history.txt, adventure.txt) — но такой файл нельзя ни искать, ни разбирать.</p>
+<div class="card accent" style="margin-top:20px">
+  <p style="font-size:16px; color:#E2E8F0">Сегодня две новинки: храним записи <strong>структурированно в JSON</strong> и используем нейросеть для <strong>разметки</strong> каждой записи. Вы пишете дневник, а DeepSeek читает запись и подбирает к ней теги и настроение.</p>
+</div>
+<p style="font-size:14px; margin-top:14px; color:var(--muted)">Идея урока 7: данные <strong>храним в JSON</strong>, <strong>ищем по тегам</strong>, а смысл записи помогает <strong>определить нейросеть</strong>.</p>
+
+===== SLIDE 5/38 =====
+[NOTES] Быстрый recap: файл на диске переживает выключение программы, переменные — нет. Режимы 'r'/'w'/'a' знакомы по history.txt урока 5. Не углубляйтесь — это повторение, главное впереди.
+[HTML]
+<div class="eyebrow">Вспоминаем</div>
+<h2>Что такое файл</h2>
+<p class="lead">Файл на диске <em>переживает выключение программы</em>: переменные исчезают, а файл остаётся. С файлами вы работали на уроке 5 — дневник советчика в <code class="inline">history.txt</code>.</p>
+<pre style="margin-top:8px"><code class="language-python">with open("diary.txt", "w", encoding="utf-8") as f:  # 'w' — записать
+    f.write("Первая запись")
+
+with open("diary.txt", "r", encoding="utf-8") as f:  # 'r' — прочитать
+    text = f.read()</code></pre>
+<div class="card" style="margin-top:14px">
+  <p style="font-size:14.5px">Режимы: <code class="inline">'r'</code> — читать, <code class="inline">'w'</code> — переписать целиком, <code class="inline">'a'</code> — дописать в конец. Сегодня к простому тексту добавим <strong>структуру</strong>.</p>
+</div>
+
+===== SLIDE 6/38 =====
+[NOTES] Покажите разницу на примере: в history.txt нельзя надёжно спросить «покажи записи про шахматы» — там просто строки. JSON хранит каждую запись как набор полей, поэтому программа может искать и фильтровать данные. Это мотивация всего урока.
+[HTML]
+<div class="eyebrow">Зачем нам новое</div>
+<h2>Чем плох плоский текст</h2>
+<div class="vs-grid">
+  <div class="vs-col minimal">
+    <h4>Плоский текст (.txt)</h4>
+    <p>Просто строки одна за другой. Нельзя надёжно спросить «покажи записи с тегом шахматы» — приходится искать вручную.</p>
+    <p class="note">Так хранили советчик и игра.</p>
+  </div>
+  <div class="vs-col detailed">
+    <h4>Структура (JSON)</h4>
+    <p>Каждая запись — набор полей: дата, текст, теги. Программа умеет искать и фильтровать по любому полю.</p>
+    <p class="note">Это соберём сегодня.</p>
+  </div>
+</div>
+<p style="font-size:14px; margin-top:14px; color:var(--muted)">Как только у данных появляется <strong>структура</strong>, программа начинает в них <strong>разбираться</strong>.</p>
+
+===== SLIDE 7/38 =====
+[NOTES] JSON — текстовый формат для структурированных данных. Ключевая мысль: он выглядит почти как словари и списки Python, которые дети уже видели в игре на уроке 6. Фигурные скобки — словарь, квадратные — список.
+[HTML]
+<div class="eyebrow">Новый формат</div>
+<h2>Что такое JSON</h2>
+<p class="lead">JSON — <em>текстовый формат для структурированных данных</em>. Выглядит почти как словари и списки Python, которые вы видели в игре.</p>
+<pre style="margin-top:8px"><code class="language-json">{
+  "date": "2026-06-12",
+  "text": "Выиграл турнир по шахматам",
+  "tags": ["шахматы", "победа"]
+}</code></pre>
+<div class="card accent" style="margin-top:14px">
+  <p style="font-size:15px">Фигурные скобки <code class="inline">{ }</code> — как <strong>словарь</strong> (поле: значение), квадратные <code class="inline">[ ]</code> — как <strong>список</strong>. JSON читается и человеком, и программой.</p>
+</div>
+
+===== SLIDE 8/38 =====
+[NOTES] Без долгой подготовки: сразу просим у DeepSeek небольшой скрипт с JSON и запускаем. Промпт с ролью и форматом — техники урока 2 работают и здесь. Ученики копируют промпт целиком.
+[HTML]
+<div class="eyebrow">Промпт #1 · разминка</div>
+<h2>warmup.py за две минуты</h2>
+<p class="lead">Начнём с короткого скрипта: попросим DeepSeek показать сохранение JSON и сразу запустим результат в терминале.</p>
+<div class="prompt-box"><span class="h">→ Новый чат DeepSeek</span>
+Ты — опытный Python-разработчик и наставник школьника.
+Напиши маленький скрипт warmup.py: создай словарь с полями
+имя, возраст и любимое хобби; сохрани его в файл profile.json
+через json.dump с ensure_ascii=False и indent=2; затем прочитай
+файл обратно через json.load и распечатай.
+Только стандартная библиотека — модуль json встроен в Python.
+Прокомментируй код для новичка и ответь одним блоком кода.</div>
+
+===== SLIDE 9/38 =====
+[NOTES] Базовый шаг урока: дождитесь, пока у всех появится файл profile.json и прочитается обратно. На рабочем коде показываем три вещи: json.dump, json.load и ensure_ascii. Не переходите дальше, пока скрипт не запустился у каждого.
+[HTML]
+<div class="eyebrow">Запуск и разбор</div>
+<h2>Сохраняем и читаем JSON</h2>
+<div class="grid cols-2">
+  <div>
+    <ol class="num-list">
+      <li>В <code class="inline">vibe-coding</code> создайте папку <code class="inline">lesson-07</code></li>
+      <li>Создайте <code class="inline">warmup.py</code> и вставьте код из ответа</li>
+      <li>Выполните <code class="inline">python warmup.py</code></li>
+      <li>Откройте появившийся <code class="inline">profile.json</code> прямо в VS Code</li>
+    </ol>
+    <div class="card good" style="margin-top:14px">
+      <p style="font-size:14px">Файл <code class="inline">profile.json</code> читается глазами? JSON за пять минут — фундамент дневника готов.</p>
+    </div>
+  </div>
+  <div>
+    <div class="kv-row"><div class="k">json.dump</div><div class="v">Сохранил словарь в файл.</div></div>
+    <div class="kv-row"><div class="k">json.load</div><div class="v">Прочитал файл обратно в словарь.</div></div>
+    <div class="kv-row"><div class="k">ensure_ascii=False</div><div class="v">Русские буквы остаются читаемыми.</div></div>
+  </div>
+</div>
+
+===== SLIDE 10/38 =====
+[NOTES] Коротко разберите три типичные проблемы запуска. Помогите исправить ошибки у всех: этот же JSON и эта же папка нужны дальше для дневника.
+[HTML]
+<div class="eyebrow">Типичные ситуации запуска</div>
+<h2>Если warmup.py не запустился</h2>
+<div class="grid cols-3" style="margin-top:20px">
+  <div class="card warn">
+    <h3>FileNotFoundError</h3>
+    <p style="font-size:14.5px">Пытаетесь прочитать файл, которого ещё нет. Сначала сохранение (<code class="inline">json.dump</code>), потом чтение — или проверьте имя файла.</p>
+  </div>
+  <div class="card warn">
+    <h3>JSONDecodeError</h3>
+    <p style="font-size:14.5px">Файл пустой или испорчен. Удалите <code class="inline">profile.json</code> — он создастся заново при следующем запуске.</p>
+  </div>
+  <div class="card warn">
+    <h3>can't open file</h3>
+    <p style="font-size:14.5px">Терминал смотрит в другую папку. Откройте папку <code class="inline">lesson-07</code> в VS Code и терминал заново.</p>
+  </div>
+</div>
+
+===== SLIDE 11/38 =====
+[NOTES] Покажите, что JSON похож на Python-структуры. Не углубляйтесь в детали: главное, что словарь и список из Python можно сохранить в файл как JSON и прочитать обратно.
+[HTML]
+<div class="eyebrow">Как это работает</div>
+<h2>JSON похож на структуры Python</h2>
+<p class="lead">JSON нужен, чтобы хранить <em>структуру</em> в обычном текстовом файле. Он похож на знакомые вам список и словарь.</p>
+<div class="grid cols-2" style="margin-top:16px">
+  <div class="card">
+    <h3>Типы совпадают</h3>
+    <p style="font-size:14.5px">Словарь <code class="inline">{ }</code> ↔ object, список <code class="inline">[ ]</code> ↔ array, строка ↔ string, число ↔ number, <code class="inline">True/False</code> ↔ true/false.</p>
+  </div>
+  <div class="card">
+    <h3>Две команды</h3>
+    <p style="font-size:14.5px">В файл — <code class="inline">json.dump</code> и <code class="inline">json.load</code> (ими и будем работать). А <code class="inline">dumps</code>/<code class="inline">loads</code> — то же самое, но со строкой в памяти.</p>
+  </div>
+</div>
+<div class="card accent" style="margin-top:16px">
+  <p style="font-size:15px">Один параметр обязателен для русского: <code class="inline">ensure_ascii=False</code>. Без него слово «шахматы» превратится в коды вроде <code class="inline">ш...</code>.</p>
+</div>
+
+===== SLIDE 12/38 =====
+[NOTES] Структура дневника: список записей, каждая — словарь с полями. Свяжите с уроком 6: list и dict уже знакомы. entries.append добавляет запись в конец.
+[HTML]
+<div class="eyebrow">Структура дневника</div>
+<h2>Дневник — это список словарей</h2>
+<p class="lead">Каждая запись — <em>словарь</em> с полями, а весь дневник — <em>список</em> таких записей. Обе коллекции знакомы с урока 6.</p>
+<pre style="margin-top:16px"><code class="language-python">entries = [
+    {"date": "2026-06-12",
+     "text": "Выиграл турнир по шахматам",
+     "tags": ["шахматы", "победа"],
+     "mood": "радость"},
+]
+
+entries.append(new_entry)   # добавить новую запись в конец списка</code></pre>
+<div class="card accent" style="margin-top:16px">
+  <p style="font-size:15px"><code class="inline">entries</code> — <strong>список</strong> из урока 6, а каждая запись — <strong>словарь</strong> с полями <code class="inline">date</code>, <code class="inline">text</code>, <code class="inline">tags</code>, <code class="inline">mood</code>.</p>
+</div>
+
+===== SLIDE 13/38 =====
+[NOTES] Новая роль DeepSeek: помощник по разметке дневника. Урок 5 — советчик, урок 6 — гейм-мастер, сегодня — разметка записей. Снова ключевую роль задаёт системное сообщение.
+[HTML]
+<div class="eyebrow">Новая роль нейросети</div>
+<h2>Нейросеть подбирает теги</h2>
+<p class="lead">На уроке 5 DeepSeek был <em>советчиком</em>, на уроке 6 — <em>гейм-мастером</em>. Сегодня его задача — прочитать запись и <em>разметить</em> её тегами.</p>
+<div class="card" style="margin-top:18px">
+  <h3>Системная роль</h3>
+  <p style="font-size:14.5px">«Ты помощник дневника. Прочитай запись и верни 3-5 тегов через запятую, одной строкой, без пояснений».</p>
+</div>
+<div class="card accent" style="margin-top:14px">
+  <p style="font-size:15px">Видимый результат: пишете строку — нейросеть <strong>подбирает теги</strong>. Программа не только хранит запись, но и получает разметку её смысла.</p>
+</div>
+
+===== SLIDE 14/38 =====
+[NOTES] Прочитайте цель вслух. Подчеркните: теги и настроение подбирает нейросеть, поэтому дневник у каждого будет отличаться по содержанию. Слева теория, справа практика.
+[HTML]
+<div class="eyebrow">Goal · что будет в конце</div>
+<h2>Цель урока</h2>
+<div class="card accent">
+  <p class="lead" style="color:#E2E8F0">К 55-й минуте у каждого — личный дневник в терминале: вы пишете запись, нейросеть подбирает теги и настроение, всё сохраняется в <code class="inline">diary.json</code>, а записи можно показать списком и найти по тегу.</p>
+</div>
+<div class="grid cols-2" style="margin-top:28px">
+  <div>
+    <h3 style="color:var(--accent-2)">Узнаете</h3>
+    <ul class="check-list">
+      <li>Как файлы хранят данные между запусками программы</li>
+      <li>Что такое JSON и сериализация</li>
+      <li>Как список словарей хранит записи дневника</li>
+    </ul>
+  </div>
+  <div>
+    <h3 style="color:var(--accent)">Сделаете</h3>
+    <ul class="check-list">
+      <li>Сохраните данные в JSON-файл</li>
+      <li>Подключите AI для подбора тегов</li>
+      <li>Соберёте поиск по дневнику</li>
+    </ul>
+  </div>
+</div>
+
+===== SLIDE 15/38 =====
+[NOTES] Покажите заранее собранный дневник. Сделайте запись при группе, чтобы все увидели, как нейросеть подбирает теги и настроение.
+[HTML]
+<div class="eyebrow">Демо результата</div>
+<h2>Что соберём сегодня</h2>
+<pre><code class="language-bash">📔 Личный дневник
+1 — новая запись   2 — показать все   3 — поиск   4 — выход
+&gt; 1
+Что запишем? Выиграл турнир по шахматам, но поссорился с другом
+Нейросеть подобрала теги: шахматы, победа, дружба, ссора
+Настроение: смешанное
+Запись сохранена в diary.json</code></pre>
+<p style="font-size:14px; margin-top:14px; color:var(--muted)">Теги и настроение подобрала <em>нейросеть</em>; запись легла в <code class="inline">diary.json</code> структурой, а не строкой.</p>
+
+===== SLIDE 16/38 =====
+[NOTES] Подготовка: diary.py рядом с warmup.py. requests уже установлен с урока 6, json встроен в Python. Дополнительная установка не нужна, поэтому можно быстро перейти к каркасу.
+[HTML]
+<div class="eyebrow">Подготовка</div>
+<h2>Папка lesson-07</h2>
+<div class="grid cols-2">
+  <div>
+    <ol class="num-list">
+      <li>Папка <code class="inline">lesson-07</code> уже есть — в ней лежит <code class="inline">warmup.py</code></li>
+      <li>Создайте файл <code class="inline">diary.py</code></li>
+      <li>Библиотека <code class="inline">requests</code> стоит с урока 6, а модуль <code class="inline">json</code> встроен в Python — ставить ничего не нужно</li>
+    </ol>
+  </div>
+  <div>
+<pre><code class="language-bash">D:/vibe-coding/lesson-07/
+├── warmup.py
+└── diary.py</code></pre>
+    <div class="card warn" style="margin-top:14px">
+      <p style="font-size:14.5px">Если <code class="inline">requests</code> всё же не найден — выполните <code class="inline">pip install requests</code>, как на уроке 6.</p>
+    </div>
+  </div>
+</div>
+
+===== SLIDE 17/38 =====
+[NOTES] Скопируйте промпт целиком в новый чат DeepSeek. Каркас пока минимальный, но с правильной структурой из функций — как на уроке 6. Дальше будем наполнять функции отдельными правками.
+[HTML]
+<div class="eyebrow">Промпт #2 · стартовый</div>
+<h2>Каркас дневника</h2><div class="prompt-box"><span class="h">→ Новый чат DeepSeek</span>
+Ты — <em>опытный Python-разработчик</em> и наставник школьника.
+Напиши diary.py — личный дневник, который запускается в терминале.
+
+Каркас:
+- меню в цикле с пунктами: 1 — новая запись, 2 — показать все, 3 — поиск по тегу, 4 — выход
+- раздели программу на функции: add_entry, show_all, search, main
+- пока «новая запись» просто спрашивает текст и печатает его — сохранение в JSON и теги добавим следующими шагами
+
+Ключ для будущих запросов положи в константу API_KEY в начале файла.
+Прокомментируй код для новичка. Ответь одним блоком кода.</div>
+
+===== SLIDE 18/38 =====
+[NOTES] Запустите каркас. Ключ понадобится на шаге с тегами, поэтому ученики вставляют его сразу. Дождитесь, пока у всех откроется меню и пункты переключаются.
+[HTML]
+<div class="eyebrow">Запуск каркаса</div>
+<h2>Вставляем ключ и запускаем</h2>
+<ol class="num-list">
+  <li>Скопируйте код из ответа DeepSeek в <code class="inline">diary.py</code></li>
+  <li>Замените <code class="inline">sk-...</code> на ключ, который выдал преподаватель — он пригодится для тегов</li>
+  <li>Сохраните файл (<code class="inline">Ctrl+S</code>)</li>
+  <li>Выполните <code class="inline">python diary.py</code></li>
+  <li>Проверьте, что меню открывается и пункты переключаются</li>
+</ol>
+<div class="card warn" style="margin-top:18px">
+  <p style="font-size:14.5px">Ключ — <strong>в кавычках и без пробелов</strong>. На скриншотах для домашки ключ замазываем.</p>
+</div>
+
+===== SLIDE 19/38 =====
+[NOTES] Зафиксируйте промежуточный результат: программа уже разделена на функции, как на уроке 6. Каркас пока минимальный, но структура правильная. Дальше наполняем функции по одной.
+[HTML]
+<div class="eyebrow">Момент урока</div>
+<h2>Каркас готов: структура правильная</h2>
+<p class="lead">Меню работает, а программа уже <em>разделена на функции</em> — ровно как учились на уроке 6. Осталось наполнить каждую функцию.</p>
+<div class="card good" style="margin-top:18px">
+  <p style="font-size:14.5px">Каждый пункт меню — <strong>отдельная функция</strong>: <code class="inline">add_entry</code>, <code class="inline">show_all</code>, <code class="inline">search</code>. Дальше наполним их по одной через правки.</p>
+</div>
+<div class="card accent" style="margin-top:14px">
+  <p style="font-size:14.5px">Каркас пока минимальный, но <strong>структура правильная</strong> — добавлять функции в такую программу проще.</p>
+</div>
+
+===== SLIDE 20/38 =====
+[NOTES] Коротко разберите четыре ситуации. Чаще всего встречаются пустой или повреждённый diary.json и забытый pip install requests. Тем, у кого не запускается, помогите лично; остальные сверяются со слайдом.
+[HTML]
+<div class="eyebrow">Если дневник не запустился</div>
+<h2>Типичные ситуации запуска</h2>
+<div class="kv-row"><div class="k">JSONDecodeError</div><div class="v">Файл <code class="inline">diary.json</code> пустой или битый. Удалите его — он создастся заново при первой записи.</div></div>
+<div class="kv-row"><div class="k">FileNotFoundError</div><div class="v">Файла ещё нет — это нормально при первом запуске. Программа должна проверять его наличие перед чтением.</div></div>
+<div class="kv-row"><div class="k">ModuleNotFoundError</div><div class="v">Библиотека <code class="inline">requests</code> не установлена. В терминале: <code class="inline">pip install requests</code> — и запускайте снова.</div></div>
+<div class="kv-row"><div class="k">401 Unauthorized</div><div class="v">Проверьте ключ в константе <code class="inline">API_KEY</code>: он начинается с <code class="inline">sk-</code>, стоит в кавычках, без пробелов. Ключ понадобится на шаге с тегами.</div></div>
+
+===== SLIDE 21/38 =====
+[NOTES] Первая правка идёт в тот же чат. После неё записи сохраняются в файле и остаются между запусками программы. Дождитесь, пока у всех появится diary.json с первой записью, потом переходите дальше.
+[HTML]
+<div class="eyebrow">Правка 1 · сохранение</div>
+<h2>Запись сохраняется между запусками</h2><div class="prompt-box"><span class="h">→ В тот же чат</span>
+Доработай diary.py, остальное не меняй. Пункт «новая запись»:
+- Спроси текст записи через <em>input</em>
+- Добавь текущую дату из <em>datetime</em>
+- Собери запись как словарь с полями дата и текст и добавь её в список записей
+- Сохрани весь список в файл <em>diary.json</em> через <em>json.dump</em> с <em>ensure_ascii=False</em> и <em>indent=2</em>
+- При запуске программы, если <em>diary.json</em> уже есть, загрузи записи из него через <em>json.load</em>
+
+Верни весь файл целиком.</div>
+
+===== SLIDE 22/38 =====
+[NOTES] Дайте минимум теории про файлы. Главное: сохраняем и читаем весь список целиком. ensure_ascii=False и indent=2 делают файл читаемым. Откройте diary.json в VS Code и покажите структуру.
+[HTML]
+<div class="eyebrow">Разбор кода</div>
+<h2>Как список попадает в файл и обратно</h2>
+<pre><code class="language-python">with open("diary.json", "w", encoding="utf-8") as f:
+    json.dump(entries, f, ensure_ascii=False, indent=2)   # сохранили весь список
+...
+with open("diary.json", "r", encoding="utf-8") as f:
+    entries = json.load(f)                                # прочитали весь список</code></pre>
+<p style="font-size:14px; margin-top:12px; color:var(--muted)"><code class="inline">json.dump</code> сохраняет <strong>весь список целиком</strong>, <code class="inline">json.load</code> читает его обратно. <code class="inline">ensure_ascii=False</code> — русские буквы остаются читаемыми, <code class="inline">indent=2</code> — файл с отступами, его видно глазами.</p>
+
+===== SLIDE 23/38 =====
+[NOTES] Ключевая правка урока: нейросеть читает запись и подбирает теги. Раздайте ключи заранее и проверьте интернет. Это видимый результат: ученик пишет запись, а программа сохраняет её уже с тегами.
+[HTML]
+<div class="eyebrow">Правка 2 · AI-теги</div>
+<h2>Нейросеть подбирает теги сама</h2>
+<p class="lead">Главный шаг: программа отправляет запись нейросети, а та возвращает <em>теги</em> — короткую разметку смысла записи.</p><div class="prompt-box"><span class="h">→ В тот же чат</span>
+Добавь автоматические теги. После ввода текста отправь его в DeepSeek API (url <em>https://api.deepseek.com/chat/completions</em>, модель <em>deepseek-chat</em>, библиотека requests) с системной ролью:
+«Ты помощник дневника. Прочитай запись и верни 3-5 тегов через запятую, одной строкой, без пояснений».
+
+Ответ нейросети разбей на список тегов и сохрани в поле <em>tags</em> записи. Ключ бери из <em>API_KEY</em>. Верни весь файл.</div>
+
+===== SLIDE 24/38 =====
+[NOTES] Покажите, как строка от нейросети превращается в список тегов. split режет по запятой, strip убирает пробелы. Дайте написать пару записей и проверить теги. Если у кого-то в тегах есть нумерация или точка в конце, объясните: модель не всегда строго следует роли. Поиск всё равно может сработать, а при необходимости промпт можно уточнить: вернуть строго через запятую.
+[HTML]
+<div class="eyebrow">Разбор кода</div>
+<h2>Из строки нейросети — в список тегов</h2>
+<pre><code class="language-python">headers = {"Authorization": f"Bearer {API_KEY}"}
+data = {
+    "model": "deepseek-chat",
+    "messages": [
+        {"role": "system", "content": "Ты помощник дневника, верни теги через запятую"},
+        {"role": "user", "content": text},
+    ],
+}
+response = requests.post(url, headers=headers, json=data)
+answer = response.json()["choices"][0]["message"]["content"]
+tags = [t.strip() for t in answer.split(",")]</code></pre>
+<div class="card good" style="margin-top:14px">
+  <p style="font-size:14.5px">Нейросеть вернула строку <code class="inline">"шахматы, победа, дружба"</code>. <code class="inline">split(",")</code> режет её по запятым в список, <code class="inline">strip()</code> убирает лишние пробелы. Пишете запись — теги <strong>добавляются автоматически</strong>: это видимый результат работы нейросети.</p>
+</div>
+
+===== SLIDE 25/38 =====
+[NOTES] Зафиксируйте два параметра json.dump. Откройте diary.json без ensure_ascii=False и с ним — разница будет понятна сразу. Это частая ошибка при работе с русским текстом.
+[HTML]
+<div class="eyebrow">Полезное знание</div>
+<h2>Два параметра для читаемого файла</h2>
+<div class="vs-grid">
+  <div class="vs-col minimal">
+    <h4>Без ensure_ascii=False</h4>
+    <p>В файле вместо слова — коды: <code class="inline">"шахматы"</code>.</p>
+    <p class="note">Программа прочитает, а человек — нет.</p>
+  </div>
+  <div class="vs-col detailed">
+    <h4>С ensure_ascii=False, indent=2</h4>
+    <p>В файле читаемо и с отступами: <code class="inline">"шахматы"</code>.</p>
+    <p class="note">Дневник можно открыть и просто почитать.</p>
+  </div>
+</div>
+<p style="font-size:14px; margin-top:14px; color:var(--muted)">С этими параметрами JSON-файл читают и человек, и программа.</p>
+
+===== SLIDE 26/38 =====
+[NOTES] Правка 3 подключает пункт «показать все». После неё видно, что записи действительно сохранились. Дождитесь, пока у всех список печатается, потом переходите дальше.
+[HTML]
+<div class="eyebrow">Правка 3 · показать все</div>
+<h2>Весь дневник на экране</h2><div class="prompt-box"><span class="h">→ В тот же чат</span>
+Оживи пункт «показать все». Прочитай <em>diary.json</em> и аккуратно распечатай каждую запись: дату, текст и теги. Если записей ещё нет — напиши «Дневник пока пуст».
+
+Верни весь файл.</div>
+
+===== SLIDE 27/38 =====
+[NOTES] Свяжите с уроком 6: список перебираем циклом for, из словаря берём поля по ключу. join склеивает список тегов в строку. Не углубляйтесь в каждый символ.
+[HTML]
+<div class="eyebrow">Разбор кода</div>
+<h2>Перебираем список словарей</h2>
+<pre><code class="language-python">for e in entries:
+    print(e["date"], "—", e["text"])
+    print("Теги:", ", ".join(e["tags"]))</code></pre>
+<p style="font-size:14px; margin-top:12px; color:var(--muted)">Список записей перебираем циклом <code class="inline">for</code> — как в игре на уроке 6. Из каждого словаря достаём поля по ключу: <code class="inline">e["date"]</code>, <code class="inline">e["text"]</code>, <code class="inline">e["tags"]</code>. <code class="inline">", ".join</code> склеивает список тегов в одну строку.</p>
+
+===== SLIDE 28/38 =====
+[NOTES] Правка 4 показывает, зачем нужен JSON. После неё дневник можно искать по тегам. Дайте ученикам проверить поиск на своих записях.
+[HTML]
+<div class="eyebrow">Правка 4 · поиск</div>
+<h2>Дневник с поиском по тегу</h2><div class="prompt-box"><span class="h">→ В тот же чат</span>
+Оживи пункт «поиск по тегу». Спроси тег через <em>input</em> и покажи только те записи, у которых этот тег есть в списке <em>tags</em>. Если ничего не нашлось — так и скажи.
+
+Верни весь файл.</div>
+
+===== SLIDE 29/38 =====
+[NOTES] Главная мысль урока: структурированный дневник можно искать одной строкой, а плоский txt для этого не подходит. Дайте сфотографировать. Если группа отстаёт, правку 5 можно перенести в ДЗ.
+[HTML]
+<div class="eyebrow">Разбор кода</div>
+<h2>Оставляем только нужные записи</h2>
+<pre><code class="language-python">found = [e for e in entries if tag in e["tags"]]</code></pre>
+<div class="card accent" style="margin-top:14px">
+  <p style="font-size:14.5px">Проходим по всем записям и оставляем те, где искомый тег есть в списке <code class="inline">tags</code>. Вот ради чего был нужен JSON: плоский <code class="inline">.txt</code> так не спросишь, а структурированный дневник ищется <strong>одной строкой</strong>.</p>
+</div>
+
+===== SLIDE 30/38 =====
+[NOTES] Финальная правка собирает дневник в законченный вид: появляется настроение, цветной вывод и резервная копия. Это заметный пользовательский результат, но правка сложная: mood — второй запрос к сети, а ANSI-цвета требуют аккуратности. Если группа отстаёт, оставьте только настроение, а раскраску и бэкап отдайте в ДЗ. После первой записи рядом с diary.json появится diary.bak — это резервная копия.
+[HTML]
+<div class="eyebrow">Правка 5 · настроение и цвет</div>
+<h2>Настроение и цвет</h2><div class="prompt-box"><span class="h">→ В тот же чат</span>
+Финальная правка. Пусть нейросеть <em>заодно определяет настроение</em> записи одним словом (радость, грусть, злость или спокойствие) и сохраняет его в поле <em>mood</em>.
+
+Раскрась вывод ANSI-кодами, <em>без сторонних библиотек</em>:
+- дату — голубым
+- теги — фиолетовым
+- настроение — зелёным
+
+И перед каждым сохранением делай <em>резервную копию</em>: скопируй diary.json в diary.bak. Верни весь файл.</div>
+
+===== SLIDE 31/38 =====
+[NOTES] Ключевой слайд урока. Подчеркните главное отличие от истории советчика: JSON нельзя дописывать режимом 'a'. Нужно прочитать весь список, добавить запись и записать весь список заново. Если этот шаг пропустить, файл будет ломаться.
+[HTML]
+<div class="eyebrow">Разбор кода</div>
+<h2>Почему JSON нельзя дописывать</h2>
+<p>Новая запись добавляется в дневник в три шага — прочитать, добавить, сохранить целиком:</p>
+<pre style="margin-top:14px"><code class="language-python">entries = load_entries()        # прочитали весь список из файла
+entries.append(new_entry)       # добавили запись в список
+save_entries(entries)           # записали весь список заново</code></pre>
+<div class="card warn" style="margin-top:14px">
+  <p style="font-size:14.5px">JSON <strong>нельзя</strong> открыть в режиме <code class="inline">'a'</code> и дописать словарь в конец: в файле окажется два JSON подряд, и прочитать его уже не получится. Это отличие от <code class="inline">history.txt</code> на уроке 5, где режим <code class="inline">'a'</code> работал.</p>
+</div>
+
+===== SLIDE 32/38 =====
+[NOTES] Вопрос про режим 'a' и JSON — прямое следствие предыдущего слайда. Дайте 10-15 секунд, потом раскройте ответ. Свяжите с правилом: читаем весь файл, пишем весь файл.
+[HTML]
+<div class="eyebrow">Проверка · вопрос 1</div>
+<h2>Изучите ситуацию и ответьте</h2>
+<div class="quiz-card">
+  <span class="q-num">Вопрос</span>
+  <p class="q-text">Дима решил ускорить сохранение и открыл <code class="inline">diary.json</code> в режиме <code class="inline">'a'</code>, дописав новый словарь в конец. Программа сохранила без ошибок, но при следующем чтении упала с <code class="inline">JSONDecodeError</code>. Почему?</p>
+</div>
+<details style="margin-top:18px">
+  <summary>Ответ</summary>
+  <div class="content">
+    <p>В файле оказалось <strong>два JSON подряд</strong> — старый список и приписанный словарь. Это уже не валидный JSON, и <code class="inline">json.load</code> не может его прочитать.</p>
+    <p>Правильно: прочитать весь список через <strong>json.load</strong>, добавить запись в список, сохранить весь список через <strong>json.dump</strong>.</p>
+  </div>
+</details>
+
+===== SLIDE 33/38 =====
+[NOTES] Вопрос про ensure_ascii — вторая частая ошибка с JSON и русским текстом. Свяжите с правилом: для русского текста используем ensure_ascii=False.
+[HTML]
+<div class="eyebrow">Проверка · вопрос 2</div>
+<h2>Изучите ситуацию и ответьте</h2>
+<div class="quiz-card">
+  <span class="q-num">Вопрос</span>
+  <p class="q-text">Настя записала «Выиграл турнир по шахматам», открыла <code class="inline">diary.json</code>, а там вместо слова «шахматы» — набор кодов вида <code class="inline">шах...</code>. Программа работает, но файл нечитаем. Что она забыла?</p>
+</div>
+<details style="margin-top:18px">
+  <summary>Ответ</summary>
+  <div class="content">
+    <p>Параметр <strong>ensure_ascii=False</strong> в <code class="inline">json.dump</code>. Без него русские буквы сохраняются как коды <code class="inline">\uXXXX</code>.</p>
+    <p>С <code class="inline">ensure_ascii=False</code> в файле остаётся читаемый русский текст.</p>
+  </div>
+</details>
+
+===== SLIDE 34/38 =====
+[NOTES] Научите читать traceback снизу вверх — это пригодится на всех уроках Python. Напомните правило: непонятную ошибку целиком копируем в DeepSeek. Три проверки справа — самые частые именно в дневнике.
+[HTML]
+<div class="eyebrow">Отладка</div>
+<h2>Читаем ошибки JSON</h2>
+<div class="grid cols-2">
+  <div>
+    <h3>Traceback — снизу вверх</h3>
+<pre><code class="language-bash">Traceback (most recent call last):
+  File "diary.py", line 8, in load_entries
+    return json.load(f)
+json.decoder.JSONDecodeError: Expecting value</code></pre>
+    <p style="font-size:14px; margin-top:10px; color:var(--muted)">Последняя строка — <strong>что</strong> случилось, строкой выше — <strong>где</strong>. <code class="inline">JSONDecodeError</code> значит: файл пустой или битый.</p>
+  </div>
+  <div>
+    <h3>Если застряли</h3>
+    <ul class="check-list">
+      <li>Скопируйте <strong>traceback целиком</strong> в чат DeepSeek — попросите объяснить и починить</li>
+      <li>Проверьте <code class="inline">ensure_ascii=False</code> и режим <code class="inline">'w'</code> при сохранении</li>
+      <li>Откройте <code class="inline">diary.json</code> глазами — валиден ли он</li>
+    </ul>
+    <p style="font-size:14px; margin-top:10px; color:var(--muted)">Это тот же подход к отладке, что <code class="inline">console.log</code> в «Змейке» и print-метки на уроке 5.</p>
+  </div>
+</div>
+
+===== SLIDE 35/38 =====
+[NOTES] 5 правил урока. Дайте сфотографировать слайд. Особо подчеркните второе: читаем весь файл, пишем весь файл — это главное про JSON.
+[HTML]
+<div class="eyebrow">Запомните</div>
+<h2>Правила работы с данными</h2>
+<div class="kv-row"><div class="k">01 · JSON — список словарей</div><div class="v">Структурированные данные вместо плоских строк: их можно искать и разбирать.</div></div>
+<div class="kv-row"><div class="k">02 · Читай весь, пиши весь</div><div class="v">JSON меняем так: <code class="inline">load</code> → изменили список → <code class="inline">dump</code>. Режим <code class="inline">'a'</code> не подходит.</div></div>
+<div class="kv-row"><div class="k">03 · ensure_ascii=False</div><div class="v">Всегда для русского текста, иначе в файле будут коды <code class="inline">\uXXXX</code>.</div></div>
+<div class="kv-row"><div class="k">04 · Ключ — это пароль</div><div class="v">Не публикуем, на скриншотах замазываем. На уроке 8 спрячем его в <code class="inline">.env</code>.</div></div>
+<div class="kv-row"><div class="k">05 · AI помогает с разметкой</div><div class="v">Нейросеть читает запись и подбирает теги — программа получает дополнительные данные для поиска.</div></div>
+
+===== SLIDE 36/38 =====
+[NOTES] Чек-лист завершения дневника. Кто отметил всё, пусть напишет три записи и найдёт их по тегу. Это проверяет, что структура работает.
+[HTML]
+<div class="eyebrow">Чек-лист</div>
+<h2>Что должно быть к 55-й минуте</h2>
+<div class="grid cols-2">
+  <div>
+    <h3 style="color:var(--accent-2)">Готово</h3>
+    <ul class="check-list">
+      <li><code class="inline">diary.py</code> запускается командой <code class="inline">python diary.py</code></li>
+      <li>Новая запись сохраняется в <code class="inline">diary.json</code></li>
+      <li>Нейросеть подбирает теги к записи</li>
+      <li>Настроение определяется автоматически</li>
+    </ul>
+  </div>
+  <div>
+    <h3 style="color:var(--accent)">Работает</h3>
+    <ul class="check-list">
+      <li>Пункт «показать все» печатает записи</li>
+      <li>Поиск по тегу находит нужные записи</li>
+      <li>Вывод цветной</li>
+      <li>Есть резервная копия <code class="inline">diary.bak</code></li>
+    </ul>
+  </div>
+</div>
+<div class="card good" style="margin-top:22px">
+  <p style="font-size:15px">Всё отмечено? Напишите три записи и найдите их по тегу — дневник готов.</p>
+</div>
+
+===== SLIDE 37/38 =====
+[NOTES] ДЗ — доработать дневник, примерно 30 минут. Каждое улучшение — отдельный диалог с DeepSeek, не всё сразу. Напомните про ключ на скриншотах.
+[HTML]
+<div class="eyebrow">Домашнее задание · около 30 минут</div>
+<h2>Доработайте дневник</h2>
+<p class="lead">Три улучшения — каждое через отдельный диалог с DeepSeek:</p>
+<div class="grid cols-3" style="margin-top:18px">
+  <div class="card">
+    <h3>Статистика тегов</h3>
+    <p style="font-size:14.5px">Добавьте пункт меню, который считает, сколько раз встречается каждый тег, и печатает топ самых частых.</p>
+  </div>
+  <div class="card">
+    <h3>Экспорт в Markdown</h3>
+    <p style="font-size:14.5px">Пункт «сохранить в <code class="inline">diary.md</code>»: все записи красивым текстом — заголовки с датой и списки тегов.</p>
+  </div>
+  <div class="card">
+    <h3>Умный поиск</h3>
+    <p style="font-size:14.5px">Пусть поиск находит записи не только по точному тегу, но и по слову в тексте записи.</p>
+  </div>
+</div>
+<div class="card warn" style="margin-top:22px">
+  <p style="font-size:15px">Пришлите скриншот дневника с записями — <strong>ключ замажьте!</strong> Ваш самый удачный промпт — отдельным сообщением.</p>
+</div>
+
+===== SLIDE 38/38 [FINAL] =====
+[NOTES] Закройте урок. Сегодня программа научилась хранить данные структурированно и размечать записи с помощью нейросети. На уроке 8 — внешние API, погода, AI-комментарии и безопасное хранение ключа в .env.
+[HTML]
+<div class="eyebrow">Урок 7 завершён</div>
+<div class="outro-big">До встречи<br>на уроке 8.</div>
+<p class="lead">Сегодня программа научилась хранить данные структурированно (JSON) и размечать записи с помощью AI-тегов и настроения. На уроке 8 выйдем в интернет: программа получит погоду из внешнего сервиса, нейросеть её прокомментирует, а ключи будут храниться в файле <code class="inline">.env</code>.</p>
+<div class="chip-row" style="margin-top:30px">
+  <span class="badge primary">Урок 8 · Внешние API</span>
+  <span class="badge cyan">Погода + AI</span>
+  <span class="badge good">.env для ключей</span>
+</div>

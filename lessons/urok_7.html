@@ -1,0 +1,1120 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Урок 7 — Работа с файлами и формат JSON | Eduson Kids</title>
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter+Tight:wght@600;700;800;900&family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;700&display=swap">
+
+<style>
+/* ============ Дизайн-токены Eduson Kids ============ */
+:root{
+  --ek-violet:#8C7FF6; --ek-violet-soft:#A79EF9; --ek-violet-deep:#6F61E8; --ek-violet-bg:#F0EEFE;
+  --ek-green:#3DF79D; --ek-green-soft:#7BF9BD; --ek-green-mint:#C9F7E3; --ek-green-pale:#E7FDF2; --ek-green-deep:#0FBF6E;
+  --ek-ink:#17171C; --ek-gray:#8F8F98; --ek-gray-light:#EFEFF2; --ek-line:#E3E3EA;
+  --ek-red:#FF6B6B; --ek-red-soft:#FF8A8A; --ek-red-deep:#E04848; --ek-red-pale:#FFECEC;
+  --f-head:'Inter Tight','Inter','Segoe UI',system-ui,sans-serif;
+  --f-body:'Inter','Segoe UI',system-ui,sans-serif;
+  --f-mono:'JetBrains Mono','Cascadia Mono','Consolas',monospace;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{height:100%;overflow:hidden}
+body{font-family:var(--f-body);background:#E9E9F1;color:var(--ek-ink);-webkit-font-smoothing:antialiased}
+
+/* ============ Хром: прогресс, счётчик, подсказка ============ */
+.progress{position:fixed;top:0;left:0;right:0;height:4px;background:rgba(23,23,28,.08);z-index:100}
+.progress__fill{height:100%;width:0%;background:var(--ek-violet);transition:width 300ms ease}
+.counter{position:fixed;top:14px;right:18px;z-index:90;font:600 13px var(--f-body);color:var(--ek-gray);background:#fff;border:1px solid var(--ek-line);padding:6px 14px;border-radius:999px;font-variant-numeric:tabular-nums}
+.counter b{color:var(--ek-ink)}
+.hint{position:fixed;bottom:12px;left:50%;transform:translateX(-50%);z-index:90;font:500 11px var(--f-body);color:var(--ek-gray);background:#fff;border:1px solid var(--ek-line);padding:6px 14px;border-radius:999px;letter-spacing:.03em}
+.hint kbd{font-family:var(--f-mono);background:var(--ek-gray-light);padding:1px 6px;border-radius:4px;font-size:10px;margin:0 2px;color:var(--ek-ink)}
+
+/* ============ Сцена 1280×720 ============ */
+.stage{position:absolute;left:50%;top:50%;width:1280px;height:720px;transform:translate(-50%,-50%);border-radius:18px;overflow:hidden;box-shadow:0 30px 90px rgba(23,23,28,.18);background:#fff}
+.slide{position:absolute;inset:0;background:#fff;opacity:0;transform:translateY(26px);transition:opacity 280ms ease,transform 280ms ease;pointer-events:none;font-family:var(--f-head)}
+.slide.active{opacity:1;transform:none;pointer-events:auto}
+.slide.prev{transform:translateY(-26px)}
+.slide--violet{background:var(--ek-violet)}
+.slide--green{background:var(--ek-green)}
+
+/* Номер страницы на контентных слайдах */
+.slide--content::after{content:attr(data-page);position:absolute;right:54px;bottom:30px;font:800 30px/1 var(--f-head);color:var(--ek-ink);opacity:.5}
+
+/* ============ Декор «Орбита» ============ */
+.sl-orbit{position:absolute;inset:0;pointer-events:none}
+.slide--violet .sl-orbit{--decor:#A79EF9;--letter:#C4BEFA}
+.slide--green .sl-orbit{--decor:#7BF9BD;--letter:#C4FCE0}
+.sl-ring{position:absolute;left:50%;top:50%;width:1040px;height:660px;transform:translate(-50%,-50%);border:3px solid var(--decor);border-radius:50%;opacity:.9}
+.sl-ico{position:absolute;color:var(--decor)}
+.sl-letter{position:absolute;border-radius:50%;background:var(--decor);color:var(--letter);display:flex;align-items:center;justify-content:center;font:800 var(--fs,40px)/1 var(--f-head);font-style:normal}
+
+/* ============ Каверы: карточка-окно и спич-бабл ============ */
+.cover-center{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);z-index:2}
+.cover-card{position:relative;width:860px;background:#fff;border-radius:28px;box-shadow:0 30px 80px rgba(23,23,28,.18)}
+.card-top{display:flex;justify-content:space-between;align-items:center;padding:24px 30px 0}
+.win-dots{display:flex;gap:9px}
+.win-dots i{width:13px;height:13px;border-radius:50%;background:var(--ek-violet)}
+.win-close{position:relative;width:22px;height:22px}
+.win-close::before,.win-close::after{content:"";position:absolute;left:-1px;top:9px;width:24px;height:4px;border-radius:2px;background:var(--ek-violet)}
+.win-close::before{transform:rotate(45deg)}
+.win-close::after{transform:rotate(-45deg)}
+.cover-card .badge{position:absolute;left:50%;top:-30px;transform:translateX(-50%) rotate(-4deg)}
+.cover-card h1{padding:26px 64px 30px;text-align:center;font:800 50px/1.14 var(--f-head);letter-spacing:-.015em;color:var(--ek-ink)}
+.cover-card .cover-sub{padding:0 80px 34px;text-align:center;font:500 19px/1.5 var(--f-body);color:#3C3C45}
+.cover-card .cover-chips{display:flex;justify-content:center;gap:10px;flex-wrap:wrap;padding:0 40px 40px}
+.bubble{position:relative;width:660px;background:#EFEFF1;border-radius:30px;padding:56px 70px;text-align:center}
+.bubble::after{content:"";position:absolute;right:56px;bottom:-24px;width:0;height:0;border-left:38px solid transparent;border-top:28px solid #EFEFF1}
+.bubble h1{font:800 42px/1.25 var(--f-head);letter-spacing:-.01em;color:var(--ek-ink)}
+.bubble p{margin-top:16px;font:500 18px/1.5 var(--f-body);color:#3C3C45}
+
+/* ============ Стикер-бейдж и чипы ============ */
+.badge{display:inline-block;background:var(--ek-green);color:var(--ek-ink);font:800 24px/1 var(--f-head);padding:13px 22px;border-radius:13px;transform:rotate(-3deg);box-shadow:0 10px 24px rgba(23,23,28,.10)}
+.badge--violet{background:var(--ek-violet);color:#fff}
+.badge--sm{font-size:16px;padding:9px 16px;border-radius:10px}
+.chip{display:inline-block;font:700 14px/1 var(--f-body);padding:8px 14px;border-radius:999px;background:var(--ek-violet-bg);color:var(--ek-violet-deep)}
+.chip--green{background:var(--ek-green-pale);color:var(--ek-green-deep)}
+.chip--gray{background:var(--ek-gray-light);color:#3C3C45}
+
+/* ============ Контентные слайды ============ */
+.sl-body{position:absolute;inset:0;padding:56px 80px 62px;display:flex;flex-direction:column;gap:16px;overflow:hidden}
+h2{font:800 38px/1.16 var(--f-head);letter-spacing:-.01em;color:var(--ek-ink)}
+.acc{color:var(--ek-violet-deep)}
+.sl-body>p, .col p{font:500 18px/1.5 var(--f-body);color:#3C3C45}
+.code-chip{font-family:var(--f-mono);font-weight:700;font-size:.88em;background:var(--ek-violet-bg);color:var(--ek-violet-deep);padding:2px 8px;border-radius:8px;white-space:nowrap}
+.hl{color:var(--ek-violet-deep);font-weight:700}
+.out-chip{font-family:var(--f-mono);font-weight:700;font-size:.88em;background:var(--ek-green-pale);color:#0B7A48;padding:2px 8px;border-radius:8px;white-space:nowrap}
+
+.grid-2{display:grid;grid-template-columns:1fr 1fr;gap:22px;align-items:start}
+.grid-3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:18px;align-items:stretch}
+
+.info-card{background:#F5F5F9;border-radius:18px;padding:18px 22px;font:500 16px/1.55 var(--f-body);color:#3C3C45}
+.info-card h3{font:800 19px/1.3 var(--f-head);color:var(--ek-ink);margin-bottom:8px}
+.ek-note{background:var(--ek-violet-bg);border-left:4px solid var(--ek-violet);border-radius:0 14px 14px 0;padding:14px 20px;font:600 17px/1.5 var(--f-body);color:#3C3560}
+.ek-note--green{background:var(--ek-green-pale);border-left-color:var(--ek-green-deep);color:#0B5B39}
+.ek-note--red{background:var(--ek-red-pale);border-left-color:var(--ek-red);color:#7A2E2E}
+
+ul.clean{list-style:none;display:flex;flex-direction:column;gap:10px}
+ul.clean li{display:flex;gap:14px;align-items:flex-start;font:500 17.5px/1.5 var(--f-body);color:#3C3C45}
+ul.clean li::before{content:'—';flex:0 0 auto;color:var(--ek-violet-deep);font-weight:800}
+
+ol.steps{list-style:none;counter-reset:step;display:flex;flex-direction:column;gap:12px}
+ol.steps li{counter-increment:step;display:flex;gap:16px;align-items:center;padding:14px 20px;background:#F5F5F9;border-radius:16px;font:500 17.5px/1.45 var(--f-body);color:#2E2E36}
+ol.steps li::before{content:counter(step);flex:0 0 40px;height:40px;display:flex;align-items:center;justify-content:center;border-radius:50%;background:var(--ek-violet);font:800 18px var(--f-head);color:#fff}
+ol.steps li:last-child::before{background:var(--ek-green);color:var(--ek-ink)}
+ol.steps.steps--tight{gap:8px}
+ol.steps.steps--tight li{padding:9px 16px;font-size:15.5px;gap:12px}
+ol.steps.steps--tight li::before{flex-basis:32px;height:32px;font-size:14px}
+
+.q-label{font:700 13px/1 var(--f-head);letter-spacing:.08em;text-transform:uppercase;color:var(--ek-gray)}
+
+/* ============ План занятия (agenda) ============ */
+.agenda{display:flex;flex-direction:column;gap:8px}
+.agenda-row{display:flex;gap:16px;align-items:center;padding:10px 18px;background:#F5F5F9;border-radius:14px}
+.agenda-row .t{flex:0 0 84px;text-align:center;font:800 14px/1 var(--f-mono);color:var(--ek-ink);background:var(--ek-green);border-radius:999px;padding:8px 0}
+.agenda-row .tt{font:700 16.5px/1.3 var(--f-head);color:var(--ek-ink)}
+.agenda-row .dd{font:500 14px/1.4 var(--f-body);color:var(--ek-gray)}
+
+/* ============ Ключ-значение (привычки, шпаргалки) ============ */
+.kv{display:flex;flex-direction:column}
+.kv-row{display:grid;grid-template-columns:250px 1fr;gap:18px;align-items:start;padding:11px 4px;border-bottom:1.5px solid var(--ek-line)}
+.kv-row:last-child{border-bottom:none}
+.kv-row .k{font:800 14px/1.35 var(--f-head);letter-spacing:.05em;text-transform:uppercase;color:var(--ek-violet-deep);padding-top:2px}
+.kv-row .v{font:500 16.5px/1.5 var(--f-body);color:#3C3C45}
+
+/* ============ Окно кода (статичное) ============ */
+.code-win{background:#fff;border:2.5px solid var(--ek-ink);border-radius:16px;overflow:hidden;font-family:var(--f-mono);box-shadow:10px 10px 0 rgba(140,127,246,.14)}
+.code-head{display:flex;align-items:center;justify-content:space-between;padding:9px 16px;border-bottom:2px solid var(--ek-ink)}
+.code-head .win-dots i{width:11px;height:11px}
+.lang-badge{font:700 11px var(--f-mono);letter-spacing:.14em;color:var(--ek-gray)}
+.code-body{padding:14px 20px;font:500 14.5px/1.6 var(--f-mono);color:var(--ek-ink);white-space:pre;overflow:auto;max-height:400px;tab-size:4}
+.code-body .cm{color:var(--ek-gray)}
+.code-body .st{color:var(--ek-green-deep)}
+.code-body .kw{color:var(--ek-violet-deep);font-weight:700}
+
+/* ============ Терминал (тёмное окно) ============ */
+.term{background:var(--ek-ink);border-radius:16px;overflow:hidden;font-family:var(--f-mono);box-shadow:10px 10px 0 rgba(23,23,28,.12)}
+.term-head{display:flex;align-items:center;justify-content:space-between;padding:9px 16px;border-bottom:1px solid rgba(255,255,255,.14)}
+.term-head .win-dots i{width:11px;height:11px;background:var(--ek-green)}
+.term-head .lang-badge{color:rgba(255,255,255,.5)}
+.term-body{padding:14px 20px;font:500 14.5px/1.62 var(--f-mono);color:var(--ek-green);white-space:pre-wrap;word-break:break-word;overflow:auto;max-height:420px}
+.term-body .usr{color:#fff}
+.term-body .dim{color:rgba(255,255,255,.55)}
+
+/* ============ Промпт-карточка (диалог с DeepSeek) ============ */
+.prompt-card{position:relative;background:var(--ek-violet-bg);border:2.5px solid var(--ek-violet);border-radius:18px;padding:20px 26px 18px;box-shadow:10px 10px 0 rgba(140,127,246,.18)}
+.prompt-card .pc-tag{position:absolute;top:-16px;left:22px;background:var(--ek-violet);color:#fff;font:800 14px/1 var(--f-head);padding:9px 16px;border-radius:10px;transform:rotate(-2deg);box-shadow:0 8px 18px rgba(23,23,28,.12)}
+.prompt-card .pc-text{margin-top:6px;font:500 15px/1.62 var(--f-mono);color:#2E2A52;white-space:pre-wrap}
+.prompt-card .pc-text .hl{color:var(--ek-violet-deep)}
+.prompt-card--copy .pc-tag{background:var(--ek-green);color:var(--ek-ink)}
+
+/* ============ Сравнение (vs) ============ */
+.vs{display:grid;grid-template-columns:1fr 1fr;gap:20px;align-items:stretch}
+.vs-col{border-radius:18px;padding:20px 24px}
+.vs-col h4{font:800 15px/1 var(--f-head);letter-spacing:.08em;text-transform:uppercase;margin-bottom:12px}
+.vs-col p{font:500 16px/1.55 var(--f-body)}
+.vs-col .note{margin-top:12px;font:500 13.5px/1.4 var(--f-body);opacity:.75}
+.vs-col--plain{background:var(--ek-gray-light);color:#3C3C45}
+.vs-col--plain h4{color:var(--ek-gray)}
+.vs-col--win{background:var(--ek-green-pale);color:#124F35;border:2px solid var(--ek-green-soft)}
+.vs-col--win h4{color:var(--ek-green-deep)}
+
+/* ============ Квиз с раскрытием ответа ============ */
+.quiz-box{background:#F5F5F9;border:2.5px solid var(--ek-ink);border-radius:18px;padding:22px 26px;box-shadow:10px 10px 0 rgba(61,247,157,.25)}
+.quiz-box .q-num{display:inline-block;background:var(--ek-green);color:var(--ek-ink);font:800 13px/1 var(--f-head);letter-spacing:.08em;text-transform:uppercase;padding:8px 14px;border-radius:999px;margin-bottom:14px}
+.quiz-box .q-text{font:700 21px/1.42 var(--f-head);color:var(--ek-ink)}
+.quiz-answer{margin-top:16px}
+.quiz-btn{border:0;border-radius:12px;padding:12px 22px;font:800 15px/1 var(--f-head);cursor:pointer;background:var(--ek-violet);color:#fff;transition:background .15s}
+.quiz-btn:hover{background:var(--ek-violet-deep)}
+.quiz-reveal{display:none;margin-top:14px;background:var(--ek-green-pale);border-left:4px solid var(--ek-green-deep);border-radius:0 14px 14px 0;padding:14px 20px;font:500 16.5px/1.55 var(--f-body);color:#0B5B39}
+.quiz-reveal.show{display:block}
+.quiz-reveal p+p{margin-top:8px}
+
+/* Появление контента */
+.slide.active .info-card,.slide.active ul.clean li,.slide.active ol.steps li,.slide.active .grid-2>*,.slide.active .grid-3>*,.slide.active .agenda-row,.slide.active .kv-row{animation:reveal 450ms ease backwards}
+.slide.active .info-card:nth-child(2),.slide.active ul.clean li:nth-child(2),.slide.active ol.steps li:nth-child(2),.slide.active .grid-2>*:nth-child(2),.slide.active .grid-3>*:nth-child(2),.slide.active .agenda-row:nth-child(2),.slide.active .kv-row:nth-child(2){animation-delay:80ms}
+.slide.active ul.clean li:nth-child(3),.slide.active ol.steps li:nth-child(3),.slide.active .grid-3>*:nth-child(3),.slide.active .agenda-row:nth-child(3),.slide.active .kv-row:nth-child(3){animation-delay:160ms}
+.slide.active ol.steps li:nth-child(4),.slide.active .agenda-row:nth-child(4),.slide.active .kv-row:nth-child(4){animation-delay:240ms}
+.slide.active ol.steps li:nth-child(5),.slide.active .agenda-row:nth-child(5),.slide.active .kv-row:nth-child(5){animation-delay:320ms}
+.slide.active .agenda-row:nth-child(6),.slide.active ol.steps li:nth-child(6),.slide.active .kv-row:nth-child(6){animation-delay:400ms}
+.slide.active .agenda-row:nth-child(7),.slide.active ol.steps li:nth-child(7),.slide.active .kv-row:nth-child(7){animation-delay:480ms}
+@keyframes reveal{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:translateY(0)}}
+@media (prefers-reduced-motion:reduce){.slide.active .info-card,.slide.active ul.clean li,.slide.active ol.steps li,.slide.active .grid-2>*,.slide.active .grid-3>*,.slide.active .agenda-row,.slide.active .kv-row{animation:none}}
+
+/* ============ Заметки преподавателя ============ */
+.notes{position:fixed;bottom:0;left:0;right:0;background:#fff;border-top:1px solid var(--ek-line);box-shadow:0 -16px 40px rgba(23,23,28,.10);padding:20px 40px;z-index:95;max-height:40vh;overflow-y:auto;transform:translateY(100%);transition:transform 300ms ease}
+.notes.active{transform:translateY(0)}
+.notes__header{font:800 11px var(--f-head);letter-spacing:.2em;text-transform:uppercase;color:var(--ek-violet-deep);margin-bottom:8px}
+.notes__body{font:500 15px/1.55 var(--f-body);color:#3C3C45}
+
+:focus-visible{outline:3px solid var(--ek-violet-soft);outline-offset:2px;border-radius:6px}
+::-webkit-scrollbar{width:8px;height:8px}
+::-webkit-scrollbar-track{background:transparent}
+::-webkit-scrollbar-thumb{background:rgba(23,23,28,.15);border-radius:4px}
+</style>
+</head>
+<body>
+
+<div class="progress"><div class="progress__fill" id="progress"></div></div>
+<div class="counter"><b id="current">1</b> / <span id="total">38</span></div>
+
+<main class="stage" id="deck">
+<section class="slide slide--violet active"
+  data-notes="Поприветствуйте. Сегодня соберём личный дневник с автоматическими тегами: ученик пишет запись, а нейросеть подбирает теги и настроение. Новое — файлы и формат JSON: данные будем хранить структурированно, чтобы программа могла их искать и фильтровать. К концу урока у каждого будет рабочий дневник в терминале.">
+<div class="sl-orbit">
+    <i class="sl-ring"></i>
+    <svg class="sl-ico" viewBox="0 0 100 100" style="left:75px;top:20px;width:150px;height:150px;transform:rotate(-10deg)"><use href="#ek-i-trophy"/></svg>
+    <i class="sl-letter" style="left:466px;top:13px;width:78px;height:78px;--fs:36px">J</i>
+    <svg class="sl-ico" viewBox="0 0 100 100" style="left:1040px;top:15px;width:130px;height:130px;transform:rotate(12deg)"><use href="#ek-i-heart"/></svg>
+    <i class="sl-letter" style="left:68px;top:268px;width:100px;height:100px;--fs:46px">S</i>
+    <i class="sl-letter" style="left:1137px;top:327px;width:95px;height:95px;--fs:44px">O</i>
+    <svg class="sl-ico" viewBox="0 0 100 100" style="left:102px;top:532px;width:125px;height:125px;transform:rotate(-15deg)"><use href="#ek-i-star"/></svg>
+    <i class="sl-letter" style="left:726px;top:613px;width:78px;height:78px;--fs:36px">N</i>
+    <svg class="sl-ico" viewBox="0 0 100 100" style="left:1045px;top:540px;width:110px;height:110px;transform:rotate(8deg)"><use href="#ek-i-gem"/></svg>
+  </div>
+  <div class="cover-center">
+    <div class="cover-card">
+      <div class="badge">Урок №7</div>
+      <div class="card-top"><span class="win-dots"><i></i><i></i><i></i></span><span class="win-close"></span></div>
+      <h1>Файлы и формат<br>JSON</h1>
+      <p class="cover-sub">Соберём личный дневник: вы пишете запись, нейросеть подбирает теги и настроение, данные сохраняются структурированно в файле и находятся по тегу.</p>
+      <div class="cover-chips"><span class="chip">Python</span><span class="chip chip--gray">Файлы</span><span class="chip chip--green">JSON</span><span class="chip chip--gray">DeepSeek API</span></div>
+    </div>
+  </div>
+</section>
+
+<section class="slide slide--content"
+  data-notes="План. Теории даём ровно столько, сколько нужно для практики: к 12-й минуте каждый сохраняет и читает JSON-файл, к 30-й — запускает каркас дневника, где записи тегирует нейросеть. Дальше — 5 последовательных правок, как на прошлых уроках.">
+<div class="sl-body">
+  <div>
+    <div class="q-label">Agenda · план занятия</div>
+    <h2>Как пройдут <span class="acc">60 минут</span></h2>
+  </div>
+  <div class="agenda">
+    <div class="agenda-row"><span class="t">0–5</span><div><div class="tt">Разбор ДЗ</div><div class="dd">Смотрим доработанные игры: свой жанр, сундук, карта приключения.</div></div></div>
+    <div class="agenda-row"><span class="t">5–12</span><div><div class="tt">Файлы и JSON</div><div class="dd">Коротко разбираем только то, что нужно для дневника.</div></div></div>
+    <div class="agenda-row"><span class="t">12–20</span><div><div class="tt">Промпт-разминка</div><div class="dd">warmup.py: сохранить словарь в JSON и прочитать обратно.</div></div></div>
+    <div class="agenda-row"><span class="t">20–30</span><div><div class="tt">Каркас дневника</div><div class="dd">Меню, функции и AI-теги к записям.</div></div></div>
+    <div class="agenda-row"><span class="t">30–48</span><div><div class="tt">5 правок через диалог</div><div class="dd">Сохранение → AI-теги → показать записи → поиск → настроение и цвет.</div></div></div>
+    <div class="agenda-row"><span class="t">48–55</span><div><div class="tt">Мини-вопросы и отладка</div><div class="dd">Читаем ошибки JSON, проверяем понимание.</div></div></div>
+    <div class="agenda-row"><span class="t">55–60</span><div><div class="tt">Демо в группе</div><div class="dd">Каждый делает запись и ищет её по тегу.</div></div></div>
+  </div>
+</div>
+</section>
+
+<section class="slide slide--content"
+  data-notes="Откройте 1-2 доработанные игры (на весь блок 5 минут). Разбирайте диалог с нейросетью, а не только результат. Подведите к главному: сцены сохраняли в adventure.txt плоским текстом, поэтому такой файл трудно искать и фильтровать. Сегодня данные будем хранить так, чтобы программа могла с ними работать.">
+<div class="sl-body">
+  <div>
+    <div class="q-label">Разбор ДЗ урока 6</div>
+    <h2>Смотрим <span class="acc">доработанные игры</span></h2>
+  </div>
+  <p>Открываем 2–3 присланные игры и разбираем именно <span class="hl">диалог с нейросетью</span>: свой жанр, сундук с сокровищами, карту приключения.</p>
+  <div class="grid-3" style="margin-top:8px">
+    <div class="info-card">
+      <h3>Что сработало</h3>
+      <p>Точечные промпты: свой жанр через системную роль мастера, <span class="code-chip">open_chest()</span> через <span class="code-chip">random.choice</span>.</p>
+    </div>
+    <div class="info-card">
+      <h3>Что переделывали</h3>
+      <p>Где забыли «не трогай остальной код» — нейросеть заодно ломала рабочую функцию.</p>
+    </div>
+    <div class="info-card">
+      <h3>Вывод</h3>
+      <p>Сцены сохраняли в <span class="code-chip">adventure.txt</span> режимом <span class="code-chip">'a'</span> — но такой плоский текст нельзя искать. Сегодня научимся хранить с умом.</p>
+    </div>
+  </div>
+</div>
+</section>
+
+<section class="slide slide--content"
+  data-notes="Главная мысль: две новинки. Первая — структурированное хранение в JSON вместо плоского текста. Вторая — нейросеть помогает разметить данные: подбирает теги и настроение к записи. Ученик пишет дневник, DeepSeek работает как помощник по разметке текста.">
+<div class="sl-body">
+  <div>
+    <div class="q-label">Идея урока</div>
+    <h2>Программа, которая <span class="acc">помнит и понимает</span></h2>
+  </div>
+  <p>На уроках 5–6 данные складывали <span class="hl">плоским текстом</span> (history.txt, adventure.txt) — но такой файл нельзя ни искать, ни разбирать.</p>
+  <div class="ek-note" style="margin-top:6px">Сегодня две новинки: храним записи <b>структурированно в JSON</b> и используем нейросеть для <b>разметки</b> каждой записи. Вы пишете дневник, а DeepSeek читает запись и подбирает к ней теги и настроение.</div>
+  <p>Идея урока 7: данные <b>храним в JSON</b>, <b>ищем по тегам</b>, а смысл записи помогает <b>определить нейросеть</b>.</p>
+</div>
+</section>
+
+<section class="slide slide--content"
+  data-notes="Быстрый recap: файл на диске переживает выключение программы, переменные — нет. Режимы 'r'/'w'/'a' знакомы по history.txt урока 5. Не углубляйтесь — это повторение, главное впереди.">
+<div class="sl-body">
+  <div>
+    <div class="q-label">Вспоминаем</div>
+    <h2>Что такое <span class="acc">файл</span></h2>
+  </div>
+  <p>Файл на диске <span class="hl">переживает выключение программы</span>: переменные исчезают, а файл остаётся. С файлами вы работали на уроке 5 — дневник советчика в <span class="code-chip">history.txt</span>.</p>
+  <div class="code-win">
+    <div class="code-head"><span class="win-dots"><i></i><i></i><i></i></span><span class="lang-badge">PYTHON</span></div>
+    <div class="code-body"><span class="kw">with</span> open(<span class="st">"diary.txt"</span>, <span class="st">"w"</span>, encoding=<span class="st">"utf-8"</span>) <span class="kw">as</span> f:  <span class="cm"># 'w' — записать</span>
+    f.write(<span class="st">"Первая запись"</span>)
+
+<span class="kw">with</span> open(<span class="st">"diary.txt"</span>, <span class="st">"r"</span>, encoding=<span class="st">"utf-8"</span>) <span class="kw">as</span> f:  <span class="cm"># 'r' — прочитать</span>
+    text = f.read()</div>
+  </div>
+  <div class="ek-note">Режимы: <span class="code-chip">'r'</span> — читать, <span class="code-chip">'w'</span> — переписать целиком, <span class="code-chip">'a'</span> — дописать в конец. Сегодня к простому тексту добавим <b>структуру</b>.</div>
+</div>
+</section>
+
+<section class="slide slide--content"
+  data-notes="Покажите разницу на примере: в history.txt сложно надёжно спросить «покажи записи про шахматы» — там строки одна за другой. JSON хранит каждую запись как набор полей, поэтому программа может искать и фильтровать данные. Это мотивация всего урока.">
+<div class="sl-body">
+  <div>
+    <div class="q-label">Зачем нам новое</div>
+    <h2>Чем плох <span class="acc">плоский текст</span></h2>
+  </div>
+  <div class="vs" style="margin-top:6px">
+    <div class="vs-col vs-col--plain">
+      <h4>Плоский текст (.txt)</h4>
+      <p>Строки идут одна за другой. Надёжно спросить «покажи записи с тегом шахматы» не получится — приходится искать вручную.</p>
+      <p class="note">Так хранили советчик и игра.</p>
+    </div>
+    <div class="vs-col vs-col--win">
+      <h4>Структура (JSON)</h4>
+      <p>Каждая запись — набор полей: дата, текст, теги. Программа умеет искать и фильтровать по любому полю.</p>
+      <p class="note">Это соберём сегодня.</p>
+    </div>
+  </div>
+  <p>Как только у данных появляется <b>структура</b>, программа начинает в них <b>разбираться</b>.</p>
+</div>
+</section>
+
+<section class="slide slide--content"
+  data-notes="JSON — текстовый формат для структурированных данных. Ключевая мысль: он выглядит почти как словари и списки Python, которые дети уже видели в игре на уроке 6. Фигурные скобки — словарь, квадратные — список.">
+<div class="sl-body">
+  <div>
+    <div class="q-label">Новый формат</div>
+    <h2>Что такое <span class="acc">JSON</span></h2>
+  </div>
+  <p>JSON — <span class="hl">текстовый формат для структурированных данных</span>. Выглядит почти как словари и списки Python, которые вы видели в игре.</p>
+  <div class="code-win">
+    <div class="code-head"><span class="win-dots"><i></i><i></i><i></i></span><span class="lang-badge">JSON</span></div>
+    <div class="code-body">{
+  <span class="st">"date"</span>: <span class="st">"2026-06-12"</span>,
+  <span class="st">"text"</span>: <span class="st">"Выиграл турнир по шахматам"</span>,
+  <span class="st">"tags"</span>: [<span class="st">"шахматы"</span>, <span class="st">"победа"</span>]
+}</div>
+  </div>
+  <div class="ek-note">Фигурные скобки <span class="code-chip">{ }</span> — как <b>словарь</b> (поле: значение), квадратные <span class="code-chip">[ ]</span> — как <b>список</b>. JSON читается и человеком, и программой.</div>
+</div>
+</section>
+
+<section class="slide slide--content"
+  data-notes="Без долгой подготовки: сразу просим у DeepSeek небольшой скрипт с JSON и запускаем. Промпт с ролью и форматом — техники урока 2 работают и здесь. Ученики копируют промпт целиком.">
+<div class="sl-body">
+  <div>
+    <div class="q-label">Промпт #1 · разминка</div>
+    <h2>warmup.py за <span class="acc">две минуты</span></h2>
+  </div>
+  <p>Начнём с короткого скрипта: попросим DeepSeek показать сохранение JSON и сразу запустим результат в терминале.</p>
+  <div class="prompt-card" style="margin-top:14px">
+    <span class="pc-tag">→ Новый чат DeepSeek</span>
+    <div class="pc-text">Ты — опытный Python-разработчик и наставник школьника. Напиши маленький скрипт warmup.py: создай словарь с полями имя, возраст и любимое хобби; сохрани его в файл profile.json через json.dump с ensure_ascii=False и indent=2; затем прочитай файл обратно через json.load и распечатай. Только стандартная библиотека — модуль json встроен в Python. Прокомментируй код для новичка и ответь одним блоком кода.</div>
+  </div>
+</div>
+</section>
+
+<section class="slide slide--content"
+  data-notes="Базовый шаг урока: дождитесь, пока у всех появится файл profile.json и прочитается обратно. На рабочем коде показываем три вещи: json.dump, json.load и ensure_ascii. Не переходите дальше, пока скрипт не запустился у каждого.">
+<div class="sl-body">
+  <div>
+    <div class="q-label">Запуск и разбор</div>
+    <h2>Сохраняем и читаем <span class="acc">JSON</span></h2>
+  </div>
+  <div class="grid-2" style="margin-top:6px">
+    <div>
+      <ol class="steps steps--tight">
+        <li>В <span class="code-chip">vibe-coding</span> создайте папку <span class="code-chip">lesson-07</span></li>
+        <li>Создайте <span class="code-chip">warmup.py</span> и вставьте код из ответа</li>
+        <li>Выполните <span class="code-chip">python warmup.py</span></li>
+        <li>Откройте появившийся <span class="code-chip">profile.json</span> прямо в VS Code</li>
+      </ol>
+      <div class="ek-note ek-note--green">Файл <span class="code-chip">profile.json</span> читается глазами? JSON за пять минут — фундамент дневника готов.</div>
+    </div>
+    <div class="kv">
+      <div class="kv-row"><div class="k">json.dump</div><div class="v">Сохранил словарь в файл.</div></div>
+      <div class="kv-row"><div class="k">json.load</div><div class="v">Прочитал файл обратно в словарь.</div></div>
+      <div class="kv-row"><div class="k">ensure_ascii=False</div><div class="v">Русские буквы остаются читаемыми.</div></div>
+    </div>
+  </div>
+</div>
+</section>
+
+<section class="slide slide--content"
+  data-notes="Коротко разберите три типичные проблемы запуска. Помогите исправить ошибки у всех: этот же JSON и эта же папка нужны дальше для дневника.">
+<div class="sl-body">
+  <div>
+    <div class="q-label">Типичные ситуации запуска</div>
+    <h2>Если warmup.py <span class="acc">не запустился</span></h2>
+  </div>
+  <div class="grid-3" style="margin-top:8px">
+    <div class="ek-note ek-note--red">
+      <h3 style="margin-bottom:8px">FileNotFoundError</h3>
+      <p>Пытаетесь прочитать файл, которого ещё нет. Сначала сохранение (<span class="code-chip">json.dump</span>), потом чтение — или проверьте имя файла.</p>
+    </div>
+    <div class="ek-note ek-note--red">
+      <h3 style="margin-bottom:8px">JSONDecodeError</h3>
+      <p>Файл пустой или испорчен. Удалите <span class="code-chip">profile.json</span> — он создастся заново при следующем запуске.</p>
+    </div>
+    <div class="ek-note ek-note--red">
+      <h3 style="margin-bottom:8px">can't open file</h3>
+      <p>Терминал смотрит в другую папку. Откройте папку <span class="code-chip">lesson-07</span> в VS Code и терминал заново.</p>
+    </div>
+  </div>
+</div>
+</section>
+
+<section class="slide slide--content"
+  data-notes="Покажите, что JSON похож на Python-структуры. Не углубляйтесь в детали: главное, что словарь и список из Python можно сохранить в файл как JSON и прочитать обратно.">
+<div class="sl-body">
+  <div>
+    <div class="q-label">Как это работает</div>
+    <h2>JSON похож на структуры <span class="acc">Python</span></h2>
+  </div>
+  <p>JSON нужен, чтобы хранить <span class="hl">структуру</span> в обычном текстовом файле. Он похож на знакомые вам список и словарь.</p>
+  <div class="grid-2" style="margin-top:8px">
+    <div class="info-card">
+      <h3>Типы совпадают</h3>
+      <p>Словарь <span class="code-chip">{ }</span> ↔ object, список <span class="code-chip">[ ]</span> ↔ array, строка ↔ string, число ↔ number, <span class="code-chip">True/False</span> ↔ true/false.</p>
+    </div>
+    <div class="info-card">
+      <h3>Две команды</h3>
+      <p>В файл — <span class="code-chip">json.dump</span> и <span class="code-chip">json.load</span> (ими и будем работать). А <span class="code-chip">dumps</span>/<span class="code-chip">loads</span> — то же самое, но со строкой в памяти.</p>
+    </div>
+  </div>
+  <div class="ek-note" style="margin-top:8px">Один параметр обязателен для русского: <span class="code-chip">ensure_ascii=False</span>. Без него слово «шахматы» превратится в коды вроде <span class="code-chip">ш...</span>.</div>
+</div>
+</section>
+
+<section class="slide slide--content"
+  data-notes="Структура дневника: список записей, каждая — словарь с полями. Свяжите с уроком 6: list и dict уже знакомы. entries.append добавляет запись в конец.">
+<div class="sl-body">
+  <div>
+    <div class="q-label">Структура дневника</div>
+    <h2>Дневник — это <span class="acc">список словарей</span></h2>
+  </div>
+  <p>Каждая запись — <span class="hl">словарь</span> с полями, а весь дневник — <span class="hl">список</span> таких записей. Обе коллекции знакомы с урока 6.</p>
+  <div class="code-win">
+    <div class="code-head"><span class="win-dots"><i></i><i></i><i></i></span><span class="lang-badge">PYTHON</span></div>
+    <div class="code-body">entries = [
+    {<span class="st">"date"</span>: <span class="st">"2026-06-12"</span>,
+     <span class="st">"text"</span>: <span class="st">"Выиграл турнир по шахматам"</span>,
+     <span class="st">"tags"</span>: [<span class="st">"шахматы"</span>, <span class="st">"победа"</span>],
+     <span class="st">"mood"</span>: <span class="st">"радость"</span>},
+]
+
+entries.append(new_entry)   <span class="cm"># добавить новую запись в конец списка</span></div>
+  </div>
+  <div class="ek-note" style="margin-top:8px"><span class="code-chip">entries</span> — <b>список</b> из урока 6, а каждая запись — <b>словарь</b> с полями <span class="code-chip">date</span>, <span class="code-chip">text</span>, <span class="code-chip">tags</span>, <span class="code-chip">mood</span>.</div>
+</div>
+</section>
+
+<section class="slide slide--content"
+  data-notes="Новая роль DeepSeek: помощник по разметке дневника. Урок 5 — советчик, урок 6 — гейм-мастер, сегодня — разметка записей. Снова ключевую роль задаёт системное сообщение.">
+<div class="sl-body">
+  <div>
+    <div class="q-label">Новая роль нейросети</div>
+    <h2>Нейросеть <span class="acc">подбирает теги</span></h2>
+  </div>
+  <p>На уроке 5 DeepSeek был <span class="hl">советчиком</span>, на уроке 6 — <span class="hl">гейм-мастером</span>. Сегодня его задача — прочитать запись и <span class="hl">разметить</span> её тегами.</p>
+  <div class="info-card" style="margin-top:8px">
+    <h3>Системная роль</h3>
+    <p>«Ты помощник дневника. Прочитай запись и верни 3-5 тегов через запятую, одной строкой, без пояснений».</p>
+  </div>
+  <div class="ek-note" style="margin-top:8px">Видимый результат: пишете строку — нейросеть <b>подбирает теги</b>. Программа не только хранит запись, но и получает разметку её смысла.</div>
+</div>
+</section>
+
+<section class="slide slide--content"
+  data-notes="Прочитайте цель вслух. Подчеркните: теги и настроение подбирает нейросеть, поэтому дневник у каждого будет отличаться по содержанию. Слева теория, справа практика.">
+<div class="sl-body">
+  <div>
+    <div class="q-label">Goal · что будет в конце</div>
+    <h2>Цель <span class="acc">урока</span></h2>
+  </div>
+  <div class="ek-note">К 55-й минуте у каждого — личный дневник в терминале: вы пишете запись, нейросеть подбирает теги и настроение, всё сохраняется в <span class="code-chip">diary.json</span>, а записи можно показать списком и найти по тегу.</div>
+  <div class="grid-2" style="margin-top:8px">
+    <div class="info-card">
+      <h3>Узнаете</h3>
+      <ul class="clean">
+        <li>Как файлы хранят данные между запусками программы</li>
+        <li>Что такое JSON и сериализация</li>
+        <li>Как список словарей хранит записи дневника</li>
+      </ul>
+    </div>
+    <div class="info-card">
+      <h3>Сделаете</h3>
+      <ul class="clean">
+        <li>Сохраните данные в JSON-файл</li>
+        <li>Подключите AI для подбора тегов</li>
+        <li>Соберёте поиск по дневнику</li>
+      </ul>
+    </div>
+  </div>
+</div>
+</section>
+
+<section class="slide slide--content"
+  data-notes="Покажите заранее собранный дневник. Сделайте запись при группе, чтобы все увидели, как нейросеть подбирает теги и настроение.">
+<div class="sl-body">
+  <div>
+    <div class="q-label">Демо результата</div>
+    <h2>Что соберём <span class="acc">сегодня</span></h2>
+  </div>
+  <div class="term">
+    <div class="term-head"><span class="win-dots"><i></i><i></i><i></i></span><span class="lang-badge">ТЕРМИНАЛ</span></div>
+    <div class="term-body">📔 Личный дневник
+1 — новая запись   2 — показать все   3 — поиск   4 — выход
+<span class="usr">&gt; 1</span>
+Что запишем? <span class="usr">Выиграл турнир по шахматам, но поссорился с другом</span>
+Нейросеть подобрала теги: шахматы, победа, дружба, ссора
+Настроение: смешанное
+Запись сохранена в diary.json</div>
+  </div>
+  <p style="margin-top:8px">Теги и настроение подобрала <span class="hl">нейросеть</span>; запись легла в <span class="code-chip">diary.json</span> структурой, а не строкой.</p>
+</div>
+</section>
+
+<section class="slide slide--content"
+  data-notes="Подготовка: diary.py рядом с warmup.py. requests уже установлен с урока 6, json встроен в Python. Дополнительная установка не нужна, поэтому можно быстро перейти к каркасу.">
+<div class="sl-body">
+  <div>
+    <div class="q-label">Подготовка</div>
+    <h2>Папка <span class="acc">lesson-07</span></h2>
+  </div>
+  <div class="grid-2" style="margin-top:8px">
+    <div>
+      <ol class="steps">
+        <li>Папка <span class="code-chip">lesson-07</span> уже есть — в ней лежит <span class="code-chip">warmup.py</span></li>
+        <li>Создайте файл <span class="code-chip">diary.py</span></li>
+        <li>Библиотека <span class="code-chip">requests</span> стоит с урока 6, а модуль <span class="code-chip">json</span> встроен в Python — ставить ничего не нужно</li>
+      </ol>
+    </div>
+    <div>
+      <div class="term">
+        <div class="term-head"><span class="win-dots"><i></i><i></i><i></i></span><span class="lang-badge">ТЕРМИНАЛ</span></div>
+        <div class="term-body">D:/vibe-coding/lesson-07/
+├── warmup.py
+└── diary.py</div>
+      </div>
+      <div class="ek-note ek-note--red" style="margin-top:8px">Если <span class="code-chip">requests</span> всё же не найден — выполните <span class="code-chip">pip install requests</span>, как на уроке 6.</div>
+    </div>
+  </div>
+</div>
+</section>
+
+<section class="slide slide--content"
+  data-notes="Скопируйте промпт целиком в новый чат DeepSeek. Каркас пока минимальный, но с правильной структурой из функций — как на уроке 6. Дальше будем наполнять функции отдельными правками.">
+<div class="sl-body">
+  <div>
+    <div class="q-label">Промпт #2 · стартовый</div>
+    <h2>Каркас <span class="acc">дневника</span></h2>
+  </div>
+  <div class="prompt-card" style="margin-top:8px">
+    <span class="pc-tag">→ Новый чат DeepSeek</span>
+    <div class="pc-text">Ты — опытный Python-разработчик и наставник школьника. Напиши diary.py — личный дневник, который запускается в терминале.
+
+Каркас:
+- меню в цикле с пунктами: 1 — новая запись, 2 — показать все, 3 — поиск по тегу, 4 — выход
+- раздели программу на функции: add_entry, show_all, search, main
+- пока «новая запись» просто спрашивает текст и печатает его — сохранение в JSON и теги добавим следующими шагами
+
+Ключ для будущих запросов положи в константу API_KEY в начале файла. Прокомментируй код для новичка. Ответь одним блоком кода.</div>
+  </div>
+</div>
+</section>
+
+<section class="slide slide--content"
+  data-notes="Запустите каркас. Ключ понадобится на шаге с тегами, поэтому ученики вставляют его сразу. Дождитесь, пока у всех откроется меню и пункты переключаются.">
+<div class="sl-body">
+  <div>
+    <div class="q-label">Запуск каркаса</div>
+    <h2>Вставляем ключ и <span class="acc">запускаем</span></h2>
+  </div>
+  <ol class="steps" style="margin-top:8px">
+    <li>Скопируйте код из ответа DeepSeek в <span class="code-chip">diary.py</span></li>
+    <li>Замените <span class="code-chip">sk-...</span> на ключ, который выдал преподаватель — он пригодится для тегов</li>
+    <li>Сохраните файл (<span class="code-chip">Ctrl+S</span>)</li>
+    <li>Выполните <span class="code-chip">python diary.py</span></li>
+    <li>Проверьте, что меню открывается и пункты переключаются</li>
+  </ol>
+  <div class="ek-note ek-note--red" style="margin-top:8px">Ключ — <b>в кавычках и без пробелов</b>. На скриншотах для домашки ключ замазываем.</div>
+</div>
+</section>
+
+<section class="slide slide--content"
+  data-notes="Зафиксируйте промежуточный результат: программа уже разделена на функции, как на уроке 6. Каркас пока минимальный, но структура правильная. Дальше наполняем функции по одной.">
+<div class="sl-body">
+  <div>
+    <div class="q-label">Момент урока</div>
+    <h2>Каркас готов: структура <span class="acc">правильная</span></h2>
+  </div>
+  <p>Меню работает, а программа уже <span class="hl">разделена на функции</span> — ровно как учились на уроке 6. Осталось наполнить каждую функцию.</p>
+  <div class="ek-note ek-note--green" style="margin-top:8px">Каждый пункт меню — <b>отдельная функция</b>: <span class="code-chip">add_entry</span>, <span class="code-chip">show_all</span>, <span class="code-chip">search</span>. Дальше наполним их по одной через правки.</div>
+  <div class="ek-note" style="margin-top:8px">Каркас пока минимальный, но <b>структура правильная</b> — добавлять функции в такую программу проще.</div>
+</div>
+</section>
+
+<section class="slide slide--content"
+  data-notes="Коротко разберите четыре ситуации. Чаще всего встречаются пустой или повреждённый diary.json и забытый pip install requests. Тем, у кого не запускается, помогите лично; остальные сверяются со слайдом.">
+<div class="sl-body">
+  <div>
+    <div class="q-label">Если дневник не запустился</div>
+    <h2>Типичные ситуации <span class="acc">запуска</span></h2>
+  </div>
+  <div class="kv" style="margin-top:6px">
+    <div class="kv-row"><div class="k">JSONDecodeError</div><div class="v">Файл <span class="code-chip">diary.json</span> пустой или повреждён. Удалите его — он создастся заново при первой записи.</div></div>
+    <div class="kv-row"><div class="k">FileNotFoundError</div><div class="v">Файла ещё нет — это нормально при первом запуске. Программа должна проверять его наличие перед чтением.</div></div>
+    <div class="kv-row"><div class="k">ModuleNotFoundError</div><div class="v">Библиотека <span class="code-chip">requests</span> не установлена. В терминале: <span class="code-chip">pip install requests</span> — и запускайте снова.</div></div>
+    <div class="kv-row"><div class="k">401 Unauthorized</div><div class="v">Проверьте ключ в константе <span class="code-chip">API_KEY</span>: он начинается с <span class="code-chip">sk-</span>, стоит в кавычках, без пробелов. Ключ понадобится на шаге с тегами.</div></div>
+  </div>
+</div>
+</section>
+
+<section class="slide slide--content"
+  data-notes="Первая правка идёт в тот же чат. После неё записи сохраняются в файле и остаются между запусками программы. Дождитесь, пока у всех появится diary.json с первой записью, потом переходите дальше.">
+<div class="sl-body">
+  <div>
+    <div class="q-label">Правка 1 · сохранение</div>
+    <h2>Запись сохраняется <span class="acc">между запусками</span></h2>
+  </div>
+  <div class="prompt-card prompt-card--copy" style="margin-top:10px">
+    <span class="pc-tag">→ В тот же чат</span>
+    <div class="pc-text">Доработай diary.py, остальное не меняй. Пункт «новая запись»:
+- Спроси текст записи через input
+- Добавь текущую дату из datetime
+- Собери запись как словарь с полями дата и текст и добавь её в список записей
+- Сохрани весь список в файл diary.json через json.dump с ensure_ascii=False и indent=2
+- При запуске программы, если diary.json уже есть, загрузи записи из него через json.load
+
+Верни весь файл целиком.</div>
+  </div>
+</div>
+</section>
+
+<section class="slide slide--content"
+  data-notes="Дайте минимум теории про файлы. Главное: сохраняем и читаем весь список целиком. ensure_ascii=False и indent=2 делают файл читаемым. Откройте diary.json в VS Code и покажите структуру.">
+<div class="sl-body">
+  <div>
+    <div class="q-label">Разбор кода</div>
+    <h2>Как список попадает в файл <span class="acc">и обратно</span></h2>
+  </div>
+  <div class="code-win">
+    <div class="code-head"><span class="win-dots"><i></i><i></i><i></i></span><span class="lang-badge">PYTHON</span></div>
+    <div class="code-body"><span class="kw">with</span> open(<span class="st">"diary.json"</span>, <span class="st">"w"</span>, encoding=<span class="st">"utf-8"</span>) <span class="kw">as</span> f:
+    json.dump(entries, f, ensure_ascii=<span class="kw">False</span>, indent=<span class="st">2</span>)   <span class="cm"># сохранили весь список</span>
+...
+<span class="kw">with</span> open(<span class="st">"diary.json"</span>, <span class="st">"r"</span>, encoding=<span class="st">"utf-8"</span>) <span class="kw">as</span> f:
+    entries = json.load(f)                                <span class="cm"># прочитали весь список</span></div>
+  </div>
+  <div class="ek-note"><span class="code-chip">json.dump</span> сохраняет <b>весь список целиком</b>, <span class="code-chip">json.load</span> читает его обратно. <span class="code-chip">ensure_ascii=False</span> — русские буквы остаются читаемыми, <span class="code-chip">indent=2</span> — файл с отступами, его видно глазами.</div>
+</div>
+</section>
+
+<section class="slide slide--content"
+  data-notes="Ключевая правка урока: нейросеть читает запись и подбирает теги. Раздайте ключи заранее и проверьте интернет. Это видимый результат: ученик пишет запись, а программа сохраняет её уже с тегами.">
+<div class="sl-body">
+  <div>
+    <div class="q-label">Правка 2 · AI-теги</div>
+    <h2>Нейросеть <span class="acc">подбирает теги</span> сама</h2>
+  </div>
+  <p>Главный шаг: программа отправляет запись нейросети, а та возвращает <span class="hl">теги</span> — короткую разметку смысла записи.</p>
+  <div class="prompt-card prompt-card--copy" style="margin-top:8px">
+    <span class="pc-tag">→ В тот же чат</span>
+    <div class="pc-text">Добавь автоматические теги. После ввода текста отправь его в DeepSeek API (url https://api.deepseek.com/chat/completions, модель deepseek-chat, библиотека requests) с системной ролью:
+«Ты помощник дневника. Прочитай запись и верни 3-5 тегов через запятую, одной строкой, без пояснений».
+
+Ответ нейросети разбей на список тегов и сохрани в поле tags записи. Ключ бери из API_KEY. Верни весь файл.</div>
+  </div>
+</div>
+</section>
+
+<section class="slide slide--content"
+  data-notes="Покажите, как строка от нейросети превращается в список тегов. split режет по запятой, strip убирает пробелы. Дайте написать пару записей и проверить теги. Если у кого-то в тегах есть нумерация или точка в конце, объясните: модель не всегда строго следует роли. Поиск всё равно может сработать, а при необходимости промпт можно уточнить: вернуть строго через запятую.">
+<div class="sl-body">
+  <div>
+    <div class="q-label">Разбор кода</div>
+    <h2>Из строки нейросети — <span class="acc">в список тегов</span></h2>
+  </div>
+  <div class="code-win">
+    <div class="code-head"><span class="win-dots"><i></i><i></i><i></i></span><span class="lang-badge">PYTHON</span></div>
+    <div class="code-body">headers = {<span class="st">"Authorization"</span>: <span class="st">f"Bearer {API_KEY}"</span>}
+data = {
+    <span class="st">"model"</span>: <span class="st">"deepseek-chat"</span>,
+    <span class="st">"messages"</span>: [
+        {<span class="st">"role"</span>: <span class="st">"system"</span>, <span class="st">"content"</span>: <span class="st">"Ты помощник дневника, верни теги через запятую"</span>},
+        {<span class="st">"role"</span>: <span class="st">"user"</span>, <span class="st">"content"</span>: text},
+    ],
+}
+response = requests.post(url, headers=headers, json=data)
+answer = response.json()[<span class="st">"choices"</span>][<span class="st">0</span>][<span class="st">"message"</span>][<span class="st">"content"</span>]
+tags = [t.strip() <span class="kw">for</span> t <span class="kw">in</span> answer.split(<span class="st">","</span>)]</div>
+  </div>
+  <div class="ek-note ek-note--green">Нейросеть вернула строку <span class="code-chip">"шахматы, победа, дружба"</span>. <span class="code-chip">split(",")</span> режет её по запятым в список, <span class="code-chip">strip()</span> убирает лишние пробелы. Пишете запись — теги <b>добавляются автоматически</b>: это видимый результат работы нейросети.</div>
+</div>
+</section>
+
+<section class="slide slide--content"
+  data-notes="Зафиксируйте два параметра json.dump. Откройте diary.json без ensure_ascii=False и с ним — разница будет понятна сразу. Это частая ошибка при работе с русским текстом.">
+<div class="sl-body">
+  <div>
+    <div class="q-label">Полезное знание</div>
+    <h2>Два параметра для <span class="acc">читаемого файла</span></h2>
+  </div>
+  <div class="vs" style="margin-top:6px">
+    <div class="vs-col vs-col--plain">
+      <h4>Без ensure_ascii=False</h4>
+      <p>В файле вместо слова — коды: <span class="code-chip">"шах..."</span>.</p>
+      <p class="note">Программа прочитает, а человек — нет.</p>
+    </div>
+    <div class="vs-col vs-col--win">
+      <h4>С ensure_ascii=False, indent=2</h4>
+      <p>В файле читаемо и с отступами: <span class="code-chip">"шахматы"</span>.</p>
+      <p class="note">Дневник можно открыть и прочитать как текст.</p>
+    </div>
+  </div>
+  <p>С этими параметрами JSON-файл читают и <span class="hl">человек, и программа</span>.</p>
+</div>
+</section>
+
+<section class="slide slide--content"
+  data-notes="Правка 3 подключает пункт «показать все». После неё видно, что записи действительно сохранились. Дождитесь, пока у всех список печатается, потом переходите дальше.">
+<div class="sl-body">
+  <div>
+    <div class="q-label">Правка 3 · показать все</div>
+    <h2>Весь дневник <span class="acc">на экране</span></h2>
+  </div>
+  <div class="prompt-card prompt-card--copy" style="margin-top:10px">
+    <span class="pc-tag">→ В тот же чат</span>
+    <div class="pc-text">Оживи пункт «показать все». Прочитай diary.json и аккуратно распечатай каждую запись: дату, текст и теги. Если записей ещё нет — напиши «Дневник пока пуст».
+
+Верни весь файл.</div>
+  </div>
+</div>
+</section>
+
+<section class="slide slide--content"
+  data-notes="Свяжите с уроком 6: список перебираем циклом for, из словаря берём поля по ключу. join склеивает список тегов в строку. Не углубляйтесь в каждый символ.">
+<div class="sl-body">
+  <div>
+    <div class="q-label">Разбор кода</div>
+    <h2>Перебираем <span class="acc">список словарей</span></h2>
+  </div>
+  <div class="code-win">
+    <div class="code-head"><span class="win-dots"><i></i><i></i><i></i></span><span class="lang-badge">PYTHON</span></div>
+    <div class="code-body"><span class="kw">for</span> e <span class="kw">in</span> entries:
+    print(e[<span class="st">"date"</span>], <span class="st">"—"</span>, e[<span class="st">"text"</span>])
+    print(<span class="st">"Теги:"</span>, <span class="st">", "</span>.join(e[<span class="st">"tags"</span>]))</div>
+  </div>
+  <div class="ek-note">Список записей перебираем циклом <span class="code-chip">for</span> — как в игре на уроке 6. Из каждого словаря достаём поля по ключу: <span class="code-chip">e["date"]</span>, <span class="code-chip">e["text"]</span>, <span class="code-chip">e["tags"]</span>. <span class="code-chip">", ".join</span> склеивает список тегов в одну строку.</div>
+</div>
+</section>
+
+<section class="slide slide--content"
+  data-notes="Правка 4 показывает, зачем нужен JSON. После неё дневник можно искать по тегам. Дайте ученикам проверить поиск на своих записях.">
+<div class="sl-body">
+  <div>
+    <div class="q-label">Правка 4 · поиск</div>
+    <h2>Дневник с <span class="acc">поиском по тегу</span></h2>
+  </div>
+  <div class="prompt-card prompt-card--copy" style="margin-top:10px">
+    <span class="pc-tag">→ В тот же чат</span>
+    <div class="pc-text">Оживи пункт «поиск по тегу». Спроси тег через input и покажи только те записи, у которых этот тег есть в списке tags. Если ничего не нашлось — так и скажи.
+
+Верни весь файл.</div>
+  </div>
+</div>
+</section>
+
+<section class="slide slide--content"
+  data-notes="Главная мысль урока: структурированный дневник можно искать одной строкой, а плоский txt для этого не подходит. Дайте сфотографировать. Если группа отстаёт, правку 5 можно перенести в ДЗ.">
+<div class="sl-body">
+  <div>
+    <div class="q-label">Разбор кода</div>
+    <h2>Оставляем только <span class="acc">нужные записи</span></h2>
+  </div>
+  <div class="code-win">
+    <div class="code-head"><span class="win-dots"><i></i><i></i><i></i></span><span class="lang-badge">PYTHON</span></div>
+    <div class="code-body">found = [e <span class="kw">for</span> e <span class="kw">in</span> entries <span class="kw">if</span> tag <span class="kw">in</span> e[<span class="st">"tags"</span>]]</div>
+  </div>
+  <div class="ek-note">Проходим по всем записям и оставляем те, где искомый тег есть в списке <span class="code-chip">tags</span>. Вот ради чего был нужен JSON: плоский <span class="code-chip">.txt</span> так не спросишь, а структурированный дневник ищется <b>одной строкой</b>.</div>
+</div>
+</section>
+
+<section class="slide slide--content"
+  data-notes="Финальная правка собирает дневник в законченный вид: появляется настроение, цветной вывод и резервная копия. Это заметный пользовательский результат, но правка сложная: mood — второй запрос к сети, а ANSI-цвета требуют аккуратности. Если группа отстаёт, оставьте только настроение, а раскраску и бэкап отдайте в ДЗ. После первой записи рядом с diary.json появится diary.bak — это резервная копия.">
+<div class="sl-body">
+  <div>
+    <div class="q-label">Правка 5 · настроение и цвет</div>
+    <h2>Настроение и <span class="acc">цвет</span></h2>
+  </div>
+  <div class="prompt-card prompt-card--copy" style="margin-top:6px">
+    <span class="pc-tag">→ В тот же чат</span>
+    <div class="pc-text">Финальная правка. Пусть нейросеть заодно определяет настроение записи одним словом (радость, грусть, злость или спокойствие) и сохраняет его в поле mood.
+
+Раскрась вывод ANSI-кодами, без сторонних библиотек:
+- дату — голубым
+- теги — фиолетовым
+- настроение — зелёным
+
+И перед каждым сохранением делай резервную копию: скопируй diary.json в diary.bak. Верни весь файл.</div>
+  </div>
+</div>
+</section>
+
+<section class="slide slide--content"
+  data-notes="Ключевой слайд урока. Подчеркните главное отличие от истории советчика: JSON нельзя дописывать режимом «a». Нужно прочитать весь список, добавить запись и записать весь список заново. Если этот шаг пропустить, файл будет ломаться.">
+<div class="sl-body">
+  <div>
+    <div class="q-label">Разбор кода</div>
+    <h2>Почему JSON нельзя <span class="acc">дописывать</span></h2>
+  </div>
+  <p>Новая запись добавляется в дневник в три шага — прочитать, добавить, сохранить целиком:</p>
+  <div class="code-win">
+    <div class="code-head"><span class="win-dots"><i></i><i></i><i></i></span><span class="lang-badge">PYTHON</span></div>
+    <div class="code-body">entries = load_entries()        <span class="cm"># прочитали весь список из файла</span>
+entries.append(new_entry)       <span class="cm"># добавили запись в список</span>
+save_entries(entries)           <span class="cm"># записали весь список заново</span></div>
+  </div>
+  <div class="ek-note ek-note--red">JSON <b>нельзя</b> открыть в режиме <span class="code-chip">'a'</span> и дописать словарь в конец: в файле окажется два JSON подряд, и прочитать его уже не получится. Это отличие от <span class="code-chip">history.txt</span> на уроке 5, где режим <span class="code-chip">'a'</span> работал.</div>
+</div>
+</section>
+
+<section class="slide slide--content"
+  data-notes="Вопрос про режим «a» и JSON — прямое следствие предыдущего слайда. Дайте 10–15 секунд, потом раскройте ответ. Свяжите с правилом: читаем весь файл, пишем весь файл.">
+<div class="sl-body">
+  <div>
+    <div class="q-label">Проверка · вопрос 1</div>
+    <h2>Изучите ситуацию и <span class="acc">ответьте</span></h2>
+  </div>
+  <div class="quiz-box">
+    <span class="q-num">Вопрос 1</span>
+    <p class="q-text">Дима решил ускорить сохранение и открыл <span class="code-chip">diary.json</span> в режиме <span class="code-chip">'a'</span>, дописав новый словарь в конец. Программа сохранила без ошибок, но при следующем чтении упала с <span class="code-chip">JSONDecodeError</span>. Почему?</p>
+    <div class="quiz-answer">
+      <button class="quiz-btn" type="button">Показать ответ</button>
+      <div class="quiz-reveal">
+        <p>В файле оказалось <b>два JSON подряд</b> — старый список и приписанный словарь. Это уже не валидный JSON, и <span class="code-chip">json.load</span> не может его прочитать.</p>
+        <p>Правильно: прочитать весь список через <b>json.load</b>, добавить запись в список, сохранить весь список через <b>json.dump</b>.</p>
+      </div>
+    </div>
+  </div>
+</div>
+</section>
+
+<section class="slide slide--content"
+  data-notes="Вопрос про ensure_ascii — вторая частая ошибка с JSON и русским текстом. Свяжите с правилом: для русского текста используем ensure_ascii=False.">
+<div class="sl-body">
+  <div>
+    <div class="q-label">Проверка · вопрос 2</div>
+    <h2>Изучите ситуацию и <span class="acc">ответьте</span></h2>
+  </div>
+  <div class="quiz-box">
+    <span class="q-num">Вопрос 2</span>
+    <p class="q-text">Настя записала «Выиграл турнир по шахматам», открыла <span class="code-chip">diary.json</span>, а там вместо слова «шахматы» — набор кодов вида <span class="code-chip">шах...</span>. Программа работает, но файл нечитаем. Что она забыла?</p>
+    <div class="quiz-answer">
+      <button class="quiz-btn" type="button">Показать ответ</button>
+      <div class="quiz-reveal">
+        <p>Параметр <b>ensure_ascii=False</b> в <span class="code-chip">json.dump</span>. Без него русские буквы сохраняются как коды <span class="code-chip">\uXXXX</span>.</p>
+        <p>С <span class="code-chip">ensure_ascii=False</span> в файле остаётся читаемый русский текст.</p>
+      </div>
+    </div>
+  </div>
+</div>
+</section>
+
+<section class="slide slide--content"
+  data-notes="Научите читать traceback снизу вверх — это пригодится на всех уроках Python. Напомните правило: непонятную ошибку целиком копируем в DeepSeek. Три проверки справа — самые частые именно в дневнике.">
+<div class="sl-body">
+  <div>
+    <div class="q-label">Отладка</div>
+    <h2>Читаем <span class="acc">ошибки JSON</span></h2>
+  </div>
+  <div class="grid-2" style="margin-top:6px">
+    <div>
+      <div class="term">
+        <div class="term-head"><span class="win-dots"><i></i><i></i><i></i></span><span class="lang-badge">ТЕРМИНАЛ</span></div>
+        <div class="term-body">Traceback (most recent call last):
+  File "diary.py", line 8, in load_entries
+    return json.load(f)
+<span class="usr">json.decoder.JSONDecodeError: Expecting value</span></div>
+      </div>
+      <p style="margin-top:8px"><b>Снизу вверх:</b> последняя строка — <span class="hl">что</span> случилось, строкой выше — <span class="hl">где</span>. <span class="code-chip">JSONDecodeError</span> значит: файл пустой или повреждён.</p>
+    </div>
+    <div>
+      <div class="info-card">
+        <h3>Если застряли</h3>
+        <ul class="clean">
+          <li>Скопируйте <b>traceback целиком</b> в чат DeepSeek — попросите объяснить и починить.</li>
+          <li>Проверьте <span class="code-chip">ensure_ascii=False</span> и режим <span class="code-chip">'w'</span> при сохранении.</li>
+          <li>Откройте <span class="code-chip">diary.json</span> глазами — валиден ли он.</li>
+        </ul>
+      </div>
+      <p style="margin-top:8px">Тот же подход, что <span class="code-chip">console.log</span> в «Змейке» и print-метки на уроке 5.</p>
+    </div>
+  </div>
+</div>
+</section>
+
+<section class="slide slide--content"
+  data-notes="5 правил урока. Дайте сфотографировать слайд. Особо подчеркните второе: читаем весь файл, пишем весь файл — это главное про JSON.">
+<div class="sl-body">
+  <div>
+    <div class="q-label">Запомните</div>
+    <h2>Правила работы с <span class="acc">данными</span></h2>
+  </div>
+  <div class="kv">
+    <div class="kv-row"><div class="k">01 · JSON — список словарей</div><div class="v">Структурированные данные вместо плоских строк: их можно искать и разбирать.</div></div>
+    <div class="kv-row"><div class="k">02 · Читай весь, пиши весь</div><div class="v">JSON меняем так: <span class="code-chip">load</span> → изменили список → <span class="code-chip">dump</span>. Режим <span class="code-chip">'a'</span> не подходит.</div></div>
+    <div class="kv-row"><div class="k">03 · ensure_ascii=False</div><div class="v">Всегда для русского текста, иначе в файле будут коды <span class="code-chip">\uXXXX</span>.</div></div>
+    <div class="kv-row"><div class="k">04 · Ключ — это пароль</div><div class="v">Не публикуем, на скриншотах замазываем. На уроке 8 спрячем его в <span class="code-chip">.env</span>.</div></div>
+    <div class="kv-row"><div class="k">05 · AI помогает с разметкой</div><div class="v">Нейросеть читает запись и подбирает теги — программа получает дополнительные данные для поиска.</div></div>
+  </div>
+</div>
+</section>
+
+<section class="slide slide--content"
+  data-notes="Чек-лист завершения дневника. Кто отметил всё, пусть напишет три записи и найдёт их по тегу. Это проверяет, что структура работает.">
+<div class="sl-body">
+  <div>
+    <div class="q-label">Чек-лист</div>
+    <h2>Готовность <span class="acc">к 55-й минуте</span></h2>
+  </div>
+  <div class="grid-2" style="margin-top:6px">
+    <div class="info-card">
+      <h3>Готово</h3>
+      <ul class="clean">
+        <li><span class="code-chip">diary.py</span> запускается командой <span class="code-chip">python diary.py</span></li>
+        <li>Новая запись сохраняется в <span class="code-chip">diary.json</span></li>
+        <li>Нейросеть подбирает теги к записи</li>
+        <li>Настроение определяется автоматически</li>
+      </ul>
+    </div>
+    <div class="info-card">
+      <h3>Работает</h3>
+      <ul class="clean">
+        <li>Пункт «показать все» печатает записи</li>
+        <li>Поиск по тегу находит нужные записи</li>
+        <li>Вывод цветной</li>
+        <li>Есть резервная копия <span class="code-chip">diary.bak</span></li>
+      </ul>
+    </div>
+  </div>
+  <div class="ek-note ek-note--green">Всё отмечено? Напишите три записи и найдите их по тегу — дневник готов.</div>
+</div>
+</section>
+
+<section class="slide slide--content"
+  data-notes="ДЗ — доработать дневник, примерно 30 минут. Каждое улучшение — отдельный диалог с DeepSeek, не всё сразу. Напомните про ключ на скриншотах.">
+<div class="sl-body">
+  <div>
+    <div class="q-label">Домашнее задание · около 30 минут</div>
+    <h2>Доработайте <span class="acc">дневник</span></h2>
+  </div>
+  <p>Три улучшения — каждое через отдельный диалог с DeepSeek:</p>
+  <div class="grid-3" style="margin-top:6px">
+    <div class="info-card">
+      <h3>Статистика тегов</h3>
+      <p>Добавьте пункт меню, который считает, сколько раз встречается каждый тег, и печатает топ самых частых.</p>
+    </div>
+    <div class="info-card">
+      <h3>Экспорт в Markdown</h3>
+      <p>Пункт «сохранить в <span class="code-chip">diary.md</span>»: все записи красивым текстом — заголовки с датой и списки тегов.</p>
+    </div>
+    <div class="info-card">
+      <h3>Умный поиск</h3>
+      <p>Пусть поиск находит записи не только по точному тегу, но и по слову в тексте записи.</p>
+    </div>
+  </div>
+  <div class="ek-note ek-note--red">Пришлите скриншот дневника с записями — <b>ключ скройте!</b> Ваш самый удачный промпт — отдельным сообщением.</div>
+</div>
+</section>
+
+<section class="slide slide--green"
+  data-notes="Закройте урок. Сегодня программа научилась хранить данные структурированно и размечать записи с помощью нейросети. На уроке 8 — внешние API, погода, AI-комментарии и безопасное хранение ключа в .env.">
+<div class="sl-orbit">
+    <i class="sl-ring"></i>
+    <svg class="sl-ico" viewBox="0 0 100 100" style="left:75px;top:20px;width:150px;height:150px;transform:rotate(-10deg)"><use href="#ek-i-trophy"/></svg>
+    <i class="sl-letter" style="left:466px;top:13px;width:78px;height:78px;--fs:36px">J</i>
+    <svg class="sl-ico" viewBox="0 0 100 100" style="left:1040px;top:15px;width:130px;height:130px;transform:rotate(12deg)"><use href="#ek-i-heart"/></svg>
+    <i class="sl-letter" style="left:68px;top:268px;width:100px;height:100px;--fs:46px">S</i>
+    <i class="sl-letter" style="left:1137px;top:327px;width:95px;height:95px;--fs:44px">O</i>
+    <svg class="sl-ico" viewBox="0 0 100 100" style="left:102px;top:532px;width:125px;height:125px;transform:rotate(-15deg)"><use href="#ek-i-star"/></svg>
+    <i class="sl-letter" style="left:726px;top:613px;width:78px;height:78px;--fs:36px">N</i>
+    <svg class="sl-ico" viewBox="0 0 100 100" style="left:1045px;top:540px;width:110px;height:110px;transform:rotate(8deg)"><use href="#ek-i-gem"/></svg>
+  </div>
+  <div class="cover-center">
+    <div class="bubble">
+      <h1>До встречи<br>на уроке 8!</h1>
+      <p>Сегодня программа научилась хранить данные структурированно в JSON и размечать записи AI-тегами и настроением. На уроке 8 выйдем в интернет: программа получит погоду из внешнего сервиса, нейросеть её прокомментирует, а ключи спрячем в файл .env.</p>
+    </div>
+  </div>
+</section>
+</main>
+
+<div class="notes" id="notes">
+  <div class="notes__header">Заметки преподавателя &middot; N — скрыть</div>
+  <div class="notes__body" id="notesBody">—</div>
+</div>
+
+<div class="hint"><kbd>←</kbd><kbd>→</kbd> слайды &middot; <kbd>N</kbd> заметки &middot; <kbd>F</kbd> весь экран</div>
+
+<svg width="0" height="0" style="position:absolute" aria-hidden="true"><defs>
+<symbol id="ek-i-trophy" viewBox="0 0 100 100"><path fill="currentColor" d="M24 16h52v12h8c6 0 10 4 10 10 0 15-11 25-23 27-3 5-8 9-14 10v8h14c4 0 7 3 7 7v4H22v-4c0-4 3-7 7-7h14v-8c-6-1-11-5-14-10C17 63 6 53 6 38c0-6 4-10 10-10h8V16zM24 36h-7c-2 0-4 2-4 4 0 8 5 15 12 18-1-5-1-10-1-16v-6zM76 36v6c0 6 0 11-1 16 7-3 12-10 12-18 0-2-2-4-4-4h-7z"/></symbol>
+<symbol id="ek-i-heart" viewBox="0 0 100 100"><path fill="currentColor" d="M50 88C28 72 10 56 10 38 10 24 21 14 34 14c6 0 12 3 16 8 4-5 10-8 16-8 13 0 24 10 24 24 0 18-18 34-40 50z"/></symbol>
+<symbol id="ek-i-star" viewBox="0 0 100 100"><path fill="currentColor" d="M50 8l12 27 29 3-22 20 6 29-25-15-25 15 6-29L9 38l29-3z"/></symbol>
+<symbol id="ek-i-gem" viewBox="0 0 100 100"><path fill="currentColor" d="M30 12h40l18 24-38 52L12 36zM36 20l-12 16h20zM64 20l-8 16h20zM50 22l-9 14h18zM26 44l20 30-8-30zM62 44l-8 30 20-30zM46 44h8l-4 26z"/></symbol>
+</defs></svg>
+
+<script>
+/* ============ Автомасштаб сцены ============ */
+(function(){
+  'use strict';
+  var stage = document.getElementById('deck');
+  function fit(){
+    var w = window.innerWidth, h = window.innerHeight;
+    if (!w || !h) return;
+    var s = Math.min(w / 1320, h / 780);
+    if (document.fullscreenElement) s = Math.min(w / 1280, h / 720);
+    stage.style.transform = 'translate(-50%,-50%) scale(' + s + ')';
+    stage.style.borderRadius = document.fullscreenElement ? '0' : '18px';
+  }
+  window.addEventListener('resize', fit);
+  document.addEventListener('fullscreenchange', fit);
+  fit();
+})();
+
+/* ============ Навигация по слайдам ============ */
+(function(){
+  'use strict';
+  var slides = Array.prototype.slice.call(document.querySelectorAll('.slide'));
+  var total = slides.length;
+  var idx = 0;
+  document.getElementById('total').textContent = total;
+
+  var progressEl = document.getElementById('progress');
+  var currentEl = document.getElementById('current');
+  var notesPanel = document.getElementById('notes');
+  var notesBody = document.getElementById('notesBody');
+
+  slides.forEach(function(s, i){
+    if (s.classList.contains('slide--content')) s.setAttribute('data-page', i + 1);
+  });
+
+  function render(){
+    slides.forEach(function(s, i){
+      s.classList.remove('active', 'prev');
+      if (i === idx) s.classList.add('active');
+      else if (i < idx) s.classList.add('prev');
+    });
+    progressEl.style.width = ((idx + 1) / total * 100).toFixed(2) + '%';
+    currentEl.textContent = idx + 1;
+    notesBody.textContent = slides[idx].getAttribute('data-notes') || '—';
+  }
+
+  function go(n){ idx = Math.max(0, Math.min(total - 1, n)); render(); }
+  function next(){ go(idx + 1); }
+  function prev(){ go(idx - 1); }
+
+  document.addEventListener('keydown', function(e){
+    var active = document.activeElement;
+    if (active && (active.isContentEditable || active.tagName === 'TEXTAREA' || active.tagName === 'INPUT')) return;
+    switch (e.key){
+      case 'ArrowRight': case 'PageDown': case ' ':
+        e.preventDefault(); next(); break;
+      case 'ArrowLeft': case 'PageUp':
+        e.preventDefault(); prev(); break;
+      case 'Home': e.preventDefault(); go(0); break;
+      case 'End': e.preventDefault(); go(total - 1); break;
+      case 'f': case 'F': case 'а': case 'А':
+        e.preventDefault();
+        if (!document.fullscreenElement){ if (document.documentElement.requestFullscreen) document.documentElement.requestFullscreen(); }
+        else if (document.exitFullscreen) document.exitFullscreen();
+        break;
+      case 'n': case 'N': case 'т': case 'Т':
+        e.preventDefault(); notesPanel.classList.toggle('active'); break;
+      case 'Escape':
+        if (document.fullscreenElement && document.exitFullscreen) document.exitFullscreen();
+        notesPanel.classList.remove('active'); break;
+    }
+  });
+
+  var tx = 0, ty = 0;
+  document.addEventListener('touchstart', function(e){ tx = e.changedTouches[0].screenX; ty = e.changedTouches[0].screenY; }, { passive: true });
+  document.addEventListener('touchend', function(e){
+    var dx = e.changedTouches[0].screenX - tx, dy = e.changedTouches[0].screenY - ty;
+    if (Math.abs(dx) > 60 && Math.abs(dx) > Math.abs(dy)){ if (dx < 0) next(); else prev(); }
+  }, { passive: true });
+
+  document.addEventListener('click', function(e){
+    if (e.target.closest('a,button,input,textarea,code,pre,[contenteditable],.code-win,.term,.prompt-card,.quiz-box,.notes')) return;
+    var x = e.clientX, w = window.innerWidth;
+    if (x < w * 0.25) prev();
+    else if (x > w * 0.75) next();
+  });
+
+  render();
+})();
+
+/* ============ Квизы: показать ответ ============ */
+(function(){
+  'use strict';
+  Array.prototype.slice.call(document.querySelectorAll('.quiz-btn')).forEach(function(btn){
+    btn.addEventListener('click', function(e){
+      e.stopPropagation();
+      var box = btn.closest('.quiz-box');
+      var reveal = box && box.querySelector('.quiz-reveal');
+      if (!reveal) return;
+      var shown = reveal.classList.toggle('show');
+      btn.textContent = shown ? 'Скрыть ответ' : 'Показать ответ';
+    });
+  });
+})();
+</script>
+</body>
+</html>

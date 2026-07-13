@@ -1,0 +1,622 @@
+===== SLIDE 1/38 [COVER] =====
+[NOTES] Поприветствуйте. Сегодня соберём приложение погоды: программа спрашивает город, получает текущую погоду через внешний сервис OpenWeather, а нейросеть формулирует комментарий. Новое — работа с внешним сервером через API и безопасное хранение секретных ключей в файле .env. Это последний урок модуля 2.
+[HTML]
+<div class="eyebrow">Step 2 · Модуль 2 · Урок 08</div>
+<h1>Работа<br>с внешними API.</h1>
+<p class="subtitle">Соберём приложение погоды: программа узнаёт текущую погоду в городе через OpenWeather, нейросеть формулирует комментарий, а секретные ключи хранятся в файле .env.</p>
+<div class="meta-row">
+  <span class="badge primary">60 минут</span>
+  <span class="badge cyan">13–15 лет</span>
+  <span class="badge good">Практика</span>
+</div>
+<div class="chip-row" style="margin-top:20px">
+  <span class="badge neutral">Python</span>
+  <span class="badge neutral">API</span>
+  <span class="badge neutral">OpenWeather</span>
+  <span class="badge neutral">.env</span>
+  <span class="badge neutral">DeepSeek API</span>
+</div>
+
+===== SLIDE 2/38 =====
+[NOTES] План. Теории даём ровно столько, сколько нужно для практики: к 12-й минуте в терминале появляется реальная температура из интернета, к 30-й — каркас приложения погоды. Дальше — 5 последовательных правок, как на прошлых уроках. Это последнее занятие модуля 2.
+[HTML]
+<div class="eyebrow">Agenda · план занятия</div>
+<h2>Как пройдут 60 минут</h2>
+<div class="timeline">
+  <div class="timeline-row"><div class="time">0–5</div><div><div class="title">Разбор ДЗ</div><div class="desc">Смотрим доработанные дневники: статистика по тегам, экспорт в Markdown, умный поиск.</div></div></div>
+  <div class="timeline-row"><div class="time">5–12</div><div><div class="title">API и .env</div><div class="desc">Коротко разбираем только то, что нужно для приложения погоды.</div></div></div>
+  <div class="timeline-row"><div class="time">12–20</div><div><div class="title">Промпт-разминка</div><div class="desc">warmup.py: живая погода Москвы из интернета через OpenWeather.</div></div></div>
+  <div class="timeline-row"><div class="time">20–30</div><div><div class="title">Каркас weather.py</div><div class="desc">Ввод города, запрос к OpenWeather, ключи в .env.</div></div></div>
+  <div class="timeline-row"><div class="time">30–48</div><div><div class="title">5 правок через диалог</div><div class="desc">Погода по городу → ключи в .env → AI-комментарий → совет и цикл → цвет и ошибки.</div></div></div>
+  <div class="timeline-row"><div class="time">48–55</div><div><div class="title">Мини-вопросы и отладка</div><div class="desc">Читаем ошибки API, проверяем понимание.</div></div></div>
+  <div class="timeline-row"><div class="time">55–60</div><div><div class="title">Демо в группе</div><div class="desc">Каждый узнаёт погоду в своём городе и получает комментарий нейросети.</div></div></div>
+</div>
+
+===== SLIDE 3/38 =====
+[NOTES] Откройте 1-2 доработанных дневника (на весь блок 5 минут). Разбирайте диалог с нейросетью, а не только результат. Подведите к главному: до сих пор данные создавали ученик, программа или нейросеть — записи, теги, историю. Сегодня программа впервые возьмёт реальные данные из интернета.
+[HTML]
+<div class="eyebrow">Разбор ДЗ урока 7</div>
+<h2>Смотрим доработанные дневники</h2>
+<p class="lead">Открываем 2–3 присланных дневника и разбираем именно <em>диалог с нейросетью</em>: статистика по тегам, экспорт в <code class="inline">diary.md</code>, умный поиск по слову в тексте.</p>
+<div class="grid cols-3" style="margin-top:24px">
+  <div class="card">
+    <h3>Что сработало</h3>
+    <p style="font-size:14.5px">Точечные правки: подсчёт тегов через словарь-счётчик, экспорт записей в Markdown, поиск по вхождению слова.</p>
+  </div>
+  <div class="card">
+    <h3>Что переделывали</h3>
+    <p style="font-size:14.5px">Где забыли «верни весь файл» — нейросеть присылала кусок, и терялись прежние функции дневника.</p>
+  </div>
+  <div class="card">
+    <h3>Вывод</h3>
+    <p style="font-size:14.5px">Данные для дневника <strong>придумывали мы сами</strong>. Сегодня программа впервые возьмёт <strong>реальные данные из интернета</strong>.</p>
+  </div>
+</div>
+
+===== SLIDE 4/38 =====
+[NOTES] Главная мысль: две новинки. Первая — программа впервые берёт актуальные данные из внешнего сервиса в интернете через API и передаёт их нейросети для комментария. Вторая — ключи переносим в файл .env, как обещали на уроке 7.
+[HTML]
+<div class="eyebrow">Идея урока</div>
+<h2>Программа получает данные из интернета</h2>
+<p class="lead">Раньше данные придумывала сама программа или нейросеть — записи, историю, теги. Сегодня программа берёт <em>реальные данные из внешнего сервиса</em>: погоду прямо сейчас.</p>
+<div class="card accent" style="margin-top:20px">
+  <p style="font-size:16px; color:#E2E8F0">Программа впервые общается с внешним сервером через <strong>API</strong>: запрашивает у OpenWeather погоду в городе и <strong>передаёт её нейросети</strong> для комментария. Вторая новинка — секретные ключи храним <strong>в файле .env</strong>.</p>
+</div>
+<p style="font-size:14px; margin-top:14px; color:var(--muted)">Идея урока 8: <strong>берём актуальные данные</strong> из интернета, <strong>передаём их нейросети</strong>, а ключи <strong>держим в .env</strong>.</p>
+
+===== SLIDE 5/38 =====
+[NOTES] API — способ одной программы запросить данные у внешнего сервера. Аналогия: заказ по меню. Вы не идёте на кухню — выбираете позицию по меню и получаете готовое блюдо. Программа не работает внутри OpenWeather — отправляет запрос по правилам и получает JSON-ответ.
+[HTML]
+<div class="eyebrow">Новое понятие</div>
+<h2>Что такое API</h2>
+<p class="lead">API — это <em>способ попросить данные у чужого сервера</em> по понятным обеим сторонам правилам. Программа отправляет <strong>запрос с параметрами</strong> — сервер возвращает <strong>JSON-ответ</strong>.</p>
+<div class="card accent" style="margin-top:18px">
+  <p style="font-size:15px">Как <strong>заказ по меню</strong>: вы не идёте на кухню, а выбираете позицию по меню и получаете готовое блюдо. Программа не работает внутри OpenWeather: отправляет запрос по правилам и получает готовые данные о погоде.</p>
+</div>
+<p style="font-size:14px; margin-top:14px; color:var(--muted)">JSON-ответ вам уже знаком — точно такой формат разбирали на уроке 7 в дневнике.</p>
+
+===== SLIDE 6/38 =====
+[NOTES] Показываем устройство запроса, не углубляясь. url — адрес сервиса погоды, params — что именно спрашиваем: q — город, appid — ключ, units — единицы, lang — язык ответа. Главное правило урока: units=metric обязательно, иначе придут Кельвины (296 вместо +23). requests.get сам собирает адрес — вручную URL не склеиваем.
+[HTML]
+<div class="eyebrow">Как устроен запрос</div>
+<h2>Из чего состоит обращение к API</h2>
+<p class="lead">У запроса два куска: <em>url</em> — адрес сервиса погоды, и <em>params</em> — что именно спрашиваем.</p>
+<pre style="margin-top:8px"><code class="language-python">url = "https://api.openweathermap.org/data/2.5/weather"
+params = {"q": city, "appid": OW_KEY, "units": "metric", "lang": "ru"}
+data = requests.get(url, params=params).json()</code></pre>
+<div class="grid cols-2" style="margin-top:14px">
+  <div class="kv-row"><div class="k">q</div><div class="v">Город, о котором спрашиваем.</div></div>
+  <div class="kv-row"><div class="k">appid</div><div class="v">Ключ — пропуск к сервису.</div></div>
+  <div class="kv-row"><div class="k">units=metric</div><div class="v">Градусы Цельсия, а не Кельвины.</div></div>
+  <div class="kv-row"><div class="k">lang=ru</div><div class="v">Описание погоды по-русски.</div></div>
+</div>
+<p style="font-size:14px; margin-top:12px; color:var(--muted)"><code class="inline">requests.get(url, params=params)</code> сам собирает адрес с параметрами — вручную URL не склеиваем.</p>
+
+===== SLIDE 7/38 =====
+[NOTES] Вторая линия урока. Ключ — это пароль к сервису, в коде строкой ему не место: если выложить код на GitHub, ключ могут украсть. Секреты кладём в отдельный файл .env рядом со скриптом, читаем через load_dotenv и os.getenv, а сам .env добавляем в .gitignore, чтобы он не попал в публичный репозиторий.
+[HTML]
+<div class="eyebrow">Прячем секреты</div>
+<h2>Что такое файл .env</h2>
+<p class="lead">Ключ — это <em>пароль к сервису</em>. Держать его строкой прямо в коде опасно: выложите код в интернет — ключ украдут и исчерпают ваш лимит.</p>
+<div class="vs-grid">
+  <div class="vs-col minimal">
+    <h4>Ключ строкой в коде</h4>
+    <p>appid = "a1b2c3..." прямо в файле. Виден всем, кто увидит код.</p>
+    <p class="note">Так делать нельзя.</p>
+  </div>
+  <div class="vs-col detailed">
+    <h4>Ключ в файле .env</h4>
+    <p>Секреты лежат рядом со скриптом, в код не попадают. <code class="inline">load_dotenv()</code> и <code class="inline">os.getenv(...)</code> читают их из .env.</p>
+    <p class="note">.env добавляем в .gitignore — в интернет он не уходит.</p>
+  </div>
+</div>
+<p style="font-size:14px; margin-top:14px; color:var(--muted)">В коде ключа строкой быть не должно — только чтение из <code class="inline">.env</code>.</p>
+
+===== SLIDE 8/38 =====
+[NOTES] Без долгой подготовки: сразу просим у DeepSeek небольшой скрипт с запросом к OpenWeather и запускаем. Ключ на разминке пока строкой — перенос в .env будет в основном проекте. Ученики копируют промпт целиком. Ключ OpenWeather раздайте заранее — он активируется не мгновенно.
+[HTML]
+<div class="eyebrow">Промпт #1 · разминка</div>
+<h2>warmup.py за две минуты</h2>
+<p class="lead">Начнём с короткого скрипта: попросим DeepSeek сделать запрос к OpenWeather и сразу запустим результат в терминале.</p>
+<div class="prompt-box"><span class="h">→ Новый чат DeepSeek</span>
+Ты — опытный Python-разработчик и наставник школьника.
+Напиши маленький скрипт warmup.py: он делает запрос к публичному
+API https://api.openweathermap.org/data/2.5/weather с параметрами
+q=Москва, appid=КЛЮЧ, units=metric, lang=ru через библиотеку
+requests, разбирает JSON-ответ и печатает температуру и описание
+погоды. Ключ пока впиши строкой. Только requests.
+Прокомментируй код, ответь одним блоком.</div>
+
+===== SLIDE 9/38 =====
+[NOTES] Базовый шаг урока: дождитесь, пока у всех в терминале появится реальная температура из интернета. На рабочем коде показываем три вещи: requests.get(...).json(), поле data['main']['temp'] и data['weather'][0]['description']. Не переходите дальше, пока скрипт не запустился у каждого. Сначала результат, затем разбор.
+[HTML]
+<div class="eyebrow">Запуск и разбор</div>
+<h2>Реальная погода из интернета</h2>
+<div class="grid cols-2">
+  <div>
+    <ol class="num-list">
+      <li>В <code class="inline">vibe-coding</code> создайте папку <code class="inline">lesson-08</code></li>
+      <li>Создайте <code class="inline">warmup.py</code> и вставьте код из ответа</li>
+      <li>Впишите выданный ключ OpenWeather вместо <code class="inline">КЛЮЧ</code></li>
+      <li>Выполните <code class="inline">python warmup.py</code> и смотрите на температуру</li>
+    </ol>
+    <div class="card good" style="margin-top:14px">
+      <p style="font-size:14px">В терминале реальная температура в Москве прямо сейчас? Внешний API работает — база приложения погоды готова.</p>
+    </div>
+  </div>
+  <div>
+    <div class="kv-row"><div class="k">requests.get(...)</div><div class="v">Отправил запрос на сервер OpenWeather.</div></div>
+    <div class="kv-row"><div class="k">.json()</div><div class="v">Разобрал ответ в словарь Python.</div></div>
+    <div class="kv-row"><div class="k">data["main"]["temp"]</div><div class="v">Достал температуру из ответа.</div></div>
+    <div class="kv-row"><div class="k">data["weather"][0]["description"]</div><div class="v">Достал описание погоды.</div></div>
+  </div>
+</div>
+
+===== SLIDE 10/38 =====
+[NOTES] Разберите три типичные проблемы запуска. Самая частая — 401: ключ ещё не активировался (до пары часов после регистрации), поэтому раздавайте ключи заранее. Исправьте ошибки у всех: этот же ключ и эта же папка нужны дальше для приложения.
+[HTML]
+<div class="eyebrow">Типичные ситуации запуска</div>
+<h2>Если warmup.py не запустился</h2>
+<div class="grid cols-3" style="margin-top:20px">
+  <div class="card warn">
+    <h3>401 Unauthorized</h3>
+    <p style="font-size:14.5px">Ключ неверный или ещё не активировался (это до пары часов после регистрации). Проверьте, что вставили выданный ключ без пробелов.</p>
+  </div>
+  <div class="card warn">
+    <h3>KeyError</h3>
+    <p style="font-size:14.5px">В ответе нет ожидаемого поля — обычно город написан с ошибкой или сервер вернул ошибку вместо погоды. Проверьте название города.</p>
+  </div>
+  <div class="card warn">
+    <h3>ConnectionError</h3>
+    <p style="font-size:14.5px">Нет интернета или сервис недоступен. Проверьте соединение и запустите <code class="inline">python warmup.py</code> заново.</p>
+  </div>
+</div>
+
+===== SLIDE 11/38 =====
+[NOTES] Показываем, как устроен ответ OpenWeather. JSON знаком с урока 7. Главное — что достаём: temp лежит внутри main, а описание — в первом элементе списка weather.
+[HTML]
+<div class="eyebrow">Как это работает</div>
+<h2>Ответ сервера — знакомый JSON</h2>
+<p class="lead">OpenWeather присылает <em>JSON</em> — тот самый формат из урока 7. Это словарь: внутри вложены другие словари и список. Достаём из него нужные поля.</p>
+<pre style="margin-top:16px"><code class="language-json">{
+  "main": { "temp": 23.4, "humidity": 60 },
+  "weather": [ { "description": "ясно" } ],
+  "name": "Москва"
+}</code></pre>
+<div class="grid cols-2" style="margin-top:16px">
+  <div class="card">
+    <h3>Температура</h3>
+    <p style="font-size:14.5px">Лежит внутри словаря <code class="inline">main</code>: берём <code class="inline">data["main"]["temp"]</code>.</p>
+  </div>
+  <div class="card">
+    <h3>Описание</h3>
+    <p style="font-size:14.5px"><code class="inline">weather</code> — это <strong>список</strong>, поэтому сначала <code class="inline">[0]</code>: <code class="inline">data["weather"][0]["description"]</code>.</p>
+  </div>
+</div>
+
+===== SLIDE 12/38 =====
+[NOTES] Разбираем params построчно. Ключевое правило урока: без units=metric OpenWeather отдаёт Кельвины. lang=ru — чтобы описание пришло по-русски. Имена параметров не меняем.
+[HTML]
+<div class="eyebrow">Устройство запроса</div>
+<h2>Что мы пишем в params</h2>
+<p class="lead">Запрос — это адрес <em>плюс параметры</em>. В словаре <code class="inline">params</code> мы сообщаем серверу, что именно хотим узнать.</p>
+<pre style="margin-top:14px"><code class="language-python">url = "https://api.openweathermap.org/data/2.5/weather"
+params = {"q": city, "appid": OW_KEY, "units": "metric", "lang": "ru"}</code></pre>
+<div class="grid cols-2" style="margin-top:16px">
+  <div class="kv-row"><div class="k">q</div><div class="v">город, о котором спрашиваем</div></div>
+  <div class="kv-row"><div class="k">appid</div><div class="v">ключ доступа к сервису</div></div>
+  <div class="kv-row"><div class="k">units=metric</div><div class="v">градусы Цельсия, а не Кельвины</div></div>
+  <div class="kv-row"><div class="k">lang=ru</div><div class="v">описание погоды по-русски</div></div>
+</div>
+<div class="card warn" style="margin-top:16px">
+  <p style="font-size:14.5px">Забудете <code class="inline">units=metric</code> — придёт <strong>296</strong> вместо <strong>+23</strong>: это температура в Кельвинах.</p>
+</div>
+
+===== SLIDE 13/38 =====
+[NOTES] Новая связка урока: внешний API даёт данные, DeepSeek формулирует комментарий. Роль DeepSeek задаёт стиль прогноза. Ключ DeepSeek теперь тоже берём из .env, а не из строки в коде.
+[HTML]
+<div class="eyebrow">Новая связка</div>
+<h2>Нейросеть комментирует погоду</h2>
+<p class="lead">OpenWeather выдаёт данные: <code class="inline">+23</code>, <code class="inline">ясно</code>. Мы передаём их <em>DeepSeek</em>, и он формулирует короткий прогноз человеческим языком.</p>
+<div class="card" style="margin-top:18px">
+  <h3>Системная роль</h3>
+  <p style="font-size:14.5px">«Ты весёлый ведущий прогноза погоды, прокомментируй погоду одним бодрым абзацем».</p>
+</div>
+<div class="card accent" style="margin-top:14px">
+  <p style="font-size:15px">Одна программа соединяет <strong>два сервиса</strong>: берёт актуальные данные у OpenWeather и передаёт их на комментарий DeepSeek. Ключ DeepSeek теперь тоже храним в <code class="inline">.env</code>.</p>
+</div>
+
+===== SLIDE 14/38 =====
+[NOTES] Прочитайте цель вслух. Подчеркните: данные впервые не придуманы программой, а взяты из интернета; секреты лежат в .env. Слева теория, справа практика.
+[HTML]
+<div class="eyebrow">Goal · что будет в конце</div>
+<h2>Цель урока</h2>
+<div class="card accent">
+  <p class="lead" style="color:#E2E8F0">К 55-й минуте у каждого — приложение погоды в терминале: вводите город, программа берёт текущую погоду у OpenWeather, нейросеть комментирует её и советует, что надеть, а секретные ключи хранятся в файле <code class="inline">.env</code>.</p>
+</div>
+<div class="grid cols-2" style="margin-top:28px">
+  <div>
+    <h3 style="color:var(--accent-2)">Узнаете</h3>
+    <ul class="check-list">
+      <li>Что такое API и как программа просит данные у чужого сервера</li>
+      <li>Как разобрать JSON-ответ и достать нужные поля</li>
+      <li>Как хранить ключи в файле <code class="inline">.env</code></li>
+    </ul>
+  </div>
+  <div>
+    <h3 style="color:var(--accent)">Сделаете</h3>
+    <ul class="check-list">
+      <li>Запросите текущую погоду у OpenWeather</li>
+      <li>Отдадите её на комментарий DeepSeek</li>
+      <li>Спрячете оба ключа в <code class="inline">.env</code></li>
+    </ul>
+  </div>
+</div>
+
+===== SLIDE 15/38 =====
+[NOTES] Покажите заранее собранное приложение. Введите город при группе, чтобы все увидели: погода приходит из OpenWeather, а нейросеть формулирует комментарий и совет по одежде.
+[HTML]
+<div class="eyebrow">Демо результата</div>
+<h2>Что соберём сегодня</h2>
+<pre><code class="language-bash">🌦️ Погода с комментарием
+Какой город? Москва
+Москва: +23°, ясно
+Ведущий: Отличный день, чтобы гулять до самого вечера!
+Совет: футболка и кепка — солнце жарит вовсю.</code></pre>
+<p style="font-size:14px; margin-top:14px; color:var(--muted)">Температура — <em>настоящая, прямо сейчас</em> из OpenWeather; комментарий и совет придумала <em>нейросеть</em> по этим данным.</p>
+
+===== SLIDE 16/38 =====
+[NOTES] Подготовка: weather.py рядом с warmup.py. requests мог остаться с уроков 5-7, python-dotenv — новая библиотека. Два ключа (OpenWeather и DeepSeek) раздаёт преподаватель.
+[HTML]
+<div class="eyebrow">Подготовка</div>
+<h2>Папка lesson-08</h2>
+<div class="grid cols-2">
+  <div>
+    <ol class="num-list">
+      <li>Папка <code class="inline">lesson-08</code> уже есть — в ней лежит <code class="inline">warmup.py</code></li>
+      <li>Создайте файл <code class="inline">weather.py</code></li>
+      <li>Поставьте библиотеки: <code class="inline">pip install requests python-dotenv</code></li>
+      <li>Возьмите у преподавателя <strong>два ключа</strong>: OpenWeather и DeepSeek</li>
+    </ol>
+  </div>
+  <div>
+<pre><code class="language-bash">D:/vibe-coding/lesson-08/
+├── warmup.py
+└── weather.py</code></pre>
+    <div class="card warn" style="margin-top:14px">
+      <p style="font-size:14.5px"><code class="inline">requests</code> мог остаться с прошлых уроков, а <code class="inline">python-dotenv</code> — новый: он умеет читать файл <code class="inline">.env</code>.</p>
+    </div>
+  </div>
+</div>
+
+===== SLIDE 17/38 =====
+[NOTES] Собираем каркас приложения: ввод города и функция get_weather, которая пока возвращает учебные данные. Настоящий запрос к OpenWeather добавим на Правке 1. Разделение на функции важно: дальше правки привязаны именно к get_weather.
+[HTML]
+<div class="eyebrow">Промпт #2 · каркас weather.py</div>
+<h2>Каркас weather.py</h2><div class="prompt-box"><span class="h">→ Новый чат DeepSeek</span>
+Ты — <em>опытный Python-разработчик</em> и наставник школьника.
+Напиши weather.py: спроси город через <em>input</em>, напечатай «Смотрю погоду для {city}…» и вызови функцию-заглушку <em>get_weather(city)</em>, которая пока возвращает фиктивные данные (например temp=0, описание «скоро добавим»). Раздели на функции.
+
+Только стандартная библиотека. Верни одним блоком.</div>
+<p style="font-size:14px; margin-top:14px; color:var(--muted)">Это <strong>каркас</strong> <code class="inline">weather.py</code>: ввод города есть, а <code class="inline">get_weather</code> пока возвращает учебные данные. Настоящий запрос к OpenWeather добавим на Правке 1.</p>
+
+===== SLIDE 18/38 =====
+[NOTES] Запустите каркас. Настоящего ключа тут ещё нет — get_weather возвращает учебные данные. Дождитесь, пока у всех программа спрашивает город и печатает ответ. Запрос к OpenWeather добавим на Правке 1.
+[HTML]
+<div class="eyebrow">Запуск каркаса</div>
+<h2>Вставляем каркас и запускаем</h2>
+<ol class="num-list">
+  <li>Скопируйте код из ответа DeepSeek в <code class="inline">weather.py</code></li>
+  <li>Сохраните файл (<code class="inline">Ctrl+S</code>)</li>
+  <li>Выполните <code class="inline">python weather.py</code></li>
+  <li>Введите город — программа напечатает «Смотрю погоду для …»</li>
+  <li>Пока приходят учебные данные из <code class="inline">get_weather</code> — это нормально</li>
+</ol>
+<div class="card warn" style="margin-top:18px">
+  <p style="font-size:14.5px">Настоящей погоды тут ещё нет: <code class="inline">get_weather</code> пока возвращает <strong>учебные данные</strong>. Заменим их запросом к OpenWeather на <strong>Правке 1</strong>.</p>
+</div>
+
+===== SLIDE 19/38 =====
+[NOTES] Зафиксируйте промежуточный результат: каркас приложения работает — есть ввод города и функция get_weather, готовая к доработке. Настоящая погода из интернета появится на Правке 1, когда учебные данные заменим запросом к OpenWeather.
+[HTML]
+<div class="eyebrow">Момент урока</div>
+<h2>Каркас приложения готов</h2>
+<p class="lead">Приложение уже <em>спрашивает город</em> и вызывает функцию <code class="inline">get_weather</code> — но пока она возвращает учебные данные, а не настоящую погоду.</p>
+<div class="card good" style="margin-top:18px">
+  <p style="font-size:14.5px">Основа на месте: <strong>ввод города</strong> и <strong>отдельная функция</strong> <code class="inline">get_weather</code>, к которой дальше привязаны все правки. Осталось подключить реальные данные.</p>
+</div>
+<div class="card accent" style="margin-top:14px">
+  <p style="font-size:14.5px">На <strong>Правке 1</strong> заменим учебные данные запросом к OpenWeather, дальше — ключи в <code class="inline">.env</code> и комментарий от нейросети.</p>
+</div>
+
+===== SLIDE 20/38 =====
+[NOTES] Коротко разберите пять ситуаций. Чаще всего свежий ключ OpenWeather ещё не активировался (401) или файл .env лежит не рядом со скриптом. Тем, у кого не запускается, помогите лично; остальные сверяются со слайдом.
+[HTML]
+<div class="eyebrow">Если приложение не запустилось</div>
+<h2>Типичные ситуации запуска</h2>
+<div class="kv-row"><div class="k">401 Unauthorized</div><div class="v">Ключ OpenWeather ещё не активировался — после регистрации до пары часов. Подождите или возьмите рабочий ключ у преподавателя.</div></div>
+<div class="kv-row"><div class="k">KeyError</div><div class="v">Не пришло поле — например, ошиблись в названии города. Загляните в <code class="inline">data</code>: возможно, там сообщение об ошибке, а не погода.</div></div>
+<div class="kv-row"><div class="k">ModuleNotFoundError</div><div class="v">Не установлены библиотеки. В терминале: <code class="inline">pip install requests python-dotenv</code> — и запускайте снова.</div></div>
+<div class="kv-row"><div class="k">Нет интернета</div><div class="v"><code class="inline">requests</code> не достучался до сервера. Проверьте соединение — API живёт в интернете, без сети погоды не будет.</div></div>
+<div class="kv-row"><div class="k">Ключ пустой (None)</div><div class="v">Файл <code class="inline">.env</code> лежит не рядом со скриптом или в нём опечатка в имени. Положите <code class="inline">.env</code> в ту же папку, что и <code class="inline">weather.py</code>.</div></div>
+
+===== SLIDE 21/38 =====
+[NOTES] Первая правка идёт в тот же чат: заменяем учебные данные в get_weather настоящим запросом к OpenWeather. После неё программа печатает температуру из интернета по введённому городу. Дождитесь, пока у всех появилась погода по своему городу, потом переходите дальше.
+[HTML]
+<div class="eyebrow">Правка 1 · настоящая погода</div>
+<h2>Подключаем запрос к OpenWeather</h2><div class="prompt-box"><span class="h">→ В тот же чат</span>
+Замени заглушку внутри <em>get_weather(city)</em> на настоящий запрос к OpenWeather, остальное не меняй:
+- Запроси погоду через <em>requests.get</em> (<em>url</em> https://api.openweathermap.org/data/2.5/weather, параметры q=city, appid=КЛЮЧ, <em>units=metric</em>, <em>lang=ru</em>)
+- Разбери JSON-ответ и верни настоящую температуру и описание погоды
+- Распечатай их для введённого города
+
+Ключ пока впиши строкой. Верни весь файл целиком.</div>
+
+===== SLIDE 22/38 =====
+[NOTES] Дайте минимум теории про API. Главное: параметры складываем в словарь params, requests сам собирает адрес, .json() превращает ответ в словарь. Покажите на экране, что URL не собирали вручную.
+[HTML]
+<div class="eyebrow">Разбор кода</div>
+<h2>Как программа спрашивает погоду</h2>
+<pre><code class="language-python">url = "https://api.openweathermap.org/data/2.5/weather"
+params = {"q": city, "appid": OW_KEY, "units": "metric", "lang": "ru"}
+data = requests.get(url, params=params).json()   # ответ сервера как словарь
+temp = data["main"]["temp"]
+desc = data["weather"][0]["description"]</code></pre>
+<p style="font-size:14px; margin-top:12px; color:var(--muted)">Параметры складываем в словарь <code class="inline">params</code>, а <code class="inline">requests.get</code> сам собирает из них адрес — вручную URL не склеиваем. <code class="inline">.json()</code> превращает ответ сервера в обычный <strong>словарь Python</strong>, и мы достаём из него нужные поля.</p>
+
+===== SLIDE 23/38 =====
+[NOTES] Ключевая правка про безопасность: ключи переезжают из кода в файл .env. После неё в коде не должно быть ключа строкой. Проверьте у каждого, что .env лежит рядом со скриптом и погода по-прежнему приходит. DEEPSEEK_KEY кладём в .env заранее вместе с ключом OpenWeather: он понадобится на следующей правке для AI-комментария.
+[HTML]
+<div class="eyebrow">Правка 2 · ключи в .env</div>
+<h2>Переносим ключи в .env</h2>
+<p class="lead">Главный шаг к безопасности: секретные ключи переходят из кода в отдельный файл <code class="inline">.env</code> — как пароль, который не пишут в открытом тексте.</p><div class="prompt-box"><span class="h">→ В тот же чат</span>
+Спрячь ключи. Создай рядом файл <em>.env</em> со строками <em>OPENWEATHER_KEY=...</em> и <em>DEEPSEEK_KEY=...</em>, а в коде читай их через библиотеку <em>python-dotenv</em> (<em>load_dotenv</em>, <em>os.getenv</em>). В коде не должно остаться ключей строкой.
+
+Верни весь файл целиком.</div>
+
+===== SLIDE 24/38 =====
+[NOTES] Минимум теории про секреты. Главное: load_dotenv читает файл, os.getenv достаёт ключ по имени, в коде ключа строкой больше нет. Откройте .env в VS Code — покажите две строки с ключами. Напомните про .gitignore.
+[HTML]
+<div class="eyebrow">Разбор кода</div>
+<h2>Как ключи попадают в код из файла</h2>
+<pre><code class="language-python">from dotenv import load_dotenv
+import os
+load_dotenv()                          # прочитали файл .env
+OW_KEY = os.getenv("OPENWEATHER_KEY")  # достали ключ по имени
+DS_KEY = os.getenv("DEEPSEEK_KEY")</code></pre>
+<div class="card good" style="margin-top:14px">
+  <p style="font-size:14.5px"><code class="inline">load_dotenv()</code> читает файл <code class="inline">.env</code>, а <code class="inline">os.getenv</code> достаёт ключ по имени. Теперь <strong>ключа строкой в коде нет</strong> — код можно показывать и выкладывать, а <code class="inline">.env</code> добавляют в <code class="inline">.gitignore</code> и держат только у себя.</p>
+</div>
+
+===== SLIDE 25/38 =====
+[NOTES] Зафиксируйте, зачем нужен units=metric. Уберите его в чьём-нибудь коде и покажите 296 вместо 23 — разница понятна сразу. Это частая ошибка, она вернётся в квизе.
+[HTML]
+<div class="eyebrow">Полезное знание</div>
+<h2>Один параметр для привычной температуры</h2>
+<div class="vs-grid">
+  <div class="vs-col minimal">
+    <h4>Без units=metric</h4>
+    <p>OpenWeather отдаёт градусы Кельвина: <code class="inline">temp = 296</code>.</p>
+    <p class="note">На улице +23, но без параметра приходит 296.</p>
+  </div>
+  <div class="vs-col detailed">
+    <h4>С units=metric, lang=ru</h4>
+    <p>Приходят привычные градусы Цельсия: <code class="inline">temp = 23</code>.</p>
+    <p class="note">А <code class="inline">lang=ru</code> делает описание русским.</p>
+  </div>
+</div>
+<p style="font-size:14px; margin-top:14px; color:var(--muted)">Кельвины — шкала физиков: <code class="inline">296 K − 273 ≈ 23 °C</code>. С параметром <code class="inline">units=metric</code> температура приходит в привычном виде.</p>
+
+===== SLIDE 26/38 =====
+[NOTES] Ключевая правка урока: погода уходит в DeepSeek, а нейросеть формулирует комментарий. Это видимый результат: под числовыми данными появляется текстовое объяснение. Раздайте ключи заранее и проверьте интернет.
+[HTML]
+<div class="eyebrow">Правка 3 · AI-комментарий</div>
+<h2>Нейросеть комментирует погоду</h2>
+<p class="lead">Программа берёт текущую погоду и передаёт её нейросети, чтобы получить короткий комментарий к данным.</p><div class="prompt-box"><span class="h">→ В тот же чат</span>
+Отправь погоду в DeepSeek с системной ролью «Ты весёлый ведущий прогноза погоды, прокомментируй погоду одним бодрым абзацем» и распечатай ответ нейросети под данными о погоде. Ключ DeepSeek бери из <em>.env</em>.
+
+Верни весь файл целиком.</div>
+
+===== SLIDE 27/38 =====
+[NOTES] Свяжите с уроками 5-7: тот же запрос к DeepSeek, но в user-сообщение подставляем текущую погоду. Системная роль задаёт стиль ответа. Ответ печатаем под данными. Не углубляйтесь в каждое поле.
+[HTML]
+<div class="eyebrow">Разбор кода</div>
+<h2>Передаём погоду нейросети</h2>
+<pre><code class="language-python">data = {
+    "model": "deepseek-chat",
+    "messages": [
+        {"role": "system", "content": "Ты весёлый ведущий прогноза погоды, прокомментируй погоду одним бодрым абзацем."},
+        {"role": "user", "content": f"Город {city}: {temp} градусов, {desc}."},
+    ],
+}
+response = requests.post(url, headers=headers, json=data)
+answer = response.json()["choices"][0]["message"]["content"]</code></pre>
+<p style="font-size:14px; margin-top:12px; color:var(--muted)">Системная роль задаёт стиль ответа — <strong>ведущий прогноза</strong>. В <code class="inline">user</code>-сообщение подставляем текущую погоду: город, температуру и описание. Нейросеть возвращает короткий комментарий, и мы печатаем его под данными.</p>
+
+===== SLIDE 28/38 =====
+[NOTES] Правка 4 превращает разовый запуск в приложение с циклом: город спрашивается по кругу, а к каждой погоде нейросеть советует, что надеть. Дайте ученикам проверить разные города и выйти по слову «выход».
+[HTML]
+<div class="eyebrow">Правка 4 · совет и цикл</div>
+<h2>Спрашиваем город по кругу</h2><div class="prompt-box"><span class="h">→ В тот же чат</span>
+Спрашивай город по кругу, пока не введут «выход». К каждой погоде проси у нейросети короткий совет, что надеть.
+
+Верни весь файл целиком.</div>
+
+===== SLIDE 29/38 =====
+[NOTES] Главная мысль урока: программа работает в цикле с внешним API. Цикл while идёт до слова «выход», второй запрос к DeepSeek даёт совет. Дайте сфотографировать. Если группа отстаёт, правку 5 можно перенести в ДЗ.
+[HTML]
+<div class="eyebrow">Разбор кода</div>
+<h2>Круг вопросов и совет от нейросети</h2>
+<pre><code class="language-python">while True:
+    city = input("Город (или «выход»): ")
+    if city == "выход":
+        break
+    # ... запросили погоду и комментарий ...
+    advice = ask_ai(f"Погода {temp} градусов, {desc}. Что надеть? Коротко.")
+    print(advice)</code></pre>
+<div class="card accent" style="margin-top:14px">
+  <p style="font-size:14.5px">Цикл <code class="inline">while True</code> спрашивает город снова и снова, пока не введут <code class="inline">«выход»</code> — тогда <code class="inline">break</code> выходит. Для совета делаем <strong>второй запрос</strong> к нейросети: погода уходит к DeepSeek уже с вопросом, что надеть.</p>
+</div>
+
+===== SLIDE 30/38 =====
+[NOTES] Финальная правка делает приложение удобнее и надёжнее: цветной вывод и корректная обработка несуществующего города. Это заметный пользовательский результат. Правка сложная: ANSI-цвета требуют аккуратности, а обработка ошибки — проверки ответа сервера. Если группа отстаёт, оставьте только обработку 404, а раскраску отдайте в ДЗ.
+[HTML]
+<div class="eyebrow">Правка 5 · цвет и ошибки</div>
+<h2>Цвет и защита от ошибок</h2><div class="prompt-box"><span class="h">→ В тот же чат</span>
+Финальная правка. Раскрась вывод ANSI-кодами, <em>без сторонних библиотек</em>:
+- город — голубым
+- температуру — жёлтым
+- комментарий нейросети — зелёным
+
+И сделай приложение устойчивым: если такого города нет (OpenWeather вернул <em>404</em>) — вежливо скажи «город не найден» и продолжи работу, <em>без падения программы</em>. Верни весь файл.</div>
+
+===== SLIDE 31/38 =====
+[NOTES] Ключевой слайд урока про надёжность. Подчеркните: сервер сообщает, как прошёл запрос, числом в поле cod. 200 — всё хорошо, 404 — города нет, 401 — ключ не активирован. Ответ нужно проверять до обращения к data['main'] — это обязательное правило при работе с сетью.
+[HTML]
+<div class="eyebrow">Разбор кода</div>
+<h2>Проверяем ответ сервера</h2>
+<p>OpenWeather в каждом ответе кладёт числовой код в поле <code class="inline">cod</code> — прошёл запрос или нет. Проверяем его <strong>до</strong> того, как достаём температуру:</p>
+<pre style="margin-top:14px"><code class="language-python">data = requests.get(url, params=params).json()
+if str(data["cod"]) != "200":     # 200 — всё хорошо
+    print("Город не найден")      # 404 — города нет
+else:
+    temp = data["main"]["temp"]   # только теперь читаем погоду
+    desc = data["weather"][0]["description"]</code></pre>
+<div class="card warn" style="margin-top:14px">
+  <p style="font-size:14.5px">Если полезть в <code class="inline">data["main"]</code> сразу, а города нет — программа упадёт с <code class="inline">KeyError</code>. Сначала проверяем <code class="inline">cod</code>, потом читаем данные. Это общее правило для любого API.</p>
+</div>
+
+===== SLIDE 32/38 =====
+[NOTES] Вопрос про .env на GitHub — главная тема безопасности урока. Дайте 10-15 секунд, потом раскройте ответ. Свяжите с правилом: .env всегда в .gitignore, ключ не выкладываем.
+[HTML]
+<div class="eyebrow">Проверка · вопрос 1</div>
+<h2>Изучите ситуацию и ответьте</h2>
+<div class="quiz-card">
+  <span class="q-num">Вопрос</span>
+  <p class="q-text">Петя выложил свой <code class="inline">weather.py</code> на GitHub вместе с файлом <code class="inline">.env</code>. На следующий день его ключ OpenWeather перестал работать: кто-то исчерпал лимит запросов. Что он сделал не так?</p>
+</div>
+<details style="margin-top:18px">
+  <summary>Ответ</summary>
+  <div class="content">
+    <p>Файл <code class="inline">.env</code> с секретными ключами <strong>нельзя выкладывать</strong> в публичный репозиторий — ключи украдут.</p>
+    <p><code class="inline">.env</code> добавляют в <code class="inline">.gitignore</code> и держат только на своём компьютере. Ключ пришлось перевыпустить.</p>
+  </div>
+</details>
+
+===== SLIDE 33/38 =====
+[NOTES] Вопрос про Кельвины и units=metric — вторая частая ошибка с OpenWeather. Свяжите с правилом: без units=metric придут Кельвины, поэтому параметр нужен всегда.
+[HTML]
+<div class="eyebrow">Проверка · вопрос 2</div>
+<h2>Изучите ситуацию и ответьте</h2>
+<div class="quiz-card">
+  <span class="q-num">Вопрос</span>
+  <p class="q-text">Аня запросила погоду и получила <code class="inline">temp = 296</code>. «На улице +20, а тут 296!» — удивилась она. Что не так и как починить?</p>
+</div>
+<details style="margin-top:18px">
+  <summary>Ответ</summary>
+  <div class="content">
+    <p>Без <strong>units=metric</strong> OpenWeather отдаёт температуру в <strong>Кельвинах</strong> (296 K — это примерно 23 °C).</p>
+    <p>Нужно добавить в параметры <code class="inline">units=metric</code> — тогда придут привычные градусы Цельсия.</p>
+  </div>
+</details>
+
+===== SLIDE 34/38 =====
+[NOTES] Научите читать traceback снизу вверх — это пригодится на всех уроках Python. Напомните правило: непонятную ошибку целиком копируем в DeepSeek. Три проверки справа — самые частые при работе с внешним API.
+[HTML]
+<div class="eyebrow">Отладка</div>
+<h2>Читаем ошибки API</h2>
+<div class="grid cols-2">
+  <div>
+    <h3>Traceback — снизу вверх</h3>
+<pre><code class="language-bash">Traceback (most recent call last):
+  File "weather.py", line 12, in &lt;module&gt;
+    temp = data["main"]["temp"]
+KeyError: 'main'</code></pre>
+    <p style="font-size:14px; margin-top:10px; color:var(--muted)">Последняя строка — <strong>что</strong> случилось, строкой выше — <strong>где</strong>. <code class="inline">KeyError: 'main'</code> значит: в ответе нет погоды — скорее всего города не нашли или ключ не активен.</p>
+  </div>
+  <div>
+    <h3>Если застряли</h3>
+    <ul class="check-list">
+      <li>Скопируйте <strong>traceback целиком</strong> в чат DeepSeek — попросите объяснить и починить</li>
+      <li>Код <code class="inline">401</code> — ключ ещё не активирован, подождите; <code class="inline">404</code> — проверьте название города</li>
+      <li>Распечатайте весь <code class="inline">data</code> и посмотрите, что реально прислал сервер</li>
+    </ul>
+    <p style="font-size:14px; margin-top:10px; color:var(--muted)">Это тот же подход к отладке, что <code class="inline">console.log</code> в «Змейке» и print-метки на уроке 5.</p>
+  </div>
+</div>
+
+===== SLIDE 35/38 =====
+[NOTES] 5 правил урока. Дайте сфотографировать слайд. Особо подчеркните третье и четвёртое: секреты в .env, .env в .gitignore — это базовое правило безопасности.
+[HTML]
+<div class="eyebrow">Запомните</div>
+<h2>Правила работы с API</h2>
+<div class="kv-row"><div class="k">01 · API — запрос с параметрами</div><div class="v">Программа шлёт запрос на <code class="inline">url</code> с <code class="inline">params</code> и получает <strong>JSON-ответ</strong> — данные от чужого сервера.</div></div>
+<div class="kv-row"><div class="k">02 · units=metric</div><div class="v">Всегда для погоды, иначе OpenWeather отдаёт температуру в <strong>Кельвинах</strong>, а не в градусах Цельсия.</div></div>
+<div class="kv-row"><div class="k">03 · Секреты — в .env</div><div class="v">Ключи читаем через <code class="inline">load_dotenv</code> и <code class="inline">os.getenv</code>. В коде ключа строкой быть не должно.</div></div>
+<div class="kv-row"><div class="k">04 · .env — в .gitignore</div><div class="v">Файл с ключами не выкладываем в публичный репозиторий: украдут — придётся перевыпускать.</div></div>
+<div class="kv-row"><div class="k">05 · Проверяй код ответа</div><div class="v">Смотрим <code class="inline">cod</code>: <code class="inline">200</code> — данные есть, <code class="inline">404</code> — города нет. Читаем данные только после проверки.</div></div>
+
+===== SLIDE 36/38 =====
+[NOTES] Чек-лист завершения приложения погоды. Кто отметил всё, пусть проверит два-три города и один несуществующий. Это проверяет, что запрос и обработка ошибки работают. План отступления по таймингу: обязательный минимум к 55-й минуте — Правки 1–3 (город+погода, .env, AI-комментарий). При отставании Правки 4–5 (совет и цикл, цвет и обработка 404) уходят в ДЗ.
+[HTML]
+<div class="eyebrow">Чек-лист</div>
+<h2>Что должно быть к 55-й минуте</h2>
+<div class="grid cols-2">
+  <div>
+    <h3 style="color:var(--accent-2)">Готово</h3>
+    <ul class="check-list">
+      <li><code class="inline">weather.py</code> запускается командой <code class="inline">python weather.py</code></li>
+      <li>Ввёл город — пришла текущая погода из интернета</li>
+      <li>Ключи лежат в <code class="inline">.env</code>, в коде их нет</li>
+      <li>Нейросеть комментирует погоду</li>
+    </ul>
+  </div>
+  <div>
+    <h3 style="color:var(--accent)">Работает</h3>
+    <ul class="check-list">
+      <li>Программа спрашивает город по кругу до «выход»</li>
+      <li>Нейросеть советует, что надеть</li>
+      <li>Вывод цветной</li>
+      <li>Несуществующий город — «город не найден», без падения</li>
+    </ul>
+  </div>
+</div>
+<div class="card good" style="margin-top:22px">
+  <p style="font-size:15px">Всё отмечено? Проверьте три реальных города и один выдуманный — приложение погоды готово.</p>
+</div>
+
+===== SLIDE 37/38 =====
+[NOTES] ДЗ — доработать приложение погоды, примерно 30 минут. Каждое улучшение — отдельный диалог с DeepSeek, не всё сразу. Напомните про ключи на скриншотах.
+[HTML]
+<div class="eyebrow">Домашнее задание · около 30 минут</div>
+<h2>Доработайте приложение погоды</h2>
+<p class="lead">Три улучшения — каждое через отдельный диалог с DeepSeek:</p>
+<div class="grid cols-3" style="margin-top:18px">
+  <div class="card">
+    <h3>Прогноз на завтра</h3>
+    <p style="font-size:14.5px">Через диалог с DeepSeek подключите <code class="inline">forecast</code>-эндпоинт OpenWeather и покажите погоду не только сейчас, но и на завтра.</p>
+  </div>
+  <div class="card">
+    <h3>Эмодзи погоды</h3>
+    <p style="font-size:14.5px">Пусть программа рисует эмодзи по погоде: ☀️ ясно, 🌧️ дождь, ❄️ снег — по описанию из ответа API.</p>
+  </div>
+  <div class="card">
+    <h3>Битва городов</h3>
+    <p style="font-size:14.5px">Сравните погоду в двух городах и попросите нейросеть решить, где сегодня приятнее.</p>
+  </div>
+</div>
+<div class="card warn" style="margin-top:22px">
+  <p style="font-size:15px">Пришлите скриншот приложения с погодой — <strong>ключи замажьте!</strong> Ваш самый удачный промпт — отдельным сообщением.</p>
+</div>
+
+===== SLIDE 38/38 [FINAL] =====
+[NOTES] Закройте урок и весь модуль 2. Сегодня программа впервые взяла реальные данные из интернета и перенесла ключи в .env. На уроке 9 (модуль 3) добавим интерфейс в Telegram: соберём бота, который отвечает через нейросеть.
+[HTML]
+<div class="eyebrow">Урок 8 завершён</div>
+<div class="outro-big">До встречи<br>на уроке 9.</div>
+<p class="lead">Сегодня программа впервые взяла реальные данные из интернета и перенесла ключи в <code class="inline">.env</code>. На уроке 9 добавим интерфейс в мессенджере: соберём Telegram-бота, который отвечает через нейросеть.</p>
+<div class="chip-row" style="margin-top:30px">
+  <span class="badge primary">Урок 9 · Telegram-бот</span>
+  <span class="badge cyan">python-telegram-bot</span>
+  <span class="badge good">Бот в телефоне</span>
+</div>
