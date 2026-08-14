@@ -1,0 +1,638 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="description" content="Интерактивный урок 13: Введение в базы данных. Eduson Kids.">
+<title>Урок 13 — Введение в базы данных | Eduson Kids</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter+Tight:wght@600;700;800;900&family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;700&display=swap">
+<style>
+/* ============ Дизайн-токены Eduson Kids ============ */
+:root{
+  --ek-violet:#8C7FF6; --ek-violet-soft:#A79EF9; --ek-violet-deep:#6F61E8; --ek-violet-bg:#F0EEFE;
+  --ek-green:#3DF79D; --ek-green-soft:#7BF9BD; --ek-green-mint:#C9F7E3; --ek-green-pale:#E7FDF2; --ek-green-deep:#0FBF6E;
+  --ek-ink:#17171C; --ek-gray:#8F8F98; --ek-gray-light:#EFEFF2; --ek-line:#E3E3EA;
+  --ek-red:#FF6B6B; --ek-red-soft:#FF8A8A; --ek-red-deep:#E04848; --ek-red-pale:#FFECEC;
+  --f-head:'Inter Tight','Inter','Segoe UI',system-ui,sans-serif;
+  --f-body:'Inter','Segoe UI',system-ui,sans-serif;
+  --f-mono:'JetBrains Mono','Cascadia Mono','Consolas',monospace;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{height:100%;overflow:hidden}
+body{font-family:var(--f-body);background:#E9E9F1;color:var(--ek-ink);-webkit-font-smoothing:antialiased}
+
+/* ============ Хром: прогресс, счётчик, подсказка ============ */
+.progress{position:fixed;top:0;left:0;right:0;height:4px;background:rgba(23,23,28,.08);z-index:100}
+.progress__fill{height:100%;width:0%;background:var(--ek-violet);transition:width 300ms ease}
+.counter{position:fixed;top:14px;right:18px;z-index:90;font:600 13px var(--f-body);color:var(--ek-gray);background:#fff;border:1px solid var(--ek-line);padding:6px 14px;border-radius:999px;font-variant-numeric:tabular-nums}
+.counter b{color:var(--ek-ink)}
+.hint{position:fixed;bottom:12px;left:50%;transform:translateX(-50%);z-index:90;font:500 11px var(--f-body);color:var(--ek-gray);background:#fff;border:1px solid var(--ek-line);padding:6px 14px;border-radius:999px;letter-spacing:.03em}
+.hint kbd{font-family:var(--f-mono);background:var(--ek-gray-light);padding:1px 6px;border-radius:4px;font-size:10px;margin:0 2px;color:var(--ek-ink)}
+
+/* ============ Сцена 1280×720 ============ */
+.stage{position:absolute;left:50%;top:50%;width:1280px;height:720px;transform:translate(-50%,-50%);border-radius:18px;overflow:hidden;box-shadow:0 30px 90px rgba(23,23,28,.18);background:#fff}
+.slide{position:absolute;inset:0;background:#fff;opacity:0;transform:translateY(26px);transition:opacity 280ms ease,transform 280ms ease;pointer-events:none;font-family:var(--f-head)}
+.slide.active{opacity:1;transform:none;pointer-events:auto}
+.slide.prev{transform:translateY(-26px)}
+.slide--violet{background:var(--ek-violet)}
+.slide--green{background:var(--ek-green)}
+
+/* Номер страницы на контентных слайдах */
+.slide--content::after{content:attr(data-page);position:absolute;right:54px;bottom:30px;font:800 30px/1 var(--f-head);color:var(--ek-ink);opacity:.5}
+
+/* ============ Декор «Орбита» ============ */
+.sl-orbit{position:absolute;inset:0;pointer-events:none}
+.slide--violet .sl-orbit{--decor:#A79EF9;--letter:#C4BEFA}
+.slide--green .sl-orbit{--decor:#7BF9BD;--letter:#C4FCE0}
+.sl-ring{position:absolute;left:50%;top:50%;width:1040px;height:660px;transform:translate(-50%,-50%);border:3px solid var(--decor);border-radius:50%;opacity:.9}
+.sl-ico{position:absolute;color:var(--decor)}
+.sl-letter{position:absolute;border-radius:50%;background:var(--decor);color:var(--letter);display:flex;align-items:center;justify-content:center;font:800 var(--fs,40px)/1 var(--f-head);font-style:normal}
+
+/* ============ Каверы: карточка-окно и спич-бабл ============ */
+.cover-center{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);z-index:2}
+.cover-card{position:relative;width:860px;background:#fff;border-radius:28px;box-shadow:0 30px 80px rgba(23,23,28,.18)}
+.card-top{display:flex;justify-content:space-between;align-items:center;padding:24px 30px 0}
+.win-dots{display:flex;gap:9px}
+.win-dots i{width:13px;height:13px;border-radius:50%;background:var(--ek-violet)}
+.win-close{position:relative;width:22px;height:22px}
+.win-close::before,.win-close::after{content:"";position:absolute;left:-1px;top:9px;width:24px;height:4px;border-radius:2px;background:var(--ek-violet)}
+.win-close::before{transform:rotate(45deg)}
+.win-close::after{transform:rotate(-45deg)}
+.cover-card .badge{position:absolute;left:50%;top:-30px;transform:translateX(-50%) rotate(-4deg)}
+.cover-card h1{padding:26px 64px 30px;text-align:center;font:800 50px/1.14 var(--f-head);letter-spacing:-.015em;color:var(--ek-ink)}
+.cover-card .cover-sub{padding:0 80px 34px;text-align:center;font:500 19px/1.5 var(--f-body);color:#3C3C45}
+.cover-card .cover-chips{display:flex;justify-content:center;gap:10px;flex-wrap:wrap;padding:0 40px 40px}
+.bubble{position:relative;width:660px;background:#EFEFF1;border-radius:30px;padding:56px 70px;text-align:center}
+.bubble::after{content:"";position:absolute;right:56px;bottom:-24px;width:0;height:0;border-left:38px solid transparent;border-top:28px solid #EFEFF1}
+.bubble h1{font:800 42px/1.25 var(--f-head);letter-spacing:-.01em;color:var(--ek-ink)}
+.bubble p{margin-top:16px;font:500 18px/1.5 var(--f-body);color:#3C3C45}
+
+/* ============ Стикер-бейдж и чипы ============ */
+.badge{display:inline-block;background:var(--ek-green);color:var(--ek-ink);font:800 24px/1 var(--f-head);padding:13px 22px;border-radius:13px;transform:rotate(-3deg);box-shadow:0 10px 24px rgba(23,23,28,.10)}
+.badge--violet{background:var(--ek-violet);color:#fff}
+.badge--sm{font-size:16px;padding:9px 16px;border-radius:10px}
+.chip{display:inline-block;font:700 14px/1 var(--f-body);padding:8px 14px;border-radius:999px;background:var(--ek-violet-bg);color:var(--ek-violet-deep)}
+.chip--green{background:var(--ek-green-pale);color:var(--ek-green-deep)}
+.chip--gray{background:var(--ek-gray-light);color:#3C3C45}
+
+/* ============ Контентные слайды ============ */
+.sl-body{position:absolute;inset:0;padding:56px 80px 62px;display:flex;flex-direction:column;gap:16px;overflow:hidden}
+h2{font:800 38px/1.16 var(--f-head);letter-spacing:-.01em;color:var(--ek-ink)}
+.acc{color:var(--ek-violet-deep)}
+.sl-body>p, .col p{font:500 18px/1.5 var(--f-body);color:#3C3C45}
+.code-chip{font-family:var(--f-mono);font-weight:700;font-size:.88em;background:var(--ek-violet-bg);color:var(--ek-violet-deep);padding:2px 8px;border-radius:8px;white-space:nowrap}
+.hl{color:var(--ek-violet-deep);font-weight:700}
+.out-chip{font-family:var(--f-mono);font-weight:700;font-size:.88em;background:var(--ek-green-pale);color:#0B7A48;padding:2px 8px;border-radius:8px;white-space:nowrap}
+
+.grid-2{display:grid;grid-template-columns:1fr 1fr;gap:22px;align-items:start}
+.grid-3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:18px;align-items:stretch}
+
+.info-card{background:#F5F5F9;border-radius:18px;padding:18px 22px;font:500 16px/1.55 var(--f-body);color:#3C3C45}
+.info-card h3{font:800 19px/1.3 var(--f-head);color:var(--ek-ink);margin-bottom:8px}
+.ek-note{background:var(--ek-violet-bg);border-left:4px solid var(--ek-violet);border-radius:0 14px 14px 0;padding:14px 20px;font:600 17px/1.5 var(--f-body);color:#3C3560}
+.ek-note--green{background:var(--ek-green-pale);border-left-color:var(--ek-green-deep);color:#0B5B39}
+.ek-note--red{background:var(--ek-red-pale);border-left-color:var(--ek-red);color:#7A2E2E}
+
+ul.clean{list-style:none;display:flex;flex-direction:column;gap:10px}
+ul.clean li{display:flex;gap:14px;align-items:flex-start;font:500 17.5px/1.5 var(--f-body);color:#3C3C45}
+ul.clean li::before{content:'—';flex:0 0 auto;color:var(--ek-violet-deep);font-weight:800}
+
+ol.steps{list-style:none;counter-reset:step;display:flex;flex-direction:column;gap:12px}
+ol.steps li{counter-increment:step;display:flex;gap:16px;align-items:center;padding:14px 20px;background:#F5F5F9;border-radius:16px;font:500 17.5px/1.45 var(--f-body);color:#2E2E36}
+ol.steps li::before{content:counter(step);flex:0 0 40px;height:40px;display:flex;align-items:center;justify-content:center;border-radius:50%;background:var(--ek-violet);font:800 18px var(--f-head);color:#fff}
+ol.steps li:last-child::before{background:var(--ek-green);color:var(--ek-ink)}
+ol.steps.steps--tight{gap:8px}
+ol.steps.steps--tight li{padding:9px 16px;font-size:15.5px;gap:12px}
+ol.steps.steps--tight li::before{flex-basis:32px;height:32px;font-size:14px}
+
+.q-label{font:700 13px/1 var(--f-head);letter-spacing:.08em;text-transform:uppercase;color:var(--ek-gray)}
+
+/* ============ План занятия (agenda) ============ */
+.agenda{display:flex;flex-direction:column;gap:8px}
+.agenda-row{display:flex;gap:16px;align-items:center;padding:10px 18px;background:#F5F5F9;border-radius:14px}
+.agenda-row .t{flex:0 0 84px;text-align:center;font:800 14px/1 var(--f-mono);color:var(--ek-ink);background:var(--ek-green);border-radius:999px;padding:8px 0}
+.agenda-row .tt{font:700 16.5px/1.3 var(--f-head);color:var(--ek-ink)}
+.agenda-row .dd{font:500 14px/1.4 var(--f-body);color:var(--ek-gray)}
+
+/* ============ Ключ-значение (привычки, шпаргалки) ============ */
+.kv{display:flex;flex-direction:column}
+.kv-row{display:grid;grid-template-columns:250px 1fr;gap:18px;align-items:start;padding:11px 4px;border-bottom:1.5px solid var(--ek-line)}
+.kv-row:last-child{border-bottom:none}
+.kv-row .k{font:800 14px/1.35 var(--f-head);letter-spacing:.05em;text-transform:uppercase;color:var(--ek-violet-deep);padding-top:2px}
+.kv-row .v{font:500 16.5px/1.5 var(--f-body);color:#3C3C45}
+
+/* ============ Окно кода (статичное) ============ */
+.code-win{background:#fff;border:2.5px solid var(--ek-ink);border-radius:16px;overflow:hidden;font-family:var(--f-mono);box-shadow:10px 10px 0 rgba(140,127,246,.14)}
+.code-head{display:flex;align-items:center;justify-content:space-between;padding:9px 16px;border-bottom:2px solid var(--ek-ink)}
+.code-head .win-dots i{width:11px;height:11px}
+.lang-badge{font:700 11px var(--f-mono);letter-spacing:.14em;color:var(--ek-gray)}
+.code-body{padding:14px 20px;font:500 14.5px/1.6 var(--f-mono);color:var(--ek-ink);white-space:pre;overflow:auto;max-height:400px;tab-size:4}
+.code-body .cm{color:var(--ek-gray)}
+.code-body .st{color:var(--ek-green-deep)}
+.code-body .kw{color:var(--ek-violet-deep);font-weight:700}
+
+/* ============ Терминал (тёмное окно) ============ */
+.term{background:var(--ek-ink);border-radius:16px;overflow:hidden;font-family:var(--f-mono);box-shadow:10px 10px 0 rgba(23,23,28,.12)}
+.term-head{display:flex;align-items:center;justify-content:space-between;padding:9px 16px;border-bottom:1px solid rgba(255,255,255,.14)}
+.term-head .win-dots i{width:11px;height:11px;background:var(--ek-green)}
+.term-head .lang-badge{color:rgba(255,255,255,.5)}
+.term-body{padding:14px 20px;font:500 14.5px/1.62 var(--f-mono);color:var(--ek-green);white-space:pre-wrap;word-break:break-word;overflow:auto;max-height:420px}
+.term-body .usr{color:#fff}
+.term-body .dim{color:rgba(255,255,255,.55)}
+
+/* ============ Промпт-карточка (диалог с DeepSeek) ============ */
+.prompt-card{position:relative;background:var(--ek-violet-bg);border:2.5px solid var(--ek-violet);border-radius:18px;padding:20px 26px 18px;box-shadow:10px 10px 0 rgba(140,127,246,.18)}
+.prompt-card .pc-tag{position:absolute;top:-16px;left:22px;background:var(--ek-violet);color:#fff;font:800 14px/1 var(--f-head);padding:9px 16px;border-radius:10px;transform:rotate(-2deg);box-shadow:0 8px 18px rgba(23,23,28,.12)}
+.prompt-card .pc-text{margin-top:6px;font:500 15px/1.62 var(--f-mono);color:#2E2A52;white-space:pre-wrap}
+.prompt-card .pc-text .hl{color:var(--ek-violet-deep)}
+.prompt-card--copy .pc-tag{background:var(--ek-green);color:var(--ek-ink)}
+
+/* ============ Сравнение (vs) ============ */
+.vs{display:grid;grid-template-columns:1fr 1fr;gap:20px;align-items:stretch}
+.vs-col{border-radius:18px;padding:20px 24px}
+.vs-col h4{font:800 15px/1 var(--f-head);letter-spacing:.08em;text-transform:uppercase;margin-bottom:12px}
+.vs-col p{font:500 16px/1.55 var(--f-body)}
+.vs-col .note{margin-top:12px;font:500 13.5px/1.4 var(--f-body);opacity:.75}
+.vs-col--plain{background:var(--ek-gray-light);color:#3C3C45}
+.vs-col--plain h4{color:var(--ek-gray)}
+.vs-col--win{background:var(--ek-green-pale);color:#124F35;border:2px solid var(--ek-green-soft)}
+.vs-col--win h4{color:var(--ek-green-deep)}
+
+/* ============ Квиз с раскрытием ответа ============ */
+.quiz-box{background:#F5F5F9;border:2.5px solid var(--ek-ink);border-radius:18px;padding:22px 26px;box-shadow:10px 10px 0 rgba(61,247,157,.25)}
+.quiz-box .q-num{display:inline-block;background:var(--ek-green);color:var(--ek-ink);font:800 13px/1 var(--f-head);letter-spacing:.08em;text-transform:uppercase;padding:8px 14px;border-radius:999px;margin-bottom:14px}
+.quiz-box .q-text{font:700 21px/1.42 var(--f-head);color:var(--ek-ink)}
+.quiz-answer{margin-top:16px}
+.quiz-btn{border:0;border-radius:12px;padding:12px 22px;font:800 15px/1 var(--f-head);cursor:pointer;background:var(--ek-violet);color:#fff;transition:background .15s}
+.quiz-btn:hover{background:var(--ek-violet-deep)}
+.quiz-reveal{display:none;margin-top:14px;background:var(--ek-green-pale);border-left:4px solid var(--ek-green-deep);border-radius:0 14px 14px 0;padding:14px 20px;font:500 16.5px/1.55 var(--f-body);color:#0B5B39}
+.quiz-reveal.show{display:block}
+.quiz-reveal p+p{margin-top:8px}
+
+/* Появление контента */
+.slide.active .info-card,.slide.active ul.clean li,.slide.active ol.steps li,.slide.active .grid-2>*,.slide.active .grid-3>*,.slide.active .agenda-row,.slide.active .kv-row{animation:reveal 450ms ease backwards}
+.slide.active .info-card:nth-child(2),.slide.active ul.clean li:nth-child(2),.slide.active ol.steps li:nth-child(2),.slide.active .grid-2>*:nth-child(2),.slide.active .grid-3>*:nth-child(2),.slide.active .agenda-row:nth-child(2),.slide.active .kv-row:nth-child(2){animation-delay:80ms}
+.slide.active ul.clean li:nth-child(3),.slide.active ol.steps li:nth-child(3),.slide.active .grid-3>*:nth-child(3),.slide.active .agenda-row:nth-child(3),.slide.active .kv-row:nth-child(3){animation-delay:160ms}
+.slide.active ol.steps li:nth-child(4),.slide.active .agenda-row:nth-child(4),.slide.active .kv-row:nth-child(4){animation-delay:240ms}
+.slide.active ol.steps li:nth-child(5),.slide.active .agenda-row:nth-child(5),.slide.active .kv-row:nth-child(5){animation-delay:320ms}
+.slide.active .agenda-row:nth-child(6),.slide.active ol.steps li:nth-child(6),.slide.active .kv-row:nth-child(6){animation-delay:400ms}
+.slide.active .agenda-row:nth-child(7),.slide.active ol.steps li:nth-child(7),.slide.active .kv-row:nth-child(7){animation-delay:480ms}
+@keyframes reveal{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:translateY(0)}}
+@media (prefers-reduced-motion:reduce){.slide.active .info-card,.slide.active ul.clean li,.slide.active ol.steps li,.slide.active .grid-2>*,.slide.active .grid-3>*,.slide.active .agenda-row,.slide.active .kv-row{animation:none}}
+
+/* ============ Заметки преподавателя ============ */
+.notes{position:fixed;bottom:0;left:0;right:0;background:#fff;border-top:1px solid var(--ek-line);box-shadow:0 -16px 40px rgba(23,23,28,.10);padding:20px 40px;z-index:95;max-height:40vh;overflow-y:auto;transform:translateY(100%);transition:transform 300ms ease}
+.notes.active{transform:translateY(0)}
+.notes__header{font:800 11px var(--f-head);letter-spacing:.2em;text-transform:uppercase;color:var(--ek-violet-deep);margin-bottom:8px}
+.notes__body{font:500 15px/1.55 var(--f-body);color:#3C3C45}
+
+:focus-visible{outline:3px solid var(--ek-violet-soft);outline-offset:2px;border-radius:6px}
+::-webkit-scrollbar{width:8px;height:8px}
+::-webkit-scrollbar-track{background:transparent}
+::-webkit-scrollbar-thumb{background:rgba(23,23,28,.15);border-radius:4px}
+
+
+/* ============ Module 5 · компоненты с доказуемым действием ============ */
+.nav-arrow{position:fixed;bottom:12px;z-index:92;width:44px;height:44px;border:1.5px solid var(--ek-line);border-radius:50%;background:#fff;color:var(--ek-violet-deep);font:800 21px var(--f-head);cursor:pointer;box-shadow:0 8px 24px rgba(23,23,28,.10)}
+.nav-arrow:hover{background:var(--ek-violet);color:#fff;border-color:var(--ek-violet)}
+.nav-arrow:disabled{opacity:.35;cursor:not-allowed;background:#fff;color:var(--ek-gray)}
+.nav-arrow--prev{left:16px}.nav-arrow--next{right:16px}
+.hint{bottom:16px}
+button:focus-visible,input:focus-visible{outline:3px solid #3A2FB8;outline-offset:3px}
+
+.slide-meta{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+.program-chip{font:800 12px/1 var(--f-mono);letter-spacing:.06em;text-transform:uppercase;color:var(--ek-violet-deep);background:var(--ek-violet-bg);border-radius:999px;padding:8px 12px}
+.verified{display:inline-flex;align-items:center;gap:7px;font:800 12px/1 var(--f-body);color:#08613a;background:var(--ek-green-pale);border:1.5px solid var(--ek-green-soft);border-radius:999px;padding:8px 12px}
+.verified::before{content:'✓';display:grid;place-items:center;width:17px;height:17px;border-radius:50%;background:var(--ek-green);color:var(--ek-ink);font-size:11px}
+.source-line{font:600 12px/1.4 var(--f-mono);color:var(--ek-gray);overflow-wrap:anywhere}
+
+.concept-flow{display:grid;grid-template-columns:repeat(4,1fr);gap:34px;align-items:center;margin-top:6px}
+.flow-node{position:relative;min-height:145px;border:2.5px solid var(--ek-ink);border-radius:20px;padding:22px 18px;background:#fff;box-shadow:8px 8px 0 var(--ek-violet-bg);display:flex;flex-direction:column;justify-content:center;text-align:center}
+.flow-node:not(:last-child)::after{content:'→';position:absolute;right:-31px;top:50%;transform:translateY(-50%);font:900 28px var(--f-head);color:var(--ek-violet-deep)}
+.flow-node .flow-kicker{font:800 12px var(--f-mono);letter-spacing:.08em;text-transform:uppercase;color:var(--ek-gray);margin-bottom:8px}
+.flow-node b{font:800 20px/1.25 var(--f-head)}
+.flow-node p{margin-top:7px;font:500 14px/1.4 var(--f-body);color:#4A4A55}
+.flow-node--accent{background:var(--ek-green-pale);box-shadow:8px 8px 0 rgba(61,247,157,.28)}
+
+.schema-table{width:100%;border-collapse:separate;border-spacing:0;border:2.5px solid var(--ek-ink);border-radius:18px;overflow:hidden;font:600 15px/1.3 var(--f-mono);background:#fff}
+.schema-table th{background:var(--ek-violet);color:#fff;text-align:left;padding:12px 14px;font-size:12px;letter-spacing:.05em;text-transform:uppercase}
+.schema-table td{padding:12px 14px;border-top:1.5px solid var(--ek-line);color:#30303A}
+.schema-table tr:nth-child(even) td{background:#F8F8FB}
+.schema-table .pk{color:var(--ek-violet-deep);font-weight:800}
+
+.lab-shell{background:#fff;border:2.5px solid var(--ek-ink);border-radius:20px;padding:20px 24px;box-shadow:10px 10px 0 rgba(140,127,246,.16);overflow:hidden}
+.lab-top{display:flex;align-items:center;justify-content:space-between;gap:14px;margin-bottom:14px}
+.lab-title{font:800 18px/1.3 var(--f-head)}
+.lab-instruction{font:500 15px/1.45 var(--f-body);color:#4A4A55;margin-bottom:14px}
+.choice-list{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.choice-btn{border:1.8px solid var(--ek-line);border-radius:14px;background:#F7F7FA;color:var(--ek-ink);padding:13px 16px;text-align:left;font:700 15px/1.35 var(--f-body);cursor:pointer;min-height:54px}
+.choice-btn:hover{border-color:var(--ek-violet);background:var(--ek-violet-bg)}
+.choice-btn.is-correct{border-color:var(--ek-green-deep);background:var(--ek-green-pale)}
+.choice-btn.is-wrong{border-color:var(--ek-red);background:var(--ek-red-pale)}
+.lab-feedback{min-height:46px;margin-top:14px;border-radius:12px;padding:11px 14px;font:600 14px/1.45 var(--f-body);background:#F5F5F9;color:#4A4A55}
+.lab-feedback.good{background:var(--ek-green-pale);color:#0B5B39}.lab-feedback.bad{background:var(--ek-red-pale);color:#7A2E2E}
+
+.fill-code{display:flex;align-items:center;gap:8px;flex-wrap:wrap;padding:16px 18px;border-radius:14px;background:var(--ek-ink);color:#fff;font:600 17px/1.6 var(--f-mono)}
+.fill-code input{width:150px;min-height:44px;border:2px solid var(--ek-violet-soft);border-radius:9px;background:#fff;color:var(--ek-ink);font:700 16px var(--f-mono);padding:7px 9px}
+.fill-code input.is-correct{border-color:var(--ek-green)}.fill-code input.is-wrong{border-color:var(--ek-red)}
+.lab-actions{display:flex;gap:10px;margin-top:14px;flex-wrap:wrap}
+.action-btn{min-height:44px;border:0;border-radius:12px;background:var(--ek-violet);color:#fff;padding:11px 18px;font:800 14px/1 var(--f-head);cursor:pointer}
+.action-btn:hover{background:var(--ek-violet-deep)}
+.action-btn--secondary{background:var(--ek-gray-light);color:var(--ek-ink)}
+.action-btn--secondary:hover{background:#DDDDE5}
+
+.order-zone{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+.order-col{min-height:170px;border:2px dashed var(--ek-line);border-radius:15px;padding:12px;background:#FAFAFC}
+.order-col h4{font:800 12px/1 var(--f-head);text-transform:uppercase;letter-spacing:.08em;color:var(--ek-gray);margin-bottom:9px}
+.order-item{display:block;width:100%;min-height:44px;border:1.5px solid var(--ek-violet-soft);border-radius:10px;background:var(--ek-violet-bg);color:#2E2A52;padding:9px 11px;margin:7px 0;text-align:left;font:700 13px/1.35 var(--f-mono);cursor:pointer}
+.order-result .order-item{border-color:var(--ek-green-soft);background:var(--ek-green-pale);color:#124F35}
+
+.run-lab{display:grid;grid-template-columns:1.15fr .85fr;gap:18px;min-height:330px}
+.run-code{border-radius:16px;background:var(--ek-ink);color:#fff;padding:18px 20px;font:500 14px/1.55 var(--f-mono);white-space:pre;overflow:auto;max-height:330px}
+.run-console{border:2px solid var(--ek-line);border-radius:16px;background:#FAFAFC;padding:16px 18px;min-height:230px;font:600 14px/1.5 var(--f-mono);color:#30303A;overflow:auto}
+.run-step{display:none;padding:8px 10px;border-bottom:1px solid var(--ek-line)}
+.run-step.show{display:block;animation:traceIn .25s ease}
+.run-step:last-child{border-bottom:0}.run-step strong{color:var(--ek-violet-deep)}
+@keyframes traceIn{from{opacity:0;transform:translateY(5px)}to{opacity:1;transform:none}}
+
+.app-mock{border:2.5px solid var(--ek-ink);border-radius:20px;overflow:hidden;background:#fff;box-shadow:12px 12px 0 rgba(61,247,157,.22)}
+.app-mock__top{display:flex;align-items:center;justify-content:space-between;padding:11px 16px;border-bottom:2px solid var(--ek-ink);background:#fff}
+.app-mock__body{display:grid;grid-template-columns:220px 1fr;min-height:360px}
+.app-mock__side{background:var(--ek-violet-bg);padding:20px;border-right:1.5px solid var(--ek-line)}
+.app-mock__side b{font:800 16px/1.3 var(--f-head)}
+.app-mock__side p{margin-top:8px;font:500 13px/1.45 var(--f-body);color:#4A4A55}
+.app-mock__main{padding:22px 24px;display:flex;flex-direction:column;gap:12px}
+.mock-row{display:flex;align-items:center;justify-content:space-between;gap:14px;border-bottom:1px solid var(--ek-line);padding:10px 2px;font:600 14px/1.35 var(--f-body)}
+.mock-row:last-child{border-bottom:0}.mock-value{font:800 14px var(--f-mono);color:var(--ek-violet-deep)}
+.mock-chart{height:110px;display:flex;align-items:flex-end;gap:12px;padding:12px 16px;border-radius:14px;background:#F7F7FA}
+.mock-chart i{display:block;flex:1;border-radius:7px 7px 2px 2px;background:var(--ek-violet);min-height:18px}
+.mock-chart i:nth-child(even){background:var(--ek-green)}
+
+.file-tree{font:600 15px/1.75 var(--f-mono);background:var(--ek-ink);color:#fff;border-radius:18px;padding:20px 26px;white-space:pre}
+.file-tree .folder{color:var(--ek-green)}.file-tree .file{color:#C4BEFA}.file-tree .comment{color:rgba(255,255,255,.55)}
+
+.mini-test-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:14px}
+.mini-test{border-radius:16px;padding:17px 18px;background:#F5F5F9;min-height:126px}
+.mini-test .status{font:800 12px/1 var(--f-mono);text-transform:uppercase;letter-spacing:.06em;color:var(--ek-green-deep)}
+.mini-test h3{font:800 17px/1.25 var(--f-head);margin:10px 0 6px}.mini-test p{font:500 13px/1.4 var(--f-body);color:#4A4A55}
+
+.check-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.check-item{border:1.5px solid var(--ek-line);border-radius:13px;background:#F8F8FB;padding:13px 15px;text-align:left;font:700 14px/1.35 var(--f-body);cursor:pointer;color:var(--ek-ink)}
+.check-item::before{content:'○';color:var(--ek-gray);margin-right:10px;font-size:17px}.check-item.done{background:var(--ek-green-pale);border-color:var(--ek-green-soft)}.check-item.done::before{content:'✓';color:var(--ek-green-deep)}
+
+.quiz-answer-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:14px}
+.quiz-answer-grid .choice-btn{min-height:66px}
+
+/* Урок 13 · функциональное объяснение данных без SQL-синтаксиса */
+.explain-panel{border:2.5px solid var(--ek-ink);border-radius:22px;background:#fff;padding:24px 30px;box-shadow:10px 10px 0 var(--ek-violet-bg)}
+.explain-bullets{list-style:none;display:grid;grid-template-columns:1fr 1fr;gap:14px 24px;margin:0;padding:0}
+.explain-bullets li{position:relative;padding:15px 16px 15px 44px;border-radius:14px;background:#F7F7FB;font:600 16px/1.45 var(--f-body)}
+.explain-bullets li::before{content:'→';position:absolute;left:16px;top:14px;color:var(--ek-violet-deep);font:900 20px var(--f-head)}
+
+.persistence-lab{padding:22px}.persistence-actions{display:flex;gap:10px;flex-wrap:wrap;margin-bottom:18px}
+.persistence-grid{display:grid;grid-template-columns:1fr 1fr;gap:18px}.memory-box{min-height:230px;border:2.5px solid var(--ek-ink);border-radius:20px;padding:22px;background:#fff;box-shadow:8px 8px 0 var(--ek-violet-bg)}
+.memory-box--long{background:var(--ek-green-pale);box-shadow:8px 8px 0 rgba(61,247,157,.25)}.memory-box h3{font:800 21px/1.25 var(--f-head);margin:8px 0 18px}
+.memory-result{display:grid;place-items:center;min-height:92px;border:2px dashed var(--ek-line);border-radius:14px;color:var(--ek-gray);font:700 14px/1.4 var(--f-body);text-align:center;padding:12px}
+.memory-result.has-game{border-style:solid;border-color:var(--ek-violet-soft);background:#fff;color:var(--ek-ink);font-size:16px}.memory-result.has-game::before{content:'🎮';font-size:28px;display:block}
+.memory-result.is-lost{border-color:var(--ek-red);background:var(--ek-red-pale);color:#7A2E2E}
+
+.scenario-grid,.action-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:14px}.scenario-card,.action-card{border:2px solid var(--ek-line);border-radius:18px;padding:18px;background:#fff;min-height:190px}
+.scenario-card:nth-child(2n),.action-card:nth-child(2n){background:var(--ek-violet-bg)}.scenario-card h3,.action-card h3{font:800 19px/1.25 var(--f-head);margin-bottom:10px}.scenario-card p,.action-card p{font:500 14px/1.45 var(--f-body);color:#4A4A55}
+.action-card{position:relative;padding-top:48px}.action-card>span{position:absolute;left:16px;top:14px;display:grid;place-items:center;width:27px;height:27px;border-radius:50%;background:var(--ek-green);font:900 12px var(--f-mono)}
+
+.contrast-grid{display:grid;grid-template-columns:1fr 1fr;gap:18px}.contrast-card{border:2.5px solid var(--ek-ink);border-radius:20px;padding:22px 24px;background:#fff}.contrast-card--bad{box-shadow:9px 9px 0 var(--ek-red-pale)}.contrast-card--good{background:var(--ek-green-pale);box-shadow:9px 9px 0 rgba(61,247,157,.22)}
+.contrast-card h3{font:800 21px/1.2 var(--f-head);margin-bottom:14px}.contrast-card ul{list-style:none;padding:0;margin:0}.contrast-card li{position:relative;padding:9px 0 9px 28px;border-bottom:1px solid var(--ek-line);font:600 14px/1.4 var(--f-body)}.contrast-card li:last-child{border-bottom:0}.contrast-card--bad li::before{content:'×';position:absolute;left:3px;color:var(--ek-red);font-weight:900}.contrast-card--good li::before{content:'✓';position:absolute;left:3px;color:var(--ek-green-deep);font-weight:900}
+
+.storage-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:14px}.storage-card{position:relative;border:2px solid var(--ek-line);border-radius:19px;padding:20px 18px;background:#fff;min-height:330px}.storage-card--recommended{border-color:var(--ek-ink);background:var(--ek-green-pale);box-shadow:8px 8px 0 rgba(61,247,157,.24)}
+.storage-card h3{font:800 19px/1.2 var(--f-head);margin:14px 0}.storage-card p{font:500 13px/1.42 var(--f-body);margin:10px 0}.storage-plus b{color:var(--ek-green-deep)}.storage-minus b{color:var(--ek-red)}.recommended-badge{display:inline-flex;border-radius:999px;background:var(--ek-green);padding:6px 9px;font:900 10px/1 var(--f-mono);letter-spacing:.07em}
+
+.concept-flow--detailed{gap:26px}.flow-node--detailed{min-height:242px;justify-content:flex-start;text-align:left;padding:20px 17px}.flow-node--detailed b{display:block;min-height:50px}.flow-bullets{list-style:none;margin:10px 0 0;padding:0}.flow-bullets li{position:relative;padding:7px 0 7px 17px;font:500 12.5px/1.4 var(--f-body);color:#4A4A55;border-top:1px solid var(--ek-line)}.flow-bullets li::before{content:'•';position:absolute;left:2px;color:var(--ek-violet-deep);font-size:18px;top:3px}
+
+.record-card{border:2.5px solid var(--ek-ink);border-radius:20px;overflow:hidden;background:#fff}.record-row{display:grid;grid-template-columns:150px 170px 1fr;gap:18px;align-items:center;padding:13px 18px;border-top:1px solid var(--ek-line)}.record-row:first-child{border-top:0}.record-row:nth-child(even){background:#F8F8FB}.record-row b{font:800 15px var(--f-head)}.record-rule{display:inline-flex;width:max-content;max-width:100%;border-radius:999px;background:var(--ek-violet-bg);color:var(--ek-violet-deep);padding:7px 10px;font:800 11px/1.2 var(--f-mono)}.record-row p{font:500 13px/1.4 var(--f-body);color:#4A4A55}
+
+.download-layout{display:grid;grid-template-columns:.9fr 1.1fr;gap:20px}.download-card{border:2.5px solid var(--ek-ink);border-radius:22px;padding:22px;background:var(--ek-violet-bg);box-shadow:10px 10px 0 rgba(140,127,246,.2)}.download-card h3{font:800 22px/1.2 var(--f-head);margin:15px 0}.download-card ul{padding-left:20px}.download-card li{font:600 13px/1.42 var(--f-body);margin:8px 0}.download-btn{display:inline-flex;align-items:center;justify-content:center;min-height:48px;margin-top:12px;border-radius:13px;background:var(--ek-violet);color:#fff;text-decoration:none;padding:12px 18px;font:800 15px var(--f-head)}.download-btn:hover{background:var(--ek-violet-deep)}
+.launch-steps{display:flex;flex-direction:column;gap:10px}.launch-step{display:grid;grid-template-columns:44px 1fr;gap:12px;align-items:start;border:1.5px solid var(--ek-line);border-radius:16px;padding:13px 15px;background:#fff}.launch-step>span{display:grid;place-items:center;width:38px;height:38px;border-radius:50%;background:var(--ek-green);font:900 15px var(--f-mono)}.launch-step h3{font:800 15px/1.25 var(--f-head);margin-bottom:4px}.launch-step p{font:500 12.5px/1.4 var(--f-body);color:#4A4A55}
+
+.proof-sequence{display:grid;grid-template-columns:1fr 1fr;gap:11px}.browser-check{border:2.5px solid var(--ek-ink);border-radius:20px;overflow:hidden;background:#fff;box-shadow:10px 10px 0 var(--ek-violet-bg)}.browser-check__bar{display:flex;align-items:center;justify-content:space-between;gap:12px;border-bottom:2px solid var(--ek-ink);padding:11px 15px;background:#F9F9FC}.browser-check__bar b{font:800 12px var(--f-mono);text-transform:uppercase;letter-spacing:.06em}.browser-check .check-grid{padding:18px}
+.manual-test-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}.manual-test{position:relative;border:1.8px solid var(--ek-line);border-radius:16px;padding:44px 16px 16px;background:#fff;min-height:158px}.manual-test>span{position:absolute;left:15px;top:13px;display:grid;place-items:center;width:25px;height:25px;border-radius:50%;background:var(--ek-green);font:900 11px var(--f-mono)}.manual-test h3{font:800 16px/1.25 var(--f-head);margin-bottom:7px}.manual-test p{font:500 12.5px/1.4 var(--f-body);color:#4A4A55}
+
+@media (max-width:900px) and (orientation:landscape){.hint{display:none}}
+
+/* На узком портретном экране слайд становится настоящим viewport и reflow,
+   а не уменьшается до нечитаемой миниатюры 1280×720. */
+@media (max-width:700px) and (orientation:portrait){
+  html,body{width:100%;height:100%;overflow:hidden;background:#fff}
+  .stage{position:fixed;left:0;top:0;width:100vw;height:100dvh;transform:none!important;border-radius:0!important;box-shadow:none}
+  .slide{overflow:hidden}
+  .sl-body{padding:64px 22px 78px;gap:12px;overflow-y:auto;overflow-x:hidden;overscroll-behavior:contain}
+  .sl-body>*{min-width:0;max-width:100%}
+  h2{font-size:clamp(27px,8vw,36px)}
+  .sl-body>p,.col p{font-size:16px;line-height:1.45}
+  .grid-2,.grid-3,.vs,.concept-flow,.run-lab,.mini-test-grid,.check-grid,.explain-bullets,.persistence-grid,.scenario-grid,.action-grid,.contrast-grid,.storage-grid,.download-layout,.manual-test-grid,.proof-sequence{grid-template-columns:1fr}
+  .grid-2>*,.grid-3>*,.vs>*,.run-lab>*{min-width:0}
+  .kv-row{grid-template-columns:1fr;gap:4px;padding:10px 2px}
+  .kv-row .k{font-size:12px}.kv-row .v{font-size:15px;overflow-wrap:anywhere}
+  .concept-flow{gap:12px}.flow-node{min-height:96px;padding:14px}.flow-node:not(:last-child)::after{content:'↓';right:auto;left:50%;top:auto;bottom:-19px;transform:translateX(-50%);font-size:20px}
+  .flow-node--detailed{min-height:0}.flow-node--detailed b{min-height:0}.flow-bullets li{font-size:14px}.scenario-card,.action-card,.storage-card{min-height:0}.record-row{grid-template-columns:1fr;gap:7px}.download-card,.launch-step{min-width:0}.persistence-actions{display:grid}.manual-test{min-height:0}
+  .choice-list,.quiz-answer-grid{grid-template-columns:1fr}
+  .order-zone{grid-template-columns:1fr}.order-col{min-height:120px}
+  .run-code{max-height:240px;font-size:12px}.run-console{min-height:160px}
+  .app-mock__body{grid-template-columns:1fr;min-height:0}.app-mock__side{border-right:0;border-bottom:1.5px solid var(--ek-line);padding:14px}.app-mock__main{padding:15px}
+  .mini-test p,.app-mock__side p{font-size:14px}.info-card,.ek-note,.lab-instruction{font-size:15px}
+  .cover-center{width:100%;padding:0 18px}.cover-card{width:100%;border-radius:22px}.cover-card h1{padding:22px 22px 20px;font-size:clamp(34px,10vw,48px)}.cover-card .cover-sub{padding:0 22px 22px;font-size:16px}.cover-card .cover-chips{padding:0 16px 26px}.cover-card .badge{top:-24px;font-size:17px}
+  .sl-orbit{transform:scale(.56);transform-origin:center}.sl-ring{opacity:.45}
+  .bubble{width:calc(100vw - 38px);padding:42px 26px}.bubble h1{font-size:34px}
+  .code-body,.term-body{font-size:12px;max-height:360px}.prompt-card .pc-text{font-size:13px;overflow-wrap:anywhere;word-break:break-word}
+  .file-tree{font-size:12px;overflow:auto}.schema-table{display:block;width:100%;max-width:100%;font-size:12px;overflow-x:auto;-webkit-overflow-scrolling:touch}.schema-table th,.schema-table td{padding:9px}
+  .counter{top:10px;right:10px}.hint{display:none}.nav-arrow{bottom:12px}.nav-arrow--prev{left:12px}.nav-arrow--next{right:12px}
+  .slide--content::after{right:50%;bottom:23px;transform:translateX(50%);font-size:22px}
+}
+
+@media (prefers-reduced-motion:reduce){.run-step.show{animation:none}.slide{transition:none}.progress__fill{transition:none}}
+
+.game-preview__body{display:grid;grid-template-columns:220px 1fr;min-height:360px;background:#F7F7FB}.game-preview__form{padding:20px;background:var(--ek-ink);color:#fff}.game-preview__form h3{font:800 21px/1.2 var(--f-head);margin:9px 0 16px}.game-preview__field{border:1px solid rgba(255,255,255,.18);border-radius:10px;background:rgba(255,255,255,.08);padding:10px 11px;margin:9px 0;color:rgba(255,255,255,.7);font:600 12px var(--f-body)}.game-preview__form-row{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin:9px 0}.game-preview__form-row span{border:1px solid rgba(255,255,255,.18);border-radius:10px;padding:9px;color:rgba(255,255,255,.7);font:600 11px var(--f-body)}.game-preview__button{margin-top:15px;border-radius:11px;background:var(--ek-green);color:var(--ek-ink);padding:11px;text-align:center;font:900 12px var(--f-head)}
+.game-preview__main{display:flex;flex-direction:column;gap:11px;padding:16px}.game-preview__stats{display:grid;grid-template-columns:repeat(3,1fr);gap:9px}.game-preview__stat{border:1px solid var(--ek-line);border-radius:12px;background:#fff;padding:10px 12px}.game-preview__stat b{display:block;font:900 23px/1 var(--f-head)}.game-preview__stat span{color:var(--ek-gray);font:600 10px var(--f-body)}.game-preview__toolbar{display:grid;grid-template-columns:1fr auto;gap:9px}.game-preview__search,.game-preview__filter{border:1px solid var(--ek-line);border-radius:10px;background:#fff;padding:9px 11px;color:#5B5B67;font:600 11px var(--f-body)}.game-preview__cards{display:grid;grid-template-columns:1fr 1fr;gap:10px}.game-preview__card{display:grid;grid-template-columns:64px 1fr;gap:11px;border:1px solid var(--ek-line);border-radius:14px;background:#fff;padding:10px;min-width:0}.game-preview__cover{display:grid;place-items:center;border-radius:11px;background:linear-gradient(145deg,var(--ek-violet),var(--ek-violet-deep));font-size:26px}.game-preview__card:nth-child(2) .game-preview__cover{background:linear-gradient(145deg,var(--ek-green),#159864)}.game-preview__info{min-width:0}.game-preview__title{display:flex;align-items:flex-start;justify-content:space-between;gap:6px}.game-preview__title b{font:800 13px/1.2 var(--f-head)}.game-preview__title span{border-radius:999px;background:var(--ek-green-pale);padding:5px 7px;color:var(--ek-green-deep);font:800 8px/1 var(--f-mono);white-space:nowrap}.game-preview__info p{margin:7px 0;color:var(--ek-gray);font:500 9.5px/1.35 var(--f-body)}.game-preview__rating{color:var(--ek-violet-deep);font:800 12px var(--f-mono)}
+@media (max-width:700px) and (orientation:portrait){.game-preview .app-mock__bar{padding:10px 14px;gap:8px}.game-preview .app-mock__bar>span:first-child{max-width:145px;font-size:12px;line-height:1.12}.game-preview .app-status{padding:7px 9px;font-size:10px}.game-preview__body{grid-template-columns:1fr;min-height:0}.game-preview__form{padding:10px 16px}.game-preview__form>span{font-size:10px}.game-preview__form h3{font-size:18px;margin:3px 0 7px}.game-preview__field{padding:7px 9px;margin:5px 0;font-size:10px}.game-preview__form-row{gap:7px;margin:5px 0}.game-preview__form-row span{padding:7px;font-size:10px}.game-preview__button{margin-top:7px;padding:9px;font-size:11px}.game-preview__main{gap:7px;padding:10px 13px}.game-preview__stats{grid-template-columns:repeat(3,1fr);gap:6px}.game-preview__stat{padding:7px 8px}.game-preview__stat b{font-size:18px}.game-preview__stat span{font-size:8px}.game-preview__toolbar{grid-template-columns:1fr 92px;gap:6px}.game-preview__search,.game-preview__filter{padding:7px 8px;font-size:9px}.game-preview__cards{grid-template-columns:1fr}.game-preview__card{grid-template-columns:46px 1fr;padding:7px}.game-preview__card:nth-child(2){display:none}.game-preview__cover{font-size:20px}.game-preview__info p{margin:4px 0}.game-preview__title b{font-size:11px}}
+</style>
+</head>
+<body data-lesson="13" data-program-lesson="17">
+<div class="progress" role="progressbar" aria-label="Прогресс урока" aria-valuemin="1" aria-valuemax="36" aria-valuenow="1"><div class="progress__fill" id="progress"></div></div>
+<div class="counter" aria-live="polite"><b id="current">1</b> / <span id="total">36</span></div>
+<button class="nav-arrow nav-arrow--prev" id="prevBtn" type="button" aria-label="Предыдущий слайд">←</button>
+<button class="nav-arrow nav-arrow--next" id="nextBtn" type="button" aria-label="Следующий слайд">→</button>
+<main class="stage" id="deck"><section id="slide-1" class="slide slide--violet active" data-notes="Покажите готовый результат урока за 20 секунд. Уточните: это публичный урок №13, в программе курса — занятие 17." aria-hidden="false">
+<div class="sl-orbit"><i class="sl-ring"></i>
+<svg class="sl-ico" viewBox="0 0 100 100" style="left:75px;top:20px;width:150px;height:150px;transform:rotate(-10deg)"><use href="#ek-i-trophy"/></svg>
+<i class="sl-letter" style="left:466px;top:13px;width:78px;height:78px;--fs:34px">DB</i>
+<svg class="sl-ico" viewBox="0 0 100 100" style="left:1040px;top:15px;width:130px;height:130px;transform:rotate(12deg)"><use href="#ek-i-heart"/></svg>
+<i class="sl-letter" style="left:68px;top:268px;width:100px;height:100px;--fs:42px">💾</i>
+<i class="sl-letter" style="left:1137px;top:327px;width:95px;height:95px;--fs:40px">WEB</i>
+<svg class="sl-ico" viewBox="0 0 100 100" style="left:102px;top:532px;width:125px;height:125px;transform:rotate(-15deg)"><use href="#ek-i-star"/></svg>
+<i class="sl-letter" style="left:726px;top:613px;width:78px;height:78px;--fs:34px">AI</i>
+<svg class="sl-ico" viewBox="0 0 100 100" style="left:1045px;top:540px;width:110px;height:110px;transform:rotate(8deg)"><use href="#ek-i-gem"/></svg></div>
+<div class="cover-center"><div class="cover-card"><div class="badge">Урок №13</div>
+<div class="card-top"><span class="win-dots"><i></i><i></i><i></i></span><span class="win-close"></span></div>
+<h1>Введение в базы данных</h1><p class="cover-sub">Соберём игровую коллекцию на localhost: добавим игру, перезапустим приложение и проверим, что запись сохранилась.</p>
+<div class="cover-chips"><span class="chip">SQLite</span><span class="chip chip--green">localhost</span><span class="chip chip--gray">DeepSeek Chat</span></div></div></div>
+</section>
+
+<section id="slide-2" class="slide slide--content" data-notes="Сверьте план и темп работы 1:1. На финальную проверку сохраните не менее десяти минут." aria-hidden="true" inert>
+<div class="sl-body"><div class="q-label">ПЛАН УРОКА</div><h2>План урока</h2><div class="agenda"><div class="agenda-row"><span class="t">0–8</span><div><div class="tt">Зачем приложению хранить данные</div><div class="dd">Добавим игру и сравним два вида памяти.</div></div></div><div class="agenda-row"><span class="t">8–18</span><div><div class="tt">Где хранить данные</div><div class="dd">Сравним память браузера, SQLite и облачную базу.</div></div></div><div class="agenda-row"><span class="t">18–28</span><div><div class="tt">Первый запуск</div><div class="dd">Скачаем стартер, нажмём START_HERE и откроем localhost.</div></div></div><div class="agenda-row"><span class="t">28–50</span><div><div class="tt">Пять правок с DeepSeek</div><div class="dd">Добавим поиск, статусы, счётчики и безопасное удаление.</div></div></div><div class="agenda-row"><span class="t">50–60</span><div><div class="tt">Проверка результата</div><div class="dd">Проверим перезапуск, поиск, статус и удаление.</div></div></div></div></div>
+</section>
+
+<section id="slide-3" class="slide slide--content" data-notes="Свяжите вопрос с session_state из урока 10: тогда данные сохранялись между кликами, сейчас требуется хранение между запусками." aria-hidden="true" inert>
+<div class="sl-body"><div class="q-label">СВЯЗЬ С ПРОШЛЫМ УРОКОМ</div><h2>Что случится после <span class="acc">полного закрытия</span>?</h2><div class="lab-shell" data-choice-lab><div class="lab-top"><div class="lab-title">Список игр находится только в памяти запущенной программы. Что будет после её закрытия?</div><span class="chip">нажмите вариант</span></div>
+<p class="lab-instruction">Выберите ответ для полной остановки программы. Обновление страницы не считается перезапуском.</p><div class="choice-list"><button class="choice-btn" type="button" data-correct="1" data-good="Верно. Память запущенной программы очищается; для постоянного хранения данные записывают на диск." data-bad="Верно. Память запущенной программы очищается; для постоянного хранения данные записывают на диск.">Список исчезнет</button><button class="choice-btn" type="button" data-correct="0" data-good="Браузер не знает, какие данные и в какой файл нужно сохранить, пока приложение не выполнит запись." data-bad="Браузер не знает, какие данные и в какой файл нужно сохранить, пока приложение не выполнит запись.">Браузер сам запишет его в файл</button><button class="choice-btn" type="button" data-correct="0" data-good="Обычная переменная существует только во время работы программы." data-bad="Обычная переменная существует только во время работы программы.">Список останется в Python навсегда</button><button class="choice-btn" type="button" data-correct="0" data-good="DeepSeek Chat помогает менять код, но не хранит записи локального приложения." data-bad="DeepSeek Chat помогает менять код, но не хранит записи локального приложения.">Все игры перейдут в DeepSeek</button></div><div class="lab-feedback" aria-live="polite">Выберите ответ — объяснение появится здесь.</div></div></div>
+</section>
+
+<section id="slide-4" class="slide slide--content" data-notes="Предложите пользователю нажать кнопки по порядку. После перезапуска левая карточка исчезнет, а правая останется. Попросите объяснить различие без терминов Python и SQL." aria-hidden="true" inert>
+<div class="sl-body"><div class="q-label">НАБЛЮДАЕМ ПРОБЛЕМУ</div><h2>Одна игра. <span class="acc">Два вида памяти.</span></h2><div class="persistence-lab lab-shell" data-persistence-lab>
+<div class="persistence-actions"><button class="action-btn persistence-add" type="button">1. Добавить Minecraft</button><button class="action-btn action-btn--secondary persistence-restart" type="button" disabled>2. Перезапустить</button><button class="action-btn action-btn--secondary persistence-reset" type="button">Сначала</button></div>
+<div class="persistence-grid"><div class="memory-box memory-box--short"><span class="flow-kicker">ТОЛЬКО ПАМЯТЬ ПРОГРАММЫ</span><h3>Пока окно открыто</h3><div class="memory-result" aria-live="polite">Пока пусто</div></div>
+<div class="memory-box memory-box--long"><span class="flow-kicker">games.db</span><h3>Постоянное хранилище</h3><div class="memory-result" aria-live="polite">Пока пусто</div></div></div>
+<div class="lab-feedback" aria-live="polite">Сначала добавьте игру, затем перезапустите программу.</div></div></div>
+</section>
+
+<section id="slide-5" class="slide slide--content" data-notes="SQL, таблицы и типы данных здесь не вводятся. Попросите пользователя сформулировать назначение базы: приложение восстанавливает сохранённые записи после нового запуска." aria-hidden="true" inert>
+<div class="sl-body"><div class="q-label">НОВАЯ ИДЕЯ</div><h2>База данных хранит записи <span class="acc">между запусками</span></h2><div class="explain-panel"><ul class="explain-bullets"><li>База данных — организованное хранилище записей, которыми работает приложение.</li><li>Каждая запись содержит свойства объекта. Для игры это название, студия, жанр, оценка и статус.</li><li>Программа добавляет, читает, изменяет и удаляет записи по действиям пользователя.</li><li>После нового запуска программа читает сохранённые записи и передаёт их интерфейсу.</li></ul></div><div class="ek-note ek-note--green">Проверка постоянного хранения: полностью остановить программу, запустить её снова и увидеть прежние записи.</div></div>
+</section>
+
+<section id="slide-6" class="slide slide--content" data-notes="Предложите пользователю назвать ещё два приложения и определить, какие данные каждое из них должно хранить." aria-hidden="true" inert>
+<div class="sl-body"><div class="q-label">ЗАЧЕМ ЭТО НУЖНО</div><h2>Где без памяти <span class="acc">не получится</span>?</h2><div class="scenario-grid"><div class="scenario-card"><h3>🎮 Игра</h3><p>Хранит счёт, уровень, инвентарь и место, с которого нужно продолжить.</p></div><div class="scenario-card"><h3>💬 Соцсеть</h3><p>Хранит профили, посты, лайки, комментарии и подписки разных людей.</p></div><div class="scenario-card"><h3>🛒 Магазин</h3><p>Помнит товары, остатки, корзины, заказы и статус доставки.</p></div><div class="scenario-card"><h3>🏆 Трекер</h3><p>Сохраняет тренировки, оценки, привычки и изменения результатов со временем.</p></div></div><div class="ek-note">Если результаты действий не сохраняются, приложение не сможет восстановить их при следующем запуске.</div></div>
+</section>
+
+<section id="slide-7" class="slide slide--content" data-notes="Пройдите обе колонки как один сценарий. Критерий проверки — полная остановка и новый запуск программы, а не обновление вкладки." aria-hidden="true" inert>
+<div class="sl-body"><div class="q-label">СРАВНИВАЕМ ОПЫТ ПОЛЬЗОВАТЕЛЯ</div><h2>Один и тот же сайт — <span class="acc">два разных опыта</span></h2><div class="contrast-grid"><div class="contrast-card contrast-card--bad"><h3>Без постоянной памяти</h3><ul><li>Карточка появилась на экране</li><li>Пользователь закрыл программу</li><li>При новом запуске каталог пуст</li><li>Поиск и статусы нечего обрабатывать</li></ul></div><div class="contrast-card contrast-card--good"><h3>С базой данных</h3><ul><li>Карточка появилась на экране и записалась в файл</li><li>Программу можно полностью закрыть</li><li>После нового запуска карточка возвращается</li><li>Поиск, фильтры и счётчики работают со всей коллекцией</li></ul></div></div><div class="ek-note ek-note--green">База данных сохраняет историю изменений: новые записи, обновлённые статусы и удалённые элементы учитываются при следующем запуске.</div></div>
+</section>
+
+<section id="slide-8" class="slide slide--content" data-notes="Сравните варианты по масштабу и условиям доступа. Для одного пользователя на localhost без отдельного аккаунта подходит SQLite." aria-hidden="true" inert>
+<div class="sl-body"><div class="q-label">ВЫБОР ПО МАСШТАБУ</div><h2>Хранилище выбирают <span class="acc">по задаче</span></h2><div class="storage-grid"><div class="storage-card"><h3>Память браузера</h3>
+<p><b>Когда:</b> Один браузер, мало данных</p><p class="storage-plus"><b>+</b> Можно обойтись без Python-сервера</p><p class="storage-minus"><b>−</b> Данные привязаны к одному браузеру; сложнее сделать копию</p></div><div class="storage-card storage-card--recommended"><span class="recommended-badge">НАШ ВЫБОР</span><h3>SQLite в файле</h3>
+<p><b>Когда:</b> Один пользователь или небольшая локальная программа</p><p class="storage-plus"><b>+</b> Не нужен аккаунт и отдельный сервер; данные находятся в games.db</p><p class="storage-minus"><b>−</b> Не подходит для большого числа одновременных операций записи</p></div><div class="storage-card"><h3>Облачная база</h3>
+<p><b>Когда:</b> Публичный сайт и много пользователей</p><p class="storage-plus"><b>+</b> Общие данные доступны с разных устройств; можно расти</p><p class="storage-minus"><b>−</b> Нужны аккаунт, интернет, настройка доступа, резервные копии и контроль расходов</p></div></div><div class="ek-note ek-note--green">SQLite подходит для локального проекта: данные сохраняются в одном файле, а отдельный сервер базы устанавливать не требуется.</div></div>
+</section>
+
+<section id="slide-9" class="slide slide--content" data-notes="После ответа сравните его со слайдом выбора. Проверьте, что рекомендация учитывает одного пользователя, localhost, работу без интернета и отсутствие отдельного аккаунта." aria-hidden="true" inert>
+<div class="sl-body"><div class="q-label">ПРОМПТ С КОНТРАКТОМ</div><h2>Разминка: просим AI <span class="acc">объяснить выбор</span></h2><div class="prompt-card prompt-card--copy"><span class="pc-tag">→ Новый чат DeepSeek</span><div class="pc-text" id="prompt-13-warmup">Ты — наставник по веб-разработке. Объясни начинающему пользователю, где хранить данные в трёх проектах: 1) личный список задач в одном браузере; 2) игровая коллекция на localhost для одного пользователя; 3) публичная таблица турнира для многих пользователей. Не используй код, SQL-команды и профессиональные сокращения без расшифровки. Сравни память браузера, файл SQLite и облачную базу. Для каждого варианта укажи: где находятся данные, что будет после перезапуска, основное преимущество и одно ограничение. Верни компактную таблицу и рекомендацию для локальной игровой коллекции.</div></div>
+<div class="lab-actions"><button class="action-btn action-btn--secondary" type="button" data-copy-target="prompt-13-warmup">Скопировать промпт</button><span class="verified">критерии результата внутри</span></div></div>
+</section>
+
+<section id="slide-10" class="slide slide--content" data-notes="Пройдите по цепочке слева направо. На каждом шаге задайте один вопрос: «где сейчас живут данные?». Ответ до третьего шага — в движении между блоками, после третьего — в файле." aria-hidden="true" inert>
+<div class="sl-body"><div class="q-label">БАЗОВАЯ АРХИТЕКТУРА</div><h2>Что происходит после клика <span class="acc">«Сохранить»</span></h2><div class="concept-flow concept-flow--detailed"><div class="flow-node flow-node--detailed"><span class="flow-kicker">БРАУЗЕР</span><b>1. Форма</b><ul class="flow-bullets"><li>Пользователь вводит название игры, студию и оценку.</li><li>Кнопка отправляет эти значения локальной программе.</li></ul></div><div class="flow-node flow-node--detailed"><span class="flow-kicker">ПРОГРАММА</span><b>2. Проверка</b><ul class="flow-bullets"><li>Программа проверяет, что название и студия заполнены.</li><li>При ошибке интерфейс показывает точное сообщение.</li></ul></div><div class="flow-node flow-node--detailed"><span class="flow-kicker">ФАЙЛ</span><b>3. games.db</b><ul class="flow-bullets"><li>Проверенная карточка добавляется в файл базы рядом с проектом.</li><li>Запись остаётся там после закрытия программы.</li></ul></div><div class="flow-node flow-node--detailed flow-node--accent"><span class="flow-kicker">БРАУЗЕР</span><b>4. Обновление</b><ul class="flow-bullets"><li>Страница снова запрашивает каталог и рисует новую карточку.</li><li>Поиск и счётчики сразу видят изменение.</li></ul></div></div><div class="ek-note ek-note--green">При перезапуске программа читает games.db, а браузер получает и отображает сохранённую коллекцию.</div></div>
+</section>
+
+<section id="slide-11" class="slide slide--content" data-notes="Попросите пользователя связать каждое поле с действием: название и студия — поиск, жанр — группировка, статус — фильтрация и изменение." aria-hidden="true" inert>
+<div class="sl-body"><div class="q-label">ДАННЫЕ КАК СВОЙСТВА</div><h2>Что приложение хранит <span class="acc">о каждой игре</span></h2><div class="record-card"><div class="record-row"><b>Название</b><span class="record-rule">Обязательно</span><p>Используется в карточке и поиске.</p></div><div class="record-row"><b>Студия</b><span class="record-rule">Обязательно</span><p>Помогает различать проекты с похожими названиями.</p></div><div class="record-row"><b>Жанр</b><span class="record-rule">Можно пусто</span><p>Помогает группировать и быстрее находить нужное.</p></div><div class="record-row"><b>Оценка</b><span class="record-rule">0–5</span><p>Ноль означает «пока нет оценки»; пять — максимальную оценку.</p></div><div class="record-row"><b>Статус</b><span class="record-rule">В планах / пройдено</span><p>Отделяет запланированные игры от завершённых.</p></div></div><div class="ek-note">Набор полей определяется действиями интерфейса: поиском, фильтрацией, оценкой и сменой статуса.</div></div>
+</section>
+
+<section id="slide-12" class="slide slide--content" data-notes="Не используйте термин CRUD как учебную цель. Если он встретится в ответе DeepSeek, расшифруйте его как эти четыре кнопки и вернитесь к интерфейсу." aria-hidden="true" inert>
+<div class="sl-body"><div class="q-label">ДЕЙСТВИЯ В ИНТЕРФЕЙСЕ</div><h2>Четыре действия, которые делают <span class="acc">каталог</span></h2><div class="action-grid"><div class="action-card"><span>1</span><h3>Добавить</h3><p>Форма создаёт карточку игры и сохраняет её в games.db.</p></div><div class="action-card"><span>2</span><h3>Найти</h3><p>Поиск показывает игры, где совпало название или студия.</p></div><div class="action-card"><span>3</span><h3>Изменить</h3><p>Кнопка меняет статус одной игры и сохраняет новое состояние.</p></div><div class="action-card"><span>4</span><h3>Удалить</h3><p>После подтверждения карточка исчезает из интерфейса и из базы.</p></div></div><div class="ek-note ek-note--green">Пользователь управляет данными через действия интерфейса: добавить, найти, изменить и удалить.</div></div>
+</section>
+
+<section id="slide-13" class="slide slide--content" data-notes="Попросите пользователя пересказать критерий без слов SQLite и Python. Достаточный ответ: программа закрыта, запущена снова, прежние записи восстановлены." aria-hidden="true" inert>
+<div class="sl-body"><div class="q-label">ЦЕЛЬ И КРИТЕРИЙ ГОТОВНОСТИ</div><h2><span class="acc">Критерий результата</span> урока</h2><div class="grid-2"><div class="info-card"><h3>Поймёте</h3><ul class="clean"><li>зачем приложению постоянное хранилище</li><li>где лежит файл games.db</li><li>как браузер, программа и база обмениваются данными</li><li>когда SQLite подходит, а когда требуется облачная база</li></ul></div><div class="info-card"><h3>Сделаете</h3><ul class="clean"><li>игровую коллекцию на localhost</li><li>форму добавления игр</li><li>поиск и фильтр по статусу</li><li>изменение и удаление с подтверждением</li></ul></div></div><div class="ek-note ek-note--green">Готово, когда вы добавили две игры, полностью остановили программу, снова нажали START_HERE и увидели обе карточки на localhost.</div></div>
+</section>
+
+<section id="slide-14" class="slide slide--content" data-notes="Покажите интерфейс до разбора файлов. Укажите форму добавления, поиск, фильтр, счётчики и карточки со статусами. Затем свяжите каждый элемент с данными, которые хранит приложение." aria-hidden="true" inert>
+<div class="sl-body"><div class="q-label">ПЕРЕД КОДОМ — ИНТЕРФЕЙС ПРИЛОЖЕНИЯ</div><h2>Так выглядит <span class="acc">готовый результат</span></h2><div class="app-mock game-preview"><div class="app-mock__top"><b>ИГРОВАЯ КОЛЛЕКЦИЯ · localhost</b><span class="verified">games.db подключена</span></div>
+<div class="game-preview__body"><aside class="game-preview__form"><span class="flow-kicker">НОВАЯ ЗАПИСЬ</span><h3>Добавить игру</h3><div class="game-preview__field">Название игры</div><div class="game-preview__field">Студия</div><div class="game-preview__form-row"><span>Жанр</span><span>Оценка</span></div><div class="game-preview__button">Сохранить игру</div></aside>
+<div class="game-preview__main"><div class="game-preview__stats"><div class="game-preview__stat"><b>12</b><span>всего игр</span></div><div class="game-preview__stat"><b>5</b><span>пройдено</span></div><div class="game-preview__stat"><b>7</b><span>в планах</span></div></div><div class="game-preview__toolbar"><span class="game-preview__search">⌕ Поиск по названию или студии</span><span class="game-preview__filter">Все статусы ▾</span></div><div class="game-preview__cards"><article class="game-preview__card"><div class="game-preview__cover">🎮</div><div class="game-preview__info"><div class="game-preview__title"><b>Космическая ферма</b><span>Пройдено</span></div><p>Pixel Garden · стратегия</p><div class="game-preview__rating">★★★★★</div></div></article><article class="game-preview__card"><div class="game-preview__cover">🎮</div><div class="game-preview__info"><div class="game-preview__title"><b>Северный маршрут</b><span>В планах</span></div><p>North Star · приключение</p><div class="game-preview__rating">★★★★☆</div></div></article></div></div></div></div></div>
+</section>
+
+<section id="slide-15" class="slide slide--content" data-notes="Кратко назовите функцию каждого файла. В DeepSeek отправляется index.html; games.db не отправляют и не редактируют вручную." aria-hidden="true" inert>
+<div class="sl-body"><div class="q-label">АРХИТЕКТУРА ПРОЕКТА</div><h2>Главные файлы <span class="acc">проекта</span></h2><div class="file-tree">lesson13_catalog/
+├── START_HERE.cmd  # двойной клик — запуск
+├── index.html      # интерфейс; его меняем с DeepSeek
+├── app.py          # готовая связь браузера с базой
+├── db.py           # готовые операции SQLite
+└── games.db        # появится после первого запуска</div><div class="ek-note">На уроке вы меняете только index.html целиком через DeepSeek Chat. app.py и db.py остаются проверенной технической основой.</div></div>
+</section>
+
+<section id="slide-16" class="slide slide--content" data-notes="Убедитесь, что пользователь видит распакованную папку целиком. Если Windows скрывает расширения, ориентируйтесь по полным именам файлов из слайда. Переходите дальше после загрузки страницы. Если Windows запросит разрешение брандмауэра, разрешите доступ только для частных сетей; внешний доступ приложению не требуется." aria-hidden="true" inert>
+<div class="sl-body"><div class="q-label">СКАЧАТЬ И ЗАПУСТИТЬ</div><h2>Скачайте <span class="acc">готовую основу</span></h2><div class="download-layout"><div class="download-card"><span class="pc-tag">→ СТАРТЕР УРОКА 13</span><h3>Всё нужное в одном ZIP</h3><ul><li>Распакуйте ZIP в отдельную папку</li><li>Не переносите файлы по одному</li><li>Не открывайте games.db в текстовом редакторе</li><li>Перед первой правкой сделайте копию index.html</li></ul><a class="download-btn" href="assets/lesson13-starter.zip" download>Скачать стартер</a></div><div class="launch-steps"><div class="launch-step"><span>1</span><div><h3>Дважды нажмите START_HERE.cmd</h3><p>Откроется чёрное окно запуска. Печатать в нём ничего не нужно.</p></div></div><div class="launch-step"><span>2</span><div><h3>Дождитесь браузера</h3><p>Он сам откроет адрес вида http://localhost:8000. Цифра может быть от 8000 до 8009.</p></div></div><div class="launch-step"><span>3</span><div><h3>Добавьте первую игру</h3><p>Карточка появится справа, а файл games.db сохранит запись.</p></div></div></div></div><div class="ek-note ek-note--green">Стартер уже добавляет и показывает игры. Сначала проверьте сохранение после перезапуска, затем добавляйте функции по одной. Остановка такая же простая: закройте чёрное окно. Браузер можно закрыть до или после этого.</div></div>
+</section>
+
+<section id="slide-17" class="slide slide--content" data-notes="Это обязательный checkpoint. Не заменяйте полный перезапуск кнопкой F5: обновление вкладки не доказывает, что данные пережили остановку программы." aria-hidden="true" inert>
+<div class="sl-body"><div class="q-label">ГЛАВНОЕ ДОКАЗАТЕЛЬСТВО</div><h2>Первый эксперимент: <span class="acc">закрыли — открыли</span></h2><div class="proof-sequence" data-browser-check><button class="check-item" type="button" aria-pressed="false">Добавьте две разные игры</button><button class="check-item" type="button" aria-pressed="false">Закройте чёрное окно запуска полностью</button><button class="check-item" type="button" aria-pressed="false">Дважды нажмите START_HERE.cmd ещё раз</button><button class="check-item" type="button" aria-pressed="false">Убедитесь, что обе карточки вернулись</button></div><div class="ek-note ek-note--green">Если карточки вернулись, вы уже доказали главный результат урока: веб-приложение помнит данные.</div></div>
+</section>
+
+<section id="slide-18" class="slide slide--content" data-notes="Покажите привычку делать копию index.html до вставки. Если DeepSeek всё-таки изменил JavaScript, сравните правку с ограничением и вернитесь к копии." aria-hidden="true" inert>
+<div class="sl-body"><div class="q-label">ПРОМПТ С КОНТРАКТОМ</div><h2>Правка 1. Настройте <span class="acc">интерфейс</span></h2><div class="prompt-card prompt-card--copy"><span class="pc-tag">→ В тот же чат DeepSeek</span><div class="pc-text" id="prompt-13-stage-1">Ты — опытный веб-разработчик. Я пришлю текущий index.html игровой коллекции. Верни полный index.html, который можно вставить целиком. Измени только видимые тексты и оформление: заголовок «Игры, которые я хочу пройти», подзаголовок о личной коллекции и один новый акцентный цвет. Не меняй id элементов, адреса /api, имена полей и JavaScript-логику. Сохрани русский язык, контраст, основной шрифт не меньше 16 px и адаптивность для экрана 390 px. После кода дай ровно три проверки в браузере. Не создавай другие файлы.</div></div>
+<div class="lab-actions"><button class="action-btn action-btn--secondary" type="button" data-copy-target="prompt-13-stage-1">Скопировать промпт</button><span class="verified">критерии результата внутри</span></div></div>
+</section>
+
+<section id="slide-19" class="slide slide--content" data-notes="Покажите привычку делать копию index.html до вставки. Если DeepSeek всё-таки изменил JavaScript, сравните правку с ограничением и вернитесь к копии." aria-hidden="true" inert>
+<div class="sl-body"><div class="q-label">ПРОВЕРКА ПОСЛЕ ПРАВКИ 1</div><h2>Проверяем правку <span class="acc">в браузере</span></h2><div class="browser-check" data-browser-check><div class="browser-check__bar"><span class="win-dots"><i></i><i></i><i></i></span><b>localhost · проверка 1</b></div><div class="check-grid"><button class="check-item" type="button" aria-pressed="false">Заголовок и цвет изменились</button><button class="check-item" type="button" aria-pressed="false">Новая игра добавляется</button><button class="check-item" type="button" aria-pressed="false">После перезапуска прежние игры остались</button></div></div><div class="ek-note ek-note--green">Изменение оформления не должно нарушать добавление и восстановление записей.</div></div>
+</section>
+
+<section id="slide-20" class="slide slide--content" data-notes="До правки добавьте минимум три игры от разных студий. Проверьте частичное совпадение и пустой результат. Ошибка поиска не должна менять сохранённые записи." aria-hidden="true" inert>
+<div class="sl-body"><div class="q-label">ПРОМПТ С КОНТРАКТОМ</div><h2>Правка 2. Добавьте <span class="acc">живой поиск</span></h2><div class="prompt-card prompt-card--copy"><span class="pc-tag">→ В тот же чат DeepSeek</span><div class="pc-text" id="prompt-13-stage-2">Ты — веб-разработчик. Ниже я пришлю текущий index.html, который добавляет и показывает игры из готового локального сервера. Верни полный index.html. Добавь над коллекцией поле «Поиск по названию или студии». После паузы 150–300 мс запрашивай обновлённый список через адрес /api/games?q=…&amp;status=all. Поиск должен срабатывать по части названия или студии; очистка поля возвращает всю коллекцию. Покажи текст «По такому запросу игр нет», если совпадений нет. Не фильтруй только видимые DOM-карточки: источником ответа должна оставаться база. Не меняй app.py и db.py. После кода дай ровно три проверки в браузере.</div></div>
+<div class="lab-actions"><button class="action-btn action-btn--secondary" type="button" data-copy-target="prompt-13-stage-2">Скопировать промпт</button><span class="verified">критерии результата внутри</span></div></div>
+</section>
+
+<section id="slide-21" class="slide slide--content" data-notes="До правки добавьте минимум три игры от разных студий. Проверьте частичное совпадение и пустой результат. Ошибка поиска не должна менять сохранённые записи." aria-hidden="true" inert>
+<div class="sl-body"><div class="q-label">ПРОВЕРКА ПОСЛЕ ПРАВКИ 2</div><h2>Проверяем правку <span class="acc">в браузере</span></h2><div class="browser-check" data-browser-check><div class="browser-check__bar"><span class="win-dots"><i></i><i></i><i></i></span><b>localhost · проверка 2</b></div><div class="check-grid"><button class="check-item" type="button" aria-pressed="false">Часть названия находит одну игру</button><button class="check-item" type="button" aria-pressed="false">Часть названия студии даёт тот же результат</button><button class="check-item" type="button" aria-pressed="false">Очистка возвращает все карточки</button></div></div><div class="ek-note ek-note--green">Поиск показывает практическую пользу структурированного хранилища, когда карточек становится много.</div></div>
+</section>
+
+<section id="slide-22" class="slide slide--content" data-notes="После клика не ограничивайтесь видимым изменением. Обязательно закройте и снова запустите приложение: именно это отличает постоянную память от временной." aria-hidden="true" inert>
+<div class="sl-body"><div class="q-label">ПРОМПТ С КОНТРАКТОМ</div><h2>Правка 3. Статус <span class="acc">меняется и помнится</span></h2><div class="prompt-card prompt-card--copy"><span class="pc-tag">→ В тот же чат DeepSeek</span><div class="pc-text" id="prompt-13-stage-3">Ты — веб-разработчик. Получи мой текущий index.html и верни полный обновлённый файл. В каждой карточке покажи один из двух статусов: «В планах» или «Пройдено». Рядом добавь кнопку смены статуса. При клике отправляй PATCH на /api/games/{id} с JSON {&quot;is_completed&quot;: true или false}, затем заново загружай коллекцию. Покажи сообщение «Статус сохранён». Если запрос не прошёл, оставь прежний статус и покажи текст ошибки. Не изменяй app.py, db.py и адреса других запросов. После кода дай ровно три проверки в браузере.</div></div>
+<div class="lab-actions"><button class="action-btn action-btn--secondary" type="button" data-copy-target="prompt-13-stage-3">Скопировать промпт</button><span class="verified">критерии результата внутри</span></div></div>
+</section>
+
+<section id="slide-23" class="slide slide--content" data-notes="После клика не ограничивайтесь видимым изменением. Обязательно закройте и снова запустите приложение: именно это отличает постоянную память от временной." aria-hidden="true" inert>
+<div class="sl-body"><div class="q-label">ПРОВЕРКА ПОСЛЕ ПРАВКИ 3</div><h2>Проверяем правку <span class="acc">в браузере</span></h2><div class="browser-check" data-browser-check><div class="browser-check__bar"><span class="win-dots"><i></i><i></i><i></i></span><b>localhost · проверка 3</b></div><div class="check-grid"><button class="check-item" type="button" aria-pressed="false">Кнопка меняет статус одной игры</button><button class="check-item" type="button" aria-pressed="false">Другие карточки не меняются</button><button class="check-item" type="button" aria-pressed="false">После перезапуска новый статус остался</button></div></div><div class="ek-note ek-note--green">Эта правка доказывает, что база хранит не только новые карточки, но и изменения уже существующих.</div></div>
+</section>
+
+<section id="slide-24" class="slide slide--content" data-notes="Отдельно проверьте счётчик «Всего»: при включении фильтра он продолжает показывать число всех записей в базе." aria-hidden="true" inert>
+<div class="sl-body"><div class="q-label">ПРОМПТ С КОНТРАКТОМ</div><h2>Правка 4. Добавьте <span class="acc">фильтры и счётчики</span></h2><div class="prompt-card prompt-card--copy"><span class="pc-tag">→ В тот же чат DeepSeek</span><div class="pc-text" id="prompt-13-stage-4">Ты — веб-разработчик. Ниже будет текущий index.html. Верни полный обновлённый файл. Добавь рядом с поиском фильтр из трёх вариантов: «Все», «В планах», «Пройдено». Передавай в адрес /api/games параметр status со значением all, planned или completed и сохраняй текущий поисковый запрос. Вверху покажи три счётчика: «Всего», «Пройдено», «В планах». Бери числа из /api/summary при первой загрузке и после добавления или смены статуса; не вычисляй их только по видимым карточкам. Не меняй app.py и db.py. Сохрани мобильную компоновку без горизонтального скролла. После кода дай ровно три проверки.</div></div>
+<div class="lab-actions"><button class="action-btn action-btn--secondary" type="button" data-copy-target="prompt-13-stage-4">Скопировать промпт</button><span class="verified">критерии результата внутри</span></div></div>
+</section>
+
+<section id="slide-25" class="slide slide--content" data-notes="Отдельно проверьте счётчик «Всего»: при включении фильтра он продолжает показывать число всех записей в базе." aria-hidden="true" inert>
+<div class="sl-body"><div class="q-label">ПРОВЕРКА ПОСЛЕ ПРАВКИ 4</div><h2>Проверяем правку <span class="acc">в браузере</span></h2><div class="browser-check" data-browser-check><div class="browser-check__bar"><span class="win-dots"><i></i><i></i><i></i></span><b>localhost · проверка 4</b></div><div class="check-grid"><button class="check-item" type="button" aria-pressed="false">Без фильтра счётчики описывают всю коллекцию</button><button class="check-item" type="button" aria-pressed="false">Фильтр «Пройдено» скрывает игры из плана</button><button class="check-item" type="button" aria-pressed="false">Поиск и фильтр работают одновременно</button></div></div><div class="ek-note ek-note--green">Счётчики и фильтры превращают набор карточек в инструмент, которым удобно пользоваться каждый день.</div></div>
+</section>
+
+<section id="slide-26" class="slide slide--content" data-notes="Сначала проверьте «Отмена», затем удаление и только после этого — полный перезапуск. Эта последовательность доказывает и защиту от случайности, и постоянную запись изменения." aria-hidden="true" inert>
+<div class="sl-body"><div class="q-label">ПРОМПТ С КОНТРАКТОМ</div><h2>Правка 5. Удаление <span class="acc">с подтверждением</span></h2><div class="prompt-card prompt-card--copy"><span class="pc-tag">→ В тот же чат DeepSeek</span><div class="pc-text" id="prompt-13-stage-5">Ты — веб-разработчик. Ниже я пришлю текущий index.html. Верни полный обновлённый файл. Добавь в каждую карточку вторичную кнопку «Удалить». Первый клик обязательно спрашивает «Удалить „{title}“?» и даёт возможность отменить действие. Только после подтверждения отправляй DELETE на адрес /api/games/{id}. После успеха обнови коллекцию и счётчики, покажи сообщение «Игра удалена». При ошибке оставь карточку на месте и покажи текст ошибки. Не меняй app.py, db.py, поиск, фильтры и смену статуса. Кнопка должна оставаться удобной на экране 390 px. После кода дай ровно три проверки.</div></div>
+<div class="lab-actions"><button class="action-btn action-btn--secondary" type="button" data-copy-target="prompt-13-stage-5">Скопировать промпт</button><span class="verified">критерии результата внутри</span></div></div>
+</section>
+
+<section id="slide-27" class="slide slide--content" data-notes="Сначала проверьте «Отмена», затем удаление и только после этого — полный перезапуск. Эта последовательность доказывает и защиту от случайности, и постоянную запись изменения." aria-hidden="true" inert>
+<div class="sl-body"><div class="q-label">ПРОВЕРКА ПОСЛЕ ПРАВКИ 5</div><h2>Проверяем правку <span class="acc">в браузере</span></h2><div class="browser-check" data-browser-check><div class="browser-check__bar"><span class="win-dots"><i></i><i></i><i></i></span><b>localhost · проверка 5</b></div><div class="check-grid"><button class="check-item" type="button" aria-pressed="false">Отмена оставляет карточку на месте</button><button class="check-item" type="button" aria-pressed="false">Подтверждение удаляет ровно одну игру</button><button class="check-item" type="button" aria-pressed="false">После перезапуска удалённая игра не возвращается</button></div></div><div class="ek-note ek-note--green">Удаление — необратимое действие для одной записи, поэтому интерфейс должен дать шанс отменить ошибочный клик.</div></div>
+</section>
+
+<section id="slide-28" class="slide slide--content" data-notes="Покажите заранее подготовленный сбой и восстановление index.html из копии. Сначала возвращается рабочая версия, затем уточняется один промпт." aria-hidden="true" inert>
+<div class="sl-body"><div class="q-label">ЕСЛИ НЕ ПОЛУЧИЛОСЬ</div><h2>Если localhost <span class="acc">не открылся</span></h2><div class="kv"><div class="kv-row"><div class="k">START_HERE закрылся сразу</div><div class="v">Нажмите правой кнопкой → «Открыть». Если Windows показал защиту, разрешите запуск проверенного файла.</div></div><div class="kv-row"><div class="k">Python not found</div><div class="v">На компьютере не найден Python из урока 1. Позовите преподавателя; не скачивайте случайный «Python» с неизвестного сайта.</div></div><div class="kv-row"><div class="k">Браузер не открылся сам</div><div class="v">В чёрном окне найдите строку «Приложение работает» и откройте указанный localhost-адрес вручную.</div></div><div class="kv-row"><div class="k">После правки белая страница</div><div class="v">Верните копию index.html. Затем отправьте DeepSeek точный текст из DevTools и попросите исправить только эту ошибку.</div></div></div><div class="ek-note ">Не удаляйте games.db при ошибке интерфейса: это удалит сохранённые данные и не исправит причину сбоя.</div></div>
+</section>
+
+<section id="slide-29" class="slide slide--content" data-notes="Ревью не заменяет ручные тесты. Новый чат нужен, чтобы модель не защищала свои прежние решения. Каждый выбранный дефект проверяется на реальном localhost после одной минимальной правки." aria-hidden="true" inert>
+<div class="sl-body"><div class="q-label">ПРОМПТ С КОНТРАКТОМ</div><h2>Финальная проверка: DeepSeek как <span class="acc">ревьюер</span></h2><div class="prompt-card prompt-card--copy"><span class="pc-tag">→ Отдельный чат DeepSeek</span><div class="pc-text" id="prompt-13-review">Ты — строгий ревьюер локального веб-приложения. Я пришлю текущий index.html. Не переписывай файл и не утверждай, что проверка прошла, если ты не можешь запустить проект. Проведи статическое ревью по 10 пунктам: 1) форма отправляет игру в /api/games; 2) поиск передаёт q; 3) фильтр передаёт all/planned/completed; 4) статус отправляет PATCH с is_completed; 5) удаление спрашивает подтверждение до DELETE; 6) после каждого изменения коллекция и счётчики перезагружаются; 7) ошибка видна пользователю; 8) значения пользователя вставляются в DOM без innerHTML; 9) элементы доступны с клавиатуры; 10) на ширине 390 px нет очевидного горизонтального скролла. Верни таблицу: пункт, вероятный статус, точное место, минимальная правка и способ проверки в браузере. Выбери не более трёх приоритетных правок.</div></div>
+<div class="lab-actions"><button class="action-btn action-btn--secondary" type="button" data-copy-target="prompt-13-review">Скопировать промпт</button><span class="verified">критерии результата внутри</span></div></div>
+</section>
+
+<section id="slide-30" class="slide slide--content" data-notes="Перед каждым тестом попросите пользователя назвать ожидаемый результат, затем выполнить действие и сравнить ожидание с фактом на экране." aria-hidden="true" inert>
+<div class="sl-body"><div class="q-label">ЧЕСТНАЯ ПРИЁМКА</div><h2>Шесть тестов, которые видны <span class="acc">в браузере</span></h2><div class="manual-test-grid"><div class="manual-test"><span>1</span><h3>Создание</h3><p>Две разные игры появились отдельными карточками.</p></div><div class="manual-test"><span>2</span><h3>Перезапуск</h3><p>После закрытия окна и нового START_HERE обе карточки остались.</p></div><div class="manual-test"><span>3</span><h3>Поиск</h3><p>Часть названия и часть названия студии находят нужную игру.</p></div><div class="manual-test"><span>4</span><h3>Статус</h3><p>Изменение статуса переживает перезапуск приложения.</p></div><div class="manual-test"><span>5</span><h3>Удаление</h3><p>Отмена ничего не меняет, подтверждение удаляет одну карточку.</p></div><div class="manual-test"><span>6</span><h3>Узкий экран</h3><p>На ширине 390 px форма, карточки и кнопки читаются без горизонтального скролла.</p></div></div></div>
+</section>
+
+<section id="slide-31" class="slide slide--content" data-notes="Пользователь отмечает пункт после фактической проверки на экране. Непроверенная функция остаётся неотмеченной и входит в план доработки." aria-hidden="true" inert>
+<div class="sl-body"><div class="q-label">ПЕРЕД ДЕМОНСТРАЦИЕЙ</div><h2>Каталог готов к <span class="acc">показу</span>?</h2><div class="check-grid"><button class="check-item" type="button" aria-pressed="false">Запускается двойным кликом</button><button class="check-item" type="button" aria-pressed="false">Добавляет игру</button><button class="check-item" type="button" aria-pressed="false">Восстанавливает данные после перезапуска</button><button class="check-item" type="button" aria-pressed="false">Ищет по названию и студии</button><button class="check-item" type="button" aria-pressed="false">Фильтрует по статусу</button><button class="check-item" type="button" aria-pressed="false">Считает всю коллекцию</button><button class="check-item" type="button" aria-pressed="false">Спрашивает перед удалением</button><button class="check-item" type="button" aria-pressed="false">Помещается на экране 390 px</button></div><div class="ek-note ek-note--red">Перед крупной правкой скопируйте index.html и games.db в папку backup. Храните копию вне рабочей папки.</div></div>
+</section>
+
+<section id="slide-32" class="slide slide--content" data-notes="Попросите пользователя добавить в правильный ответ слова «после нового запуска». Эта фраза отделяет сохранённые данные от постоянного содержимого HTML." aria-hidden="true" inert>
+<div class="sl-body"><div class="q-label">КВИЗ · ВОПРОС 1</div><h2>Квиз: где база даёт <span class="acc">главную пользу</span>?</h2><div class="lab-shell" data-choice-lab><div class="lab-top"><div class="lab-title">Какой результат нельзя надёжно сделать только видимой карточкой на странице?</div><span class="chip">нажмите вариант</span></div>
+<p class="lab-instruction">Выберите сценарий, где важен новый запуск программы.</p><div class="choice-list"><button class="choice-btn" type="button" data-correct="1" data-good="Верно. Рекорд должен пережить остановку и новый запуск, поэтому ему нужно постоянное хранилище." data-bad="Верно. Рекорд должен пережить остановку и новый запуск, поэтому ему нужно постоянное хранилище.">Сохранить личный рекорд игры после закрытия</button><button class="choice-btn" type="button" data-correct="0" data-good="Заголовок уже записан в HTML и не является новым результатом пользователя." data-bad="Заголовок уже записан в HTML и не является новым результатом пользователя.">Показать заголовок сайта</button><button class="choice-btn" type="button" data-correct="0" data-good="Цвет — часть оформления; его можно записать в CSS." data-bad="Цвет — часть оформления; его можно записать в CSS.">Изменить цвет кнопки</button><button class="choice-btn" type="button" data-correct="0" data-good="Подсказка может быть обычной частью страницы; ей не нужно переживать перезапуск." data-bad="Подсказка может быть обычной частью страницы; ей не нужно переживать перезапуск.">Открыть подсказку по наведению</button></div><div class="lab-feedback" aria-live="polite">Выберите ответ — объяснение появится здесь.</div></div></div>
+</section>
+
+<section id="slide-33" class="slide slide--content" data-notes="После выбора спросите, что изменится при публикации коллекции для многих пользователей. Потребуются общий сервер, права доступа и облачное хранилище." aria-hidden="true" inert>
+<div class="sl-body"><div class="q-label">КВИЗ · ВОПРОС 2</div><h2>Квиз: что выбрать для <span class="acc">нашего масштаба</span>?</h2><div class="lab-shell" data-choice-lab><div class="lab-top"><div class="lab-title">Один пользователь, один компьютер, localhost, работа без интернета и резервная копия одним файлом. Какое хранилище подходит?</div><span class="chip">нажмите вариант</span></div>
+<p class="lab-instruction">Выберите хранилище, требования которого соответствуют масштабу задачи.</p><div class="choice-list"><button class="choice-btn" type="button" data-correct="1" data-good="Верно. Один файл, отсутствие отдельного сервера и работа без интернета соответствуют условиям проекта." data-bad="Верно. Один файл, отсутствие отдельного сервера и работа без интернета соответствуют условиям проекта.">SQLite в файле games.db</button><button class="choice-btn" type="button" data-correct="0" data-good="Она может расти, но добавляет аккаунт, сеть, права доступа и лишнюю для нашего масштаба настройку." data-bad="Она может расти, но добавляет аккаунт, сеть, права доступа и лишнюю для нашего масштаба настройку.">Облачная база для миллиона людей</button><button class="choice-btn" type="button" data-correct="0" data-good="После полной остановки такая память очистится — главный критерий не выполнен." data-bad="После полной остановки такая память очистится — главный критерий не выполнен.">Только память запущенной программы</button><button class="choice-btn" type="button" data-correct="0" data-good="Чат помогает написать код, но не является хранилищем данных на localhost." data-bad="Чат помогает написать код, но не является хранилищем данных на localhost.">Таблица в сообщении DeepSeek</button></div><div class="lab-feedback" aria-live="polite">Выберите ответ — объяснение появится здесь.</div></div></div>
+</section>
+
+<section id="slide-34" class="slide slide--content" data-notes="После правильного ответа попросите назвать шаг, на котором данные становятся постоянными. Это шаг d: до него данные ещё могут пропасть при сбое, после него они уже лежат на диске." aria-hidden="true" inert>
+<div class="sl-body"><div class="q-label">ОТЛАДКА — ЭТО АЛГОРИТМ</div><h2>Соберите путь: от клика до <span class="acc">сохранённой карточки</span></h2><div class="lab-shell" data-order-lab data-order="a,b,c,d,e" data-good="Верно: клик → передача → проверка → запись в файл → обновлённый экран." data-bad="Начните с видимого действия и закончите обновлённым экраном; запись в games.db выполняется после проверки обязательных полей."><p class="lab-instruction">Нажимайте шаги, чтобы перенести их вправо. Повторный клик возвращает шаг.</p><div class="order-zone"><div class="order-col order-pool"><h4>Доступные шаги</h4><button class="order-item" type="button" data-key="e" data-shuffle="0">Браузер показал обновлённую коллекцию</button><button class="order-item" type="button" data-key="c" data-shuffle="1">Программа проверила обязательные поля</button><button class="order-item" type="button" data-key="a" data-shuffle="2">Пользователь нажал «Сохранить»</button><button class="order-item" type="button" data-key="d" data-shuffle="3">Карточка записалась в games.db</button><button class="order-item" type="button" data-key="b" data-shuffle="4">Браузер передал значения локальной программе</button></div><div class="order-col order-result"><h4>Ваш порядок</h4></div></div><div class="lab-actions"><button class="action-btn order-check" type="button">Проверить</button><button class="action-btn action-btn--secondary order-reset" type="button">Сбросить</button></div><div class="lab-feedback" aria-live="polite">Соберите порядок и проверьте.</div></div></div>
+</section>
+
+<section id="slide-35" class="slide slide--content" data-notes="Пользователь выбирает один уровень. Основное доказательство — два скриншота до и после полного перезапуска с одинаковыми сохранёнными записями." aria-hidden="true" inert>
+<div class="sl-body"><div class="q-label">ДОМАШНЯЯ РАБОТА · ВЫБЕРИТЕ УРОВЕНЬ</div><h2>Домашняя работа: одна <span class="acc">законченная правка</span></h2><div class="grid-3"><div class="info-card"><h3>Вид</h3><p>Через DeepSeek адаптируйте цвета, шрифты и карточки под свой стиль. Все функции и сохранение данных должны работать.</p></div><div class="info-card"><h3>Новая функция</h3><p>Добавьте пометку «Избранное» и фильтр по ней. Сначала запросите план изменения данных, затем меняйте и проверяйте проект по одному файлу.</p></div><div class="info-card"><h3>Новый сценарий</h3><p>Добавьте платформу и время прохождения. Сначала определите новые поля и действия интерфейса, затем реализуйте и проверяйте их по одному.</p></div></div><div class="ek-note">Сдайте: скриншот до перезапуска, скриншот после нового START_HERE с теми же записями, один промпт DeepSeek и короткий чек-лист из трёх ручных проверок.</div></div>
+</section>
+
+<section id="slide-36" class="slide slide--green" data-notes="Завершите демонстрацией: закройте чёрное окно, запустите START_HERE и покажите ранее созданную карточку. Попросите пользователя объяснить, откуда приложение восстановило запись." aria-hidden="true" inert>
+<div class="sl-orbit"><i class="sl-ring"></i><svg class="sl-ico" viewBox="0 0 100 100" style="left:90px;top:50px;width:145px;height:145px;transform:rotate(-10deg)"><use href="#ek-i-trophy"/></svg><i class="sl-letter" style="left:1050px;top:80px;width:96px;height:96px;--fs:38px">OK</i><svg class="sl-ico" viewBox="0 0 100 100" style="left:105px;top:520px;width:125px;height:125px"><use href="#ek-i-star"/></svg><svg class="sl-ico" viewBox="0 0 100 100" style="left:1040px;top:520px;width:120px;height:120px"><use href="#ek-i-gem"/></svg></div><div class="cover-center"><div class="bubble"><h1>Сайт закрылся. Данные остались.</h1><p>Веб-приложение сохраняет данные постоянно: оно добавляет, ищет, изменяет и удаляет записи, а после нового запуска восстанавливает игровую коллекцию.</p><div class="cover-chips" style="margin-top:22px"><span class="chip">localhost ✓</span><span class="chip">games.db ✓</span><span class="chip">перезапуск ✓</span></div></div></div>
+</section></main>
+<div class="notes" id="notes"><div class="notes__header">Заметки преподавателя · N — скрыть</div><div class="notes__body" id="notesBody">—</div></div>
+<div class="hint"><kbd>←</kbd><kbd>→</kbd> слайды · <kbd>N</kbd> заметки · <kbd>F</kbd> весь экран</div>
+<svg width="0" height="0" style="position:absolute" aria-hidden="true"><defs>
+<symbol id="ek-i-trophy" viewBox="0 0 100 100"><path fill="currentColor" d="M24 16h52v12h8c6 0 10 4 10 10 0 15-11 25-23 27-3 5-8 9-14 10v8h14c4 0 7 3 7 7v4H22v-4c0-4 3-7 7-7h14v-8c-6-1-11-5-14-10C17 63 6 53 6 38c0-6 4-10 10-10h8V16zM24 36h-7c-2 0-4 2-4 4 0 8 5 15 12 18-1-5-1-10-1-16v-6zM76 36v6c0 6 0 11-1 16 7-3 12-10 12-18 0-2-2-4-4-4h-7z"/></symbol>
+<symbol id="ek-i-heart" viewBox="0 0 100 100"><path fill="currentColor" d="M50 88C28 72 10 56 10 38 10 24 21 14 34 14c6 0 12 3 16 8 4-5 10-8 16-8 13 0 24 10 24 24 0 18-18 34-40 50z"/></symbol>
+<symbol id="ek-i-star" viewBox="0 0 100 100"><path fill="currentColor" d="M50 8l12 27 29 3-22 20 6 29-25-15-25 15 6-29L9 38l29-3z"/></symbol>
+<symbol id="ek-i-gem" viewBox="0 0 100 100"><path fill="currentColor" d="M30 12h40l18 24-38 52L12 36zM36 20l-12 16h20zM64 20l-8 16h20zM50 22l-9 14h18zM26 44l20 30-8-30zM62 44l-8 30 20-30zM46 44h8l-4 26z"/></symbol>
+</defs></svg>
+<script>
+(function(){
+  'use strict';
+  var stage=document.getElementById('deck');
+  function isPortraitMobile(){return window.innerWidth<=700 && window.innerHeight>window.innerWidth;}
+  function fit(){
+    if(isPortraitMobile()){stage.style.transform='none';return;}
+    var w=window.innerWidth,h=window.innerHeight;
+    var s=Math.min(w/1320,h/780);
+    if(document.fullscreenElement)s=Math.min(w/1280,h/720);
+    stage.style.transform='translate(-50%,-50%) scale('+s+')';
+    stage.style.borderRadius=document.fullscreenElement?'0':'18px';
+  }
+  window.addEventListener('resize',fit);document.addEventListener('fullscreenchange',fit);fit();
+
+  var slides=Array.prototype.slice.call(document.querySelectorAll('.slide'));
+  var total=slides.length,lesson=document.body.getAttribute('data-lesson')||'module5';
+  var key='ek-progress-'+lesson;
+  var query=new URLSearchParams(location.search);
+  if(query.get('reset')==='1')localStorage.removeItem(key);
+  var saved=parseInt(localStorage.getItem(key)||'0',10);
+  var idx=Number.isFinite(saved)?Math.max(0,Math.min(total-1,saved)):0;
+  var progress=document.getElementById('progress'),current=document.getElementById('current');
+  var notes=document.getElementById('notes'),notesBody=document.getElementById('notesBody');
+  var prevBtn=document.getElementById('prevBtn'),nextBtn=document.getElementById('nextBtn');
+  document.getElementById('total').textContent=total;
+  slides.forEach(function(s,i){if(s.classList.contains('slide--content'))s.setAttribute('data-page',i+1);});
+  function render(){
+    slides.forEach(function(s,i){s.classList.remove('active','prev');s.setAttribute('aria-hidden',i===idx?'false':'true');s.toggleAttribute('inert',i!==idx);if(i===idx)s.classList.add('active');else if(i<idx)s.classList.add('prev');});
+    progress.style.width=((idx+1)/total*100).toFixed(2)+'%';current.textContent=idx+1;
+    progress.parentElement.setAttribute('aria-valuenow',String(idx+1));
+    notesBody.textContent=slides[idx].getAttribute('data-notes')||'—';
+    prevBtn.disabled=idx===0;nextBtn.disabled=idx===total-1;localStorage.setItem(key,String(idx));
+  }
+  function go(n){idx=Math.max(0,Math.min(total-1,n));render();}
+  prevBtn.addEventListener('click',function(){go(idx-1);});nextBtn.addEventListener('click',function(){go(idx+1);});
+  document.addEventListener('keydown',function(e){
+    var a=document.activeElement;if(a&&(a.isContentEditable||/^(TEXTAREA|INPUT|SELECT|BUTTON)$/.test(a.tagName)))return;
+    if(e.key==='ArrowRight'||e.key==='PageDown'||e.key===' '){e.preventDefault();go(idx+1);}
+    else if(e.key==='ArrowLeft'||e.key==='PageUp'){e.preventDefault();go(idx-1);}
+    else if(e.key==='Home'){e.preventDefault();go(0);}else if(e.key==='End'){e.preventDefault();go(total-1);}
+    else if(['f','F','а','А'].indexOf(e.key)>=0){e.preventDefault();if(!document.fullscreenElement&&document.documentElement.requestFullscreen)document.documentElement.requestFullscreen();else if(document.exitFullscreen)document.exitFullscreen();}
+    else if(['n','N','т','Т'].indexOf(e.key)>=0){e.preventDefault();notes.classList.toggle('active');}
+    else if(e.key==='Escape'){notes.classList.remove('active');}
+  });
+  var tx=0,ty=0;document.addEventListener('touchstart',function(e){tx=e.changedTouches[0].screenX;ty=e.changedTouches[0].screenY;},{passive:true});
+  document.addEventListener('touchend',function(e){var dx=e.changedTouches[0].screenX-tx,dy=e.changedTouches[0].screenY-ty;if(Math.abs(dx)>70&&Math.abs(dx)>Math.abs(dy)*1.25)go(idx+(dx<0?1:-1));},{passive:true});
+  document.addEventListener('click',function(e){if(e.target.closest('a,button,input,textarea,select,.lab-shell,.code-win,.term,.prompt-card,.notes,.app-mock'))return;var x=e.clientX,w=window.innerWidth;if(x<w*.18)go(idx-1);else if(x>w*.82)go(idx+1);});
+  render();
+
+  function normalize(v){return String(v).trim().toLocaleLowerCase('ru').replace(/\s+/g,' ');}
+  document.querySelectorAll('[data-choice-lab]').forEach(function(lab){
+    var feedback=lab.querySelector('.lab-feedback');lab.querySelectorAll('.choice-btn').forEach(function(btn){btn.addEventListener('click',function(){
+      lab.querySelectorAll('.choice-btn').forEach(function(b){b.classList.remove('is-correct','is-wrong');});
+      var ok=btn.getAttribute('data-correct')==='1';btn.classList.add(ok?'is-correct':'is-wrong');
+      feedback.textContent=ok?btn.getAttribute('data-good'):btn.getAttribute('data-bad');feedback.className='lab-feedback '+(ok?'good':'bad');
+    });});
+  });
+  document.querySelectorAll('[data-fill-lab]').forEach(function(lab){
+    var feedback=lab.querySelector('.lab-feedback');lab.querySelector('.fill-check').addEventListener('click',function(){
+      var all=true;lab.querySelectorAll('input[data-answer]').forEach(function(input){var answers=input.getAttribute('data-answer').split('|').map(normalize);var ok=answers.indexOf(normalize(input.value))>=0;input.classList.toggle('is-correct',ok);input.classList.toggle('is-wrong',!ok);input.setAttribute('aria-invalid',ok?'false':'true');all=all&&ok;});
+      feedback.textContent=all?lab.getAttribute('data-good'):lab.getAttribute('data-bad');feedback.className='lab-feedback '+(all?'good':'bad');
+    });
+  });
+  document.querySelectorAll('[data-order-lab]').forEach(function(lab){
+    var pool=lab.querySelector('.order-pool'),result=lab.querySelector('.order-result'),feedback=lab.querySelector('.lab-feedback');
+    function bind(btn){btn.addEventListener('click',function(){(btn.parentElement===pool?result:pool).appendChild(btn);});}
+    Array.prototype.slice.call(pool.querySelectorAll('.order-item')).forEach(bind);
+    lab.querySelector('.order-check').addEventListener('click',function(){var got=Array.prototype.map.call(result.querySelectorAll('.order-item'),function(b){return b.getAttribute('data-key');}).join(',');var ok=got===lab.getAttribute('data-order');feedback.textContent=ok?lab.getAttribute('data-good'):lab.getAttribute('data-bad');feedback.className='lab-feedback '+(ok?'good':'bad');});
+    lab.querySelector('.order-reset').addEventListener('click',function(){var items=Array.prototype.slice.call(lab.querySelectorAll('.order-item'));items.sort(function(a,b){return Number(a.getAttribute('data-shuffle'))-Number(b.getAttribute('data-shuffle'));}).forEach(function(item){pool.appendChild(item);});feedback.textContent='Соберите порядок и проверьте.';feedback.className='lab-feedback';});
+  });
+  document.querySelectorAll('[data-run-lab]').forEach(function(lab){var btn=lab.querySelector('.run-trigger'),steps=Array.prototype.slice.call(lab.querySelectorAll('.run-step'));btn.addEventListener('click',function(){var run=String(Date.now());lab.setAttribute('data-run-id',run);steps.forEach(function(s){s.classList.remove('show');});btn.disabled=true;var reduced=window.matchMedia('(prefers-reduced-motion: reduce)').matches;steps.forEach(function(step,i){setTimeout(function(){if(lab.getAttribute('data-run-id')!==run)return;step.classList.add('show');if(i===steps.length-1)btn.disabled=false;},reduced?0:i*430);});});});
+  document.querySelectorAll('[data-persistence-lab]').forEach(function(lab){
+    var add=lab.querySelector('.persistence-add'),restart=lab.querySelector('.persistence-restart'),reset=lab.querySelector('.persistence-reset');
+    var shortBox=lab.querySelector('.memory-box--short .memory-result'),longBox=lab.querySelector('.memory-box--long .memory-result'),feedback=lab.querySelector('.lab-feedback');
+    function game(box){box.textContent='«Minecraft» — запись есть';box.className='memory-result has-game';}
+    function initial(){shortBox.textContent='Пока пусто';shortBox.className='memory-result';longBox.textContent='Пока пусто';longBox.className='memory-result';add.disabled=false;restart.disabled=true;feedback.textContent='Сначала добавьте игру, затем перезапустите программу.';feedback.className='lab-feedback';}
+    add.addEventListener('click',function(){game(shortBox);game(longBox);add.disabled=true;restart.disabled=false;feedback.textContent='Сейчас оба способа выглядят одинаково. Нажмите «Перезапустить».';feedback.className='lab-feedback';});
+    restart.addEventListener('click',function(){shortBox.textContent='Потеряно после перезапуска';shortBox.className='memory-result is-lost';game(longBox);restart.disabled=true;feedback.textContent='Временная память очистилась. Запись из games.db восстановилась.';feedback.className='lab-feedback good';});
+    reset.addEventListener('click',initial);initial();
+  });
+  document.querySelectorAll('[data-copy-target]').forEach(function(btn){btn.addEventListener('click',async function(){var target=document.getElementById(btn.getAttribute('data-copy-target'));if(!target)return;try{await navigator.clipboard.writeText(target.textContent);btn.textContent='Скопировано';setTimeout(function(){btn.textContent='Скопировать промпт';},1400);}catch(_e){btn.textContent='Выделите текст вручную';}});});
+  document.querySelectorAll('.check-item').forEach(function(btn){btn.addEventListener('click',function(){btn.classList.toggle('done');btn.setAttribute('aria-pressed',btn.classList.contains('done')?'true':'false');});});
+})();
+</script>
+</body>
+</html>
